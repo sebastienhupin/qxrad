@@ -37,7 +37,7 @@ _templateClassDefinition : function()
     {
       var template = new qx.util.StringBuilder();
       template.add("qx.Class.define(\"{{namespace}}\",{\n");
-      template.add("  extend : {{classname}},\n");
+      template.add("  extend : qx.ui.core.Widget,\n");
       template.add("  include : [\n");
       template.add("              qx.ui.core.MLayoutHandling,\n");
       template.add("              qx.ui.core.MChildrenHandling\n");
