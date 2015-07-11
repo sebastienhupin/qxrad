@@ -2,7 +2,10 @@
 Rapid application development for qooxdoo framework. 
 You can drag&amp;drop components, define properties and generate the source code.
 
-Work with qooxdoo version 4.1
+Work with qooxdoo version 5.0
+
+## Install
+  Just clone the repository
 
 ### Clone This Repo
 
