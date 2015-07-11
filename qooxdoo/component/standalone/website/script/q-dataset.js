@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -34,7 +34,7 @@ qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{
  * Module for handling of HTML5 data-* attributes
  */
 qx.Bootstrap.define("qx.module.Dataset", {
-  statics : {
+  members : {
     /**
      * Sets an HTML "data-*" attribute on each item in the collection
      *
@@ -92,7 +92,7 @@ qx.Bootstrap.define("qx.module.Dataset", {
       return qx.bom.element.Dataset.hasData(this[0]);
     },
     /**
-     * Remove an HTML "data-*" attribute from the given DOM element
+     * Remove an HTML "data-*" attribute on each item in the collection
      *
      * @attach {qxWeb}
      * @param name {String} Name of the attribute
@@ -100,22 +100,16 @@ qx.Bootstrap.define("qx.module.Dataset", {
      */
     removeData : function(name){
 
-      if(this[0] && this[0].nodeType === 1){
+      this._forEachElement(function(item){
 
-        qx.bom.element.Dataset.remove(this[0], name);
-      };
+        qx.bom.element.Dataset.remove(item, name);
+      });
       return this;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "getData" : statics.getData,
-      "setData" : statics.setData,
-      "removeData" : statics.removeData,
-      "getAllData" : statics.getAllData,
-      "hasData" : statics.hasData
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -173,11 +167,13 @@ qx.Bootstrap.define("qx.bom.element.Dataset", {
         };
       } else {
 
-        if(value === undefined){
+        if((value === null) || (value == undefined)){
 
-          value = null;
+          qx.bom.element.Attribute.reset(element, "data-" + qx.lang.String.hyphenate(name));
+        } else {
+
+          qx.bom.element.Attribute.set(element, "data-" + qx.lang.String.hyphenate(name), value);
         };
-        qx.bom.element.Attribute.set(element, "data-" + qx.lang.String.hyphenate(name), value);
       };
     },
     /**

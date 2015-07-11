@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -33,12 +33,6 @@ qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{
 /**
  * Provides a way to block elements so they will no longer receive (native)
  * events by overlaying them with a DIV element.
- *
- * The blocker can also be applied to the entire document, e.g.:
- *
- * <pre class="javascript">
- * q(document).block();
- * </pre>
  *
  * @require(qx.module.Environment)
  * @require(qx.module.Manipulating)
@@ -152,7 +146,9 @@ qxWeb.define("qx.module.Blocker", {
         };
       });
       return blockerElements;
-    },
+    }
+  },
+  members : {
     /**
      * Adds an overlay to all items in the collection that intercepts mouse
      * events.
@@ -212,11 +208,7 @@ qxWeb.define("qx.module.Blocker", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "block" : statics.block,
-      "unblock" : statics.unblock,
-      "getBlocker" : statics.getBlocker
-    });
+    qxWeb.$attachAll(this);
   }
 });
 

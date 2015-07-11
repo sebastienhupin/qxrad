@@ -138,7 +138,7 @@ Define the paths to cache directories, particularly to the compile cache. Takes 
 Possible keys are
 
 * **compile** : path to the "main" cache, the directory where compile results are cached, relative to the current (default:  ":doc:`${CACHE} <generator_config_macros>`")
-* **downloads** : directory where to put downloads (e.g. ``contrib://*`` libraries), relative to the current (default: ":doc:`${CACHE} <generator_config_macros>`/downloads")
+* **downloads** : directory where to put downloads, relative to the current (default: ":doc:`${CACHE} <generator_config_macros>`/downloads")
 * **invalidate-on-tool-change** : when true, the *compile* cache (but not the downloads) will be cleared whenever the tool chain is newer (relevant mainly for trunk users; default: *true*)
 
 :ref:`Special section <pages/tool/generator/generator_config_articles#cache_key>`
@@ -705,20 +705,10 @@ Define libraries to be taken into account for this job. Takes an array of maps.
 
 Each map can contain the keys
 
-* **manifest** *(required)* : specifies the qooxdoo library to use; can take
-  several forms:
+* **manifest** *(required)* : specifies the qooxdoo library to use:
 
-  * *a local file system path*: This must reference the Manifest file of
+  * *local file system path*: This must reference the Manifest file of
     the library; may be relative to config file location.
-  * ``contrib://`` *URL*: This must reference the catalog Manifest file of a
-    contribution's version, as available in the :doc:`qooxdoo-contrib
-    </pages/development/contrib>` catalog.
-  * ``http(s)://`` *URL*: This must reference one of two things:
-
-    * *a downloadeable archive*: The URL ends in an archive extension (like
-      *.zip*), the archive contains the contribution library.
-    * *a .json file*: The referenced JSON file is a catalog-style Manifest file which
-      contains a download URL.
 
 * **uri** : URI prefix from your HTML file to the directory of the library's
   "Manifest" file
@@ -1215,30 +1205,6 @@ you should write ::
 and it will work from everywhere.
 
 * **command-not-found** : message string to be shown if command is not found within PATH system variable and it's not a built-in shell command
-
-.. _pages/tool/generator/generator_config_ref#simulate:
-
-simulate (deprecated)
-=====================
-
-Runs a suite of GUI tests (simulated interaction). Takes a map.
-
-::
-
-  "simulate" :
-  {
-    "java-classpath" : ["../rhino/js.jar", "../selenium/selenium-java-client-driver.jar"],
-    "qxselenium-path" : "${SIMULATOR_ROOT}/tool",
-    "rhino-class" : "org.mozilla.javascript.tools.shell.Main",
-    "simulator-script" : "${BUILD_PATH}/script/simulator.js"
-  }
-
-Possible keys are
-
-* **java-classpath** *(required)*: Java classpath argument for Rhino application. Takes an Array. Must point to the Selenium client driver and Rhino JARs. (default: *${SIMULATOR_CLASSPATH}*)
-* **qxselenium-path** *(required)*: Location of the QxSelenium Java class. (default: *${SIMULATOR_ROOT}/tool*)
-* **rhino-class** *(required)*: Full name of the Mozilla Rhino class that should be used to run the simulation. Set to *org.mozilla.javascript.tools.debugger.Main* to run the test application in Rhino's visual debugger. (default: *org.mozilla.javascript.tools.shell.Main*)
-* **simulator-script** *(required)*: Path of the compiled Simulator application to be run. (default: *${ROOT}/simulator/script/simulator.js*)
 
 .. _pages/tool/generator/generator_config_ref#slice-images:
 

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Introduction to Properties &mdash; qooxdoo 4.1 documentation</title>
+    <title>Introduction to Properties &mdash; qooxdoo 5.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '4.1',
+        VERSION:     '5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -33,7 +33,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="qooxdoo 4.1 documentation" href="../../index.html" />
+    <link rel="top" title="qooxdoo 5.0 documentation" href="../../index.html" />
     <link rel="up" title="Core" href="../core.html" />
     <link rel="next" title="Properties in more detail" href="defining_properties.html" />
     <link rel="prev" title="Mixins" href="mixins.html" />
@@ -132,7 +132,7 @@
   <section id="breadcrumb">
       
   <a href="http://qooxdoo.org">Home</a> &raquo;
-    <a href="../../index.html">Manual (v4.1)</a>
+    <a href="../../index.html">Manual (v5.0)</a>
        &raquo;
       <a href="../core.html" accesskey="U">Core</a>
      &raquo;
@@ -234,11 +234,11 @@
 </div>
 <p>If this happens, you would like to set the DOM element's content:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">widget</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;changeElement&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">e</span><span class="p">.</span><span class="nx">getValue</span><span class="p">().</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s2">&quot;Hello World&quot;</span><span class="p">;</span>
+  <span class="nx">e</span><span class="p">.</span><span class="nx">getData</span><span class="p">().</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s2">&quot;Hello World&quot;</span><span class="p">;</span>
 <span class="p">});</span>
 </pre></div>
 </div>
-<p>The anonymous function acts as an event handler that receives the event object as variable <tt class="docutils literal"><span class="pre">e</span></tt>. Calling the predefined method <tt class="docutils literal"><span class="pre">getValue()</span></tt> returns the new value of property <tt class="docutils literal"><span class="pre">element</span></tt>.</p>
+<p>The anonymous function acts as an event handler that receives the event object as variable <tt class="docutils literal"><span class="pre">e</span></tt>. Calling the predefined method <tt class="docutils literal"><span class="pre">getData()</span></tt> returns the new value of property <tt class="docutils literal"><span class="pre">element</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="available-methods">
@@ -389,6 +389,9 @@ Each property creates (at least) the following set of methods:</p>
             <a href="http://bugs.qooxdoo.org">Bugs</a>
           </li>
           <li>
+            <a href="/project">Project</a>
+          </li>
+          <li>
             <a href="http://qooxdoo.org/license">License</a>
           </li>
         </ul>
@@ -398,22 +401,22 @@ Each property creates (at least) the following set of methods:</p>
         <ul>
           <li>
             
-            <a href="http://manual.qooxdoo.org/4.1/pages/introduction/about.html">About</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/introduction/about.html">About</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/getting_started.html">Getting Started</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/getting_started.html">Getting Started</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/website.html">Website</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/website.html">Website</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/mobile.html">Mobile</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/mobile.html">Mobile</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/desktop.html">Desktop</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/desktop.html">Desktop</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/server.html">Server</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/server.html">Server</a>
           </li>
         </ul>
       </div>
@@ -428,9 +431,6 @@ Each property creates (at least) the following set of methods:</p>
           </li>
           <li>
             <a href="http://qooxdoo.org/community/real_life_examples">Real Life Examples</a>
-          </li>
-          <li>
-            <a href="http://qooxdoo.org/community/events">Events</a>
           </li>
           <li>
             <a href="http://qooxdoo.org/community/jobs_services">Jobs &amp; Services</a>
@@ -460,7 +460,7 @@ Each property creates (at least) the following set of methods:</p>
           </strong>
         </p>
         <p class="page">
-              &copy; Copyright 2011-2013, 1&amp;1 Internet AG.
+              &copy; Copyright 2011-2015, 1&amp;1 Internet AG.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
         </p>
       </div>

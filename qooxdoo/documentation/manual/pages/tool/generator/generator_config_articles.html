@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Generator Configuration Details &mdash; qooxdoo 4.1 documentation</title>
+    <title>Generator Configuration Details &mdash; qooxdoo 5.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '4.1',
+        VERSION:     '5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -33,7 +33,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="qooxdoo 4.1 documentation" href="../../../index.html" />
+    <link rel="top" title="qooxdoo 5.0 documentation" href="../../../index.html" />
     <link rel="up" title="Tooling" href="../../tool.html" />
     <link rel="next" title="Branching in Configuration Files" href="config_branching.html" />
     <link rel="prev" title="Tweaking Configurations" href="config_tweaking.html" />
@@ -132,7 +132,7 @@
   <section id="breadcrumb">
       
   <a href="http://qooxdoo.org">Home</a> &raquo;
-    <a href="../../../index.html">Manual (v4.1)</a>
+    <a href="../../../index.html">Manual (v5.0)</a>
        &raquo;
       <a href="../../tool.html" accesskey="U">Tooling</a>
      &raquo;
@@ -264,7 +264,7 @@ dedicated parts (and consequently, packages), one for each locale (see
 you only load exactly those resources which you need for a specific locale,
 leaving all others on the server. On the downside, like with other parts
 those parts have to be actively loaded by the application (using
-<a class="reference external" href="http://demo.qooxdoo.org/4.1/apiviewer/#qx.io.PartLoader">qx.io.PartLoader.require</a>), and
+<a class="reference external" href="http://demo.qooxdoo.org/5.0/apiviewer/#qx.io.PartLoader">qx.io.PartLoader.require</a>), and
 switching the locale at runtime requires another server roundtrip for the new
 locale.</p>
 <p>So the build system allows you to tailor where resource information is stored
@@ -474,51 +474,12 @@ library root directory and end in the library's <em>Manifest.json</em>:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">..</span><span class="o">/</span><span class="p">..</span><span class="o">/</span><span class="nx">mylib</span><span class="o">/</span><span class="nx">utils</span><span class="o">/</span><span class="nx">Manifest</span><span class="p">.</span><span class="nx">json</span>
 </pre></div>
 </div>
-<p>Like in this example paths can be relative, and will be calculated from the
+<p class="last">Like in this example paths can be relative, and will be calculated from the
 configuration file they appear in. The Generator will search the Manifest file
 especially for the <em>provides</em> keys, e.g. <em>provides/class</em> which points to the
 library's class path.</p>
-<p class="last">The other possible values are concerned with network-base libraries.</p>
-</dd>
-<dt>contrib:// URL</dt>
-<dd><p class="first">If the value starts with <tt class="docutils literal"><span class="pre">contrib://</span></tt> there will be a lookup in the
-<a class="reference internal" href="../../development/contrib.html"><em>contribution catalog</em></a> for the given
-contribution and version. For example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">contrib</span><span class="o">:</span><span class="c1">//UploadWidget/0.4/Manifest.json</span>
-</pre></div>
-</div>
-<p>will look in the catalog for a contribution named &quot;UploadWidget&quot; and below
-that for a version named &quot;0.4&quot;. This must contain a file &quot;Manifest.json&quot; that
-contains a download link to an archive, and some other entries to assist in
-downloading.</p>
-<p class="last">The archive will be downloaded and unpacked, and then used by the Generator
-like a local library.</p>
-</dd>
-<dt>http(s):// URL</dt>
-<dd><p class="first">If the value starts with <tt class="docutils literal"><span class="pre">http://</span></tt> or <tt class="docutils literal"><span class="pre">https://</span></tt> there are two cases:</p>
-<ul class="last">
-<li><p class="first">Either it points to a file that has an archive extension (like <em>.zip</em> or
-<em>.tar.gz</em>), it will be downloaded and unpacked, just like with a contribution
-archive. Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">http</span><span class="o">:</span><span class="c1">//example.com/foo/bar/my-contrib-0.3.tar.gz</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Or it points to a file that has a <em>.json</em> extension. Then it will be
-evaluated like a catalog entry-style <em>Manifest.json</em> file and the download
-information therein will be used to get to the archive. Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">http</span><span class="o">:</span><span class="c1">//example.com/foo/bar/MyContrib-0.3.catalog.json</span>
-</pre></div>
-</div>
-</li>
-</ul>
 </dd>
 </dl>
-<p>Mind that for network-based libraries the JSON files pointed to by a URL is
-searched for the <em>download</em> information for the archive, while the downloaded
-archive itself needs to contain a <em>Manifest.json</em> file (literally) which is
-searched for information about the actual library contents (e.g. classes).
-See the <a class="reference internal" href="../../development/contrib.html"><em>contribution page</em></a> for details.</p>
 </div>
 <div class="section" id="uri-handling">
 <span id="pages-tool-generator-generator-config-articles-uri-handling"></span><h3>URI handling<a class="headerlink" href="#uri-handling" title="Permalink to this headline">¶</a></h3>
@@ -573,12 +534,12 @@ and translation files (.po).</p>
 </div>
 <p>So for example a graphics file in the qooxdoo framework might get referenced using the following components</p>
 <ul class="simple">
-<li>[1] <em>&quot;../../qooxdoo-4.1-sdk/framework/&quot;</em></li>
+<li>[1] <em>&quot;../../qooxdoo-5.0-sdk/framework/&quot;</em></li>
 <li>[2] <em>&quot;source/resource/&quot;</em></li>
 <li>[3] <em>&quot;qx/static/blank.gif&quot;</em></li>
 </ul>
 <p>to produce the final URI
-<em>&quot;../../qooxdoo-4.1-sdk/framework/source/resource/qx/static/ blank.gif&quot;</em>.</p>
+<em>&quot;../../qooxdoo-5.0-sdk/framework/source/resource/qx/static/ blank.gif&quot;</em>.</p>
 <p>These general parts have the following meaning:</p>
 <ul class="simple">
 <li><strong>[1]</strong> : URI path to the library root (as will be valid when running the app in the browser). If you specify the <a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-library"><em>uri</em></a> parameter of the library's entry in your config, this is what gets used here.</li>
@@ -601,7 +562,7 @@ and translation files (.po).</p>
 <p>For the <strong>build</strong> version, dedicated keys <a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-compile-options"><em>uris/script</em></a> and  <a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-compile-options"><em>uris/resource</em></a> are available (as there is virtually only one &quot;library&quot;). The values of both keys cover the scope of components [1] + [2] in the first figure.</p>
 <p>Since [1.2] is always known (otherwise the whole library would not be found), only [1.1] has to be given in the config. The properties of this approach, compared to specifying just [1], are:</p>
 <ul class="simple">
-<li><em>The application root can be specified individually for each compile job.</em> This means you could have more than one application root in your project, e.g. when your main application offers an iframe, into which another application from the same project is loaded; qooxdoo's <a class="reference external" href="http://demo.qooxdoo.org/4.1/demobrowser">Demobrowser</a> application takes advantage of exactly this.</li>
+<li><em>The application root can be specified individually for each compile job.</em> This means you could have more than one application root in your project, e.g. when your main application offers an iframe, into which another application from the same project is loaded; qooxdoo's <a class="reference external" href="http://demo.qooxdoo.org/5.0/demobrowser">Demobrowser</a> application takes advantage of exactly this.</li>
 <li><em>Relative file system paths have to match with relative URIs in the running application.</em> So this approach won't work if e.g the relative path from your config directory to the library makes no sense when the app is run from a web server.</li>
 </ul>
 <p>From the above discussion, there is one important point to take away, in order to create working URIs in your application:</p>
@@ -658,7 +619,7 @@ and translation files (.po).</p>
 <li>By default, I18N data, i.e. translations from the .po files and CLDR data, is integrated as Javascript data with the application packages (either as part of the first .js file of a package, or in its own .js file). This package-specific data will encompass the data for all configured locales needed in this package (Think: Data cumulated by package).</li>
 <li>Setting <em>packages/i18n-as-parts: true</em> removes this data from the packages. Rather, data for <em>each individual locale</em> (en, en_US, de, de_DE, ...) will be collated in a dedicated <em>part</em>, the part name being that of the respective language code (Think: Data cumulated by locale). As usual, each part is made up of packages. In the case of an I18N part, these are the corresponding data package plus fall-back packages for key lookup (e.g. [&quot;C&quot;, &quot;en&quot;, &quot;en_US&quot;] for the part <em>en_US</em>). Each package is a normal qooxdoo package with only the data section, and without the code section.</li>
 </ul>
-<p>So far, so good. With the config key set to <em>true</em>, this is the point where the application developer has to take over. The application will not load the I18N parts by itself. You have to do it using the usual part loading API (e.g. <tt class="docutils literal"><span class="pre">qx.io.PartLoader.require([&quot;en_US&quot;])</span></tt>). You might want to do that early in the application run cycle, e.g. during application start-up and before the first translatable string or localizable data is to be displayed. After loading the part, the corresponding locale is ready to be used in the normal way in your application. The <a class="reference external" href="http://demo.qooxdoo.org/4.1/feedreader">Feedreader</a> application uses this technique to load a different I18N part when the language is changed in its <em>Preferences</em> dialog.</p>
+<p>So far, so good. With the config key set to <em>true</em>, this is the point where the application developer has to take over. The application will not load the I18N parts by itself. You have to do it using the usual part loading API (e.g. <tt class="docutils literal"><span class="pre">qx.io.PartLoader.require([&quot;en_US&quot;])</span></tt>). You might want to do that early in the application run cycle, e.g. during application start-up and before the first translatable string or localizable data is to be displayed. After loading the part, the corresponding locale is ready to be used in the normal way in your application. The <a class="reference external" href="http://demo.qooxdoo.org/5.0/feedreader">Feedreader</a> application uses this technique to load a different I18N part when the language is changed in its <em>Preferences</em> dialog.</p>
 </div>
 </div>
 <div class="section" id="include-key-top-level-adding-features">
@@ -752,7 +713,7 @@ to remove debugging code from the build version. It is comparable to
 conditional compilation in C/C++.</p>
 <p>For any generation process of a build version of an app, there is a certain set
 of environment settings in effect. If variant optimization is turned on, code
-is variant-optimized by looking at certain calls to <a class="reference external" href="http://demo.qooxdoo.org/4.1/apiviewer#qx.core.Environment">qx.core.Environment</a> that
+is variant-optimized by looking at certain calls to <a class="reference external" href="http://demo.qooxdoo.org/5.0/apiviewer#qx.core.Environment">qx.core.Environment</a> that
 reference an environment key that has an existing setting. See the
 <a class="reference internal" href="generator_optimizations.html#pages-tool-generator-generator-optimizations-variants"><em>optimization section</em></a> for details about
 that.</p>
@@ -834,11 +795,6 @@ you have two new files (<tt class="docutils literal"><span class="pre">build/scr
 <p>You can change the <tt class="docutils literal"><span class="pre">build/index.html</span></tt> manually but it gets overridden every
 time. This can be a workaround for the time being.</p>
 </div>
-<div class="section" id="browser-specific-builds">
-<span id="pages-tool-generator-generator-config-articles-browser-specific-builds"></span><h3>Browser-specific Builds<a class="headerlink" href="#browser-specific-builds" title="Permalink to this headline">¶</a></h3>
-<p>By predefining select environment keys, builds can be tailored towards specific
-clients. See the <a class="reference internal" href="../../application/featureconfigeditor.html#pages-application-featureconfigeditor-featureconfigeditor"><em>Feature Configuration Editor article</em></a> for instructions.</p>
-</div>
 </div>
 </div>
 
@@ -914,7 +870,6 @@ clients. See the <a class="reference internal" href="../../application/featureco
 <li><a class="reference internal" href="#variant-specific-builds">Variant-specific Builds</a></li>
 <li><a class="reference internal" href="#how-to-create-multiple-variants-in-one-go">How to Create Multiple Variants in One Go</a></li>
 <li><a class="reference internal" href="#caveat">Caveat</a></li>
-<li><a class="reference internal" href="#browser-specific-builds">Browser-specific Builds</a></li>
 </ul>
 </li>
 </ul>
@@ -978,6 +933,9 @@ clients. See the <a class="reference internal" href="../../application/featureco
             <a href="http://bugs.qooxdoo.org">Bugs</a>
           </li>
           <li>
+            <a href="/project">Project</a>
+          </li>
+          <li>
             <a href="http://qooxdoo.org/license">License</a>
           </li>
         </ul>
@@ -987,22 +945,22 @@ clients. See the <a class="reference internal" href="../../application/featureco
         <ul>
           <li>
             
-            <a href="http://manual.qooxdoo.org/4.1/pages/introduction/about.html">About</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/introduction/about.html">About</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/getting_started.html">Getting Started</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/getting_started.html">Getting Started</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/website.html">Website</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/website.html">Website</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/mobile.html">Mobile</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/mobile.html">Mobile</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/desktop.html">Desktop</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/desktop.html">Desktop</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/server.html">Server</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/server.html">Server</a>
           </li>
         </ul>
       </div>
@@ -1017,9 +975,6 @@ clients. See the <a class="reference internal" href="../../application/featureco
           </li>
           <li>
             <a href="http://qooxdoo.org/community/real_life_examples">Real Life Examples</a>
-          </li>
-          <li>
-            <a href="http://qooxdoo.org/community/events">Events</a>
           </li>
           <li>
             <a href="http://qooxdoo.org/community/jobs_services">Jobs &amp; Services</a>
@@ -1049,7 +1004,7 @@ clients. See the <a class="reference internal" href="../../application/featureco
           </strong>
         </p>
         <p class="page">
-              &copy; Copyright 2011-2013, 1&amp;1 Internet AG.
+              &copy; Copyright 2011-2015, 1&amp;1 Internet AG.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
         </p>
       </div>

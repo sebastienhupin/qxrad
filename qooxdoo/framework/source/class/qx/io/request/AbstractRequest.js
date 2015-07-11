@@ -170,15 +170,18 @@ qx.Class.define("qx.io.request.AbstractRequest",
     },
 
     /**
-     * Data to be send as part of the request.
+     * Data to be sent as part of the request.
      *
      * Supported types:
      *
      * * String
      * * Map
      * * qooxdoo Object
+     * * Blob
+     * * ArrayBuffer
+     * * FormData
      *
-     * For every supported type except strings, a URL encoded string
+     * For maps, Arrays and qooxdoo objects, a URL encoded string
      * with unsafe characters escaped is internally generated and sent
      * as part of the request.
      *
@@ -195,7 +198,10 @@ qx.Class.define("qx.io.request.AbstractRequest",
         return qx.lang.Type.isString(value) ||
                qx.Class.isSubClassOf(value.constructor, qx.core.Object) ||
                qx.lang.Type.isObject(value) ||
-               qx.lang.Type.isArray(value);
+               qx.lang.Type.isArray(value) ||
+               qx.Bootstrap.getClass(value) == "Blob" ||
+               qx.Bootstrap.getClass(value) == "ArrayBuffer" ||
+               qx.Bootstrap.getClass(value) == "FormData";
       },
       nullable: true
     },
@@ -346,7 +352,7 @@ qx.Class.define("qx.io.request.AbstractRequest",
      */
     send: function() {
       var transport = this._transport,
-          url, method, async, serializedData;
+          url, method, async, requestData;
 
       //
       // Open request
@@ -379,7 +385,10 @@ qx.Class.define("qx.io.request.AbstractRequest",
       // Send request
       //
 
-      serializedData = this._serializeData(this.getRequestData());
+      requestData = this.getRequestData();
+      if (["ArrayBuffer", "Blob", "FormData"].indexOf(qx.Bootstrap.getClass(requestData)) == -1) {
+        requestData = this._serializeData(requestData);
+      }
 
       this._setRequestHeaders();
 
@@ -387,7 +396,8 @@ qx.Class.define("qx.io.request.AbstractRequest",
       if (qx.core.Environment.get("qx.debug.io")) {
         this.debug("Send low-level request");
       }
-      method == "GET" ? transport.send() : transport.send(serializedData);
+
+      method == "GET" ? transport.send() : transport.send(requestData);
       this._setPhase("sent");
     },
 
@@ -860,6 +870,8 @@ qx.Class.define("qx.io.request.AbstractRequest",
       if (qx.lang.Type.isObject(data)) {
         return qx.util.Uri.toParameter(data, isPost);
       }
+
+      return null;
     }
   },
 

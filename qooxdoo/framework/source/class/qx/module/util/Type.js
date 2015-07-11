@@ -21,10 +21,6 @@
  * Utility for checking the type of a variable.
  * It adds a <code>type</code> key static to q and offers the given method.
  *
- * <pre class="javascript">
- * q.type.get("abc"); // return "String" e.g.
- * </pre>
- *
  * @group (Utilities)
  */
 qx.Bootstrap.define("qx.module.util.Type", {
@@ -52,10 +48,6 @@ qx.Bootstrap.define("qx.module.util.Type", {
 
 
   defer : function(statics) {
-    qxWeb.$attachStatic({
-      type : {
-        get : statics.get
-      }
-    });
+    qxWeb.$attachAll(this, "type");
   }
 });

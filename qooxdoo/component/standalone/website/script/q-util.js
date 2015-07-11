@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -183,22 +183,7 @@ qx.Bootstrap.define("qx.module.util.Array", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      array : {
-        cast : statics.cast,
-        equals : statics.equals,
-        exclude : statics.exclude,
-        fromArguments : statics.fromArguments,
-        insertAfter : statics.insertAfter,
-        insertBefore : statics.insertBefore,
-        max : statics.max,
-        min : statics.min,
-        remove : statics.remove,
-        removeAll : statics.removeAll,
-        unique : statics.unique,
-        range : statics.range
-      }
-    });
+    qxWeb.$attachAll(this, "array");
   }
 });
 
@@ -897,7 +882,6 @@ qx.Bootstrap.define("qx.util.StringEscape", {
      * @param str {String} string to escape
      * @param charCodeToEntities {Map} entity to charcode map
      * @return {String} escaped string
-     * @signature function(str, charCodeToEntities)
      */
     escape : function(str, charCodeToEntities){
 
@@ -999,9 +983,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     /**
      * Converts a hyphenated string (separated by '-') to camel case.
      *
-     * Example:
-     * <pre class='javascript'>q.string.camelCase("I-like-cookies"); //returns "ILikeCookies"</pre>
-     *
      * @attachStatic {qxWeb, string.camelCase}
      * @param str {String} hyphenated string
      * @return {String} camelcase string
@@ -1012,9 +993,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     },
     /**
      * Converts a camelcased string to a hyphenated (separated by '-') string.
-     *
-     * Example:
-     * <pre class='javascript'>q.string.hyphenate("weLikeCookies"); //returns "we-like-cookies"</pre>
      *
      * @attachStatic {qxWeb, string.hyphenate}
      * @param str {String} camelcased string
@@ -1073,8 +1051,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     escapeRegexpChars : qx.lang.String.escapeRegexpChars,
     /**
      * Escapes the characters in a <code>String</code> using HTML entities.
-     *
-     * For example: <tt>"bread" & "butter"</tt> => <tt>&amp;quot;bread&amp;quot; &amp;amp; &amp;quot;butter&amp;quot;</tt>.
      * Supports all known HTML 4.0 entities, including funky accents.
      *
      * @attachStatic {qxWeb, string.escapeHtml}
@@ -1086,18 +1062,7 @@ qx.Bootstrap.define("qx.module.util.String", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      string : {
-        camelCase : statics.camelCase,
-        hyphenate : statics.hyphenate,
-        firstUp : statics.firstUp,
-        firstLow : statics.firstLow,
-        startsWith : statics.startsWith,
-        endsWith : statics.endsWith,
-        escapeRegexpChars : statics.escapeRegexpChars,
-        escapeHtml : statics.escapeHtml
-      }
-    });
+    qxWeb.$attachAll(this, "string");
   }
 });
 
@@ -1122,10 +1087,6 @@ qx.Bootstrap.define("qx.module.util.String", {
 /**
  * Utility for checking the type of a variable.
  * It adds a <code>type</code> key static to q and offers the given method.
- *
- * <pre class="javascript">
- * q.type.get("abc"); // return "String" e.g.
- * </pre>
  *
  * @group (Utilities)
  */
@@ -1153,11 +1114,7 @@ qx.Bootstrap.define("qx.module.util.Type", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      type : {
-        get : statics.get
-      }
-    });
+    qxWeb.$attachAll(this, "type");
   }
 });
 
@@ -1254,15 +1211,7 @@ qx.Bootstrap.define("qx.module.util.Object", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "object" : {
-        "clone" : statics.clone,
-        "getValues" : statics.getValues,
-        "invert" : statics.invert,
-        "contains" : statics.contains,
-        "merge" : statics.merge
-      }
-    });
+    qxWeb.$attachAll(this, "object");
   }
 });
 
@@ -1479,12 +1428,7 @@ qx.Bootstrap.define("qx.module.util.Function", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      func : {
-        debounce : statics.debounce,
-        throttle : statics.throttle
-      }
-    });
+    qxWeb.$attachAll(this, "func");
   }
 });
 

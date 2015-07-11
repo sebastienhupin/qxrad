@@ -23,6 +23,7 @@ q.ready(function() {
     accordion : ["Default", "Responsive"],
     button : ["Default"],
     calendar : ["Default", "Range Selection","Customized"],
+    carousel : ["Default"],
     datepicker : ["Default", "Customized"],
     rating : ["Default", "Custom Length", "Custom Symbol", "Custom Styling"],
     slider : ["Default", "Customized"],
@@ -38,9 +39,9 @@ q.ready(function() {
     q("#content > ul > .qx-tabs-button")._forEachElementWrapped(function(button) {
       var selector = button.getData("qx-tabs-page");
       var widgets = q(selector).find("*[data-qx-class]");
-      if (widgets.length > 0) {
-        widgets.setEnabled(enabled);
-      }
+      widgets._forEachElementWrapped(function(widget) {
+        widget.setEnabled(enabled);
+      });
     });
   };
 

@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -707,7 +707,6 @@ qx.Bootstrap.define("qx.util.StringEscape", {
      * @param str {String} string to escape
      * @param charCodeToEntities {Map} entity to charcode map
      * @return {String} escaped string
-     * @signature function(str, charCodeToEntities)
      */
     escape : function(str, charCodeToEntities){
 
@@ -809,9 +808,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     /**
      * Converts a hyphenated string (separated by '-') to camel case.
      *
-     * Example:
-     * <pre class='javascript'>q.string.camelCase("I-like-cookies"); //returns "ILikeCookies"</pre>
-     *
      * @attachStatic {qxWeb, string.camelCase}
      * @param str {String} hyphenated string
      * @return {String} camelcase string
@@ -822,9 +818,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     },
     /**
      * Converts a camelcased string to a hyphenated (separated by '-') string.
-     *
-     * Example:
-     * <pre class='javascript'>q.string.hyphenate("weLikeCookies"); //returns "we-like-cookies"</pre>
      *
      * @attachStatic {qxWeb, string.hyphenate}
      * @param str {String} camelcased string
@@ -883,8 +876,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     escapeRegexpChars : qx.lang.String.escapeRegexpChars,
     /**
      * Escapes the characters in a <code>String</code> using HTML entities.
-     *
-     * For example: <tt>"bread" & "butter"</tt> => <tt>&amp;quot;bread&amp;quot; &amp;amp; &amp;quot;butter&amp;quot;</tt>.
      * Supports all known HTML 4.0 entities, including funky accents.
      *
      * @attachStatic {qxWeb, string.escapeHtml}
@@ -896,18 +887,7 @@ qx.Bootstrap.define("qx.module.util.String", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      string : {
-        camelCase : statics.camelCase,
-        hyphenate : statics.hyphenate,
-        firstUp : statics.firstUp,
-        firstLow : statics.firstLow,
-        startsWith : statics.startsWith,
-        endsWith : statics.endsWith,
-        escapeRegexpChars : statics.escapeRegexpChars,
-        escapeHtml : statics.escapeHtml
-      }
-    });
+    qxWeb.$attachAll(this, "string");
   }
 });
 
@@ -933,7 +913,7 @@ qx.Bootstrap.define("qx.module.util.String", {
  * Module for handling of HTML5 data-* attributes
  */
 qx.Bootstrap.define("qx.module.Dataset", {
-  statics : {
+  members : {
     /**
      * Sets an HTML "data-*" attribute on each item in the collection
      *
@@ -991,7 +971,7 @@ qx.Bootstrap.define("qx.module.Dataset", {
       return qx.bom.element.Dataset.hasData(this[0]);
     },
     /**
-     * Remove an HTML "data-*" attribute from the given DOM element
+     * Remove an HTML "data-*" attribute on each item in the collection
      *
      * @attach {qxWeb}
      * @param name {String} Name of the attribute
@@ -999,22 +979,16 @@ qx.Bootstrap.define("qx.module.Dataset", {
      */
     removeData : function(name){
 
-      if(this[0] && this[0].nodeType === 1){
+      this._forEachElement(function(item){
 
-        qx.bom.element.Dataset.remove(this[0], name);
-      };
+        qx.bom.element.Dataset.remove(item, name);
+      });
       return this;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "getData" : statics.getData,
-      "setData" : statics.setData,
-      "removeData" : statics.removeData,
-      "getAllData" : statics.getAllData,
-      "hasData" : statics.hasData
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -1072,11 +1046,13 @@ qx.Bootstrap.define("qx.bom.element.Dataset", {
         };
       } else {
 
-        if(value === undefined){
+        if((value === null) || (value == undefined)){
 
-          value = null;
+          qx.bom.element.Attribute.reset(element, "data-" + qx.lang.String.hyphenate(name));
+        } else {
+
+          qx.bom.element.Attribute.set(element, "data-" + qx.lang.String.hyphenate(name), value);
         };
-        qx.bom.element.Attribute.set(element, "data-" + qx.lang.String.hyphenate(name), value);
       };
     },
     /**
@@ -1222,13 +1198,6 @@ qx.Bootstrap.define("qx.module.event.Native", {
     },
     /**
      * Returns the target of the event.
-     * Example:
-     * <pre class="javascript">
-     *   var collection = q("div.inline");
-     *   collection.on("click", function(e) {
-     *     var clickedElement = e.getTarget();
-     *   });
-     * </pre>
      *
      * @signature function ()
      * @return {Object} Any valid native event target
@@ -1238,24 +1207,6 @@ qx.Bootstrap.define("qx.module.event.Native", {
     /**
      * Computes the related target from the native DOM event
      *
-     * Example:
-     * <pre class="javascript">
-     *   var collection = q("div.inline");
-     *   collection.on("mouseout", function(e) {
-     *     // when using 'mouseout' events the 'relatedTarget' is pointing to the DOM element
-     *     //  the device exited to.
-     *     // Useful for scenarios you only interested if e.g. the user moved away from a
-     *     // section at the website
-     *     var exitTarget = e.getRelatedTarget();
-     *   });
-     *
-     *   collection.on("mouseover", function(e){
-     *      // when using 'mouseover' events the 'relatedTarget' is pointing to the DOM element
-     *      // the device entered from.
-     *      var earlierElement = e.getRelatedTarget();
-     *   });
-     * </pre>
-     *
      * @signature function ()
      * @return {Element} The related target
      */
@@ -1264,14 +1215,6 @@ qx.Bootstrap.define("qx.module.event.Native", {
     /**
      * Computes the current target from the native DOM event. Emulates the current target
      * for all browsers without native support (like older IEs).
-     *
-     * Example:
-     * <pre class="javascript">
-     *   var collection = q("div.inline");
-     *   collection.on("mouseout", function(e) {
-     *     var current = e.getCurrentTarget();
-     *   });
-     * </pre>
      *
      * @signature function ()
      * @return {Element} The current target
@@ -1356,15 +1299,15 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
      * Factory method for the widget which converts a standard
      * collection into a collection of widgets.
      *
-     * @return {qx.ui.website.Widget} A collection of widgets.
+     * @return {qx.ui.website.Widget} A widget.
      *
      * @attach {qxWeb}
      */
     widget : function(){
 
-      var widgets = new qx.ui.website.Widget(this);
-      widgets.init();
-      return widgets;
+      var widget = new qx.ui.website.Widget(this);
+      widget.init();
+      return widget;
     },
     /**
      * Creates a new collection from the given argument. This can either be an
@@ -1376,66 +1319,6 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
     create : function(html){
 
       return new qx.ui.website.Widget(qxWeb.create(html));
-    },
-    /**
-     * Special 'on' method for qx.Website widgets that prevents memory
-     * leaks and duplicate listeners.
-     *
-     * During the lifetime of a widget, multiple collection instances can
-     * be created for the same DOM element. In the initialization of each
-     * of these widget collections, listeners can be attached using this method
-     * to prevent memory leaks and duplicate listeners.
-     *
-     * This is done by storing a reference to the collection the first time a
-     * listener is attached. For subsequent listeners, this stored collection
-     * is used as the context. If the context object already has the new listener,
-     * it is not attached again. This means that new collections don't create
-     * references to DOM elements and don't need to be disposed manually.
-     *
-     * @attach {qxWeb}
-     * @param type {String} Type of the event to listen for
-     * @param listener {Function} Listener callback
-     * @param ctx {Object?} Context the callback function will be executed in.
-     * Default: The element on which the listener was registered
-     * @param useCapture {Boolean?} Attach the listener to the capturing
-     * phase if true.
-     * @return {qxWeb} The collection for chaining
-     */
-    $onFirstCollection : function(type, listener, ctx, useCapture){
-
-      var propertyName = this.classname.replace(/\./g, "-") + "-context";
-      if(!this.getProperty(propertyName)){
-
-        this.setProperty(propertyName, ctx);
-      };
-      var originalCtx = this.getProperty(propertyName);
-      if(!this.hasListener(type, listener, originalCtx)){
-
-        this.on(type, listener, originalCtx, useCapture);
-      };
-      return this;
-    },
-    /**
-     * Removes a listener added with {@link #$onFirstCollection}.
-     *
-     * @attach {qxWeb}
-     * @param type {String} Type of the event to listen for
-     * @param listener {Function} Listener callback
-     * @param ctx {Object?} Context the callback function will be executed in.
-     * Default: The element on which the listener was registered
-     * @param useCapture {Boolean?} Attach the listener to the capturing
-     * phase if true. Default: false
-     * @return {qxWeb} The collection for chaining
-     */
-    $offFirstCollection : function(type, listener, ctx, useCapture){
-
-      var propertyName = this.classname.replace(/\./g, "-") + "-context";
-      this._forEachElementWrapped(function(item){
-
-        var originalCtx = item.getProperty(propertyName);
-        item.off(type, listener, originalCtx, useCapture);
-      });
-      return this;
     },
     /**
      * Fetches elements with a data attribute named <code>data-qx-class</code>
@@ -1457,11 +1340,35 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
 
         widget.init();
       });
+    },
+    /**
+     * Returns a wrapper Array that maps the widget API available on
+     * the first item in the current collection to all items in the
+     * collection.
+     *
+     * @attach {qxWeb}
+     * @return {qxWeb[]} Collection of widgets
+     */
+    toWidgetCollection : function(){
+
+      var args = this.toArray().map(function(el){
+
+        return qxWeb(el);
+      });
+      // Set the context for the 'bind' call (will be replaced by new)
+      Array.prototype.unshift.call(args, null);
+      // Create temporary constructor with bound arguments
+      var Temp = qx.core.Wrapper.bind.apply(qx.core.Wrapper, args);
+      return new Temp();
     }
   },
   construct : function(selector, context){
 
     var col = this.base(arguments, selector, context);
+    if(col.length > 1){
+
+      throw new Error("The collection must not contain more than one element.");
+    };
     Array.prototype.push.apply(this, Array.prototype.slice.call(col, 0, col.length));
   },
   members : {
@@ -1481,6 +1388,7 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
       this.addClass("qx-widget");
       this.addClass(this.getCssPrefix());
       this.setProperty("$$qx-widget-initialized", true);
+      this[0].$widget = this;
       return true;
     },
     /**
@@ -1566,15 +1474,12 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
      */
     _setData : function(type, name, data){
 
-      this.forEach(function(item){
+      if(!this["$$storage_" + type]){
 
-        if(!item[type]){
-
-          item[type] = {
-          };
+        this["$$storage_" + type] = {
         };
-        item[type][name] = data;
-      });
+      };
+      this["$$storage_" + type][name] = data;
       return this;
     },
     /**
@@ -1612,7 +1517,7 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
      */
     _getData : function(type, name){
 
-      var storage = this.getProperty(type);
+      var storage = this["$$storage_" + type];
       var item;
       if(storage){
 
@@ -1671,15 +1576,15 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
 
         this.allOff(name);
       };
+      this[0].$widget = null;
       return qxWeb.$init(this, qxWeb);
     }
   },
   defer : function(statics){
 
     qxWeb.$attach({
-      $onFirstCollection : statics.$onFirstCollection,
-      $offFirstCollection : statics.$offFirstCollection,
-      widget : statics.widget
+      widget : statics.widget,
+      toWidgetCollection : statics.toWidgetCollection
     });
     qxWeb.$attachStatic({
       initWidgets : statics.initWidgets
@@ -1694,854 +1599,74 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
    http://qooxdoo.org
 
    Copyright:
-     2012 1&1 Internet AG, Germany, http://www.1und1.de
+     2014-2015 1&1 Internet AG, Germany, http://www.1und1.de
 
    License:
      LGPL: http://www.gnu.org/licenses/lgpl.html
      EPL: http://www.eclipse.org/org/documents/epl-v10.php
      See the LICENSE file in the project's top-level directory for details.
 
-   Authors:
-     * Martin Wittemann (wittemann)
-
 ************************************************************************ */
 /**
- * HTML templating module. This is a wrapper for mustache.js which is a
- * "framework-agnostic way to render logic-free views".
- *
- * Here is a basic example how to use it:
- * <pre class="javascript">
- * var template = "Hi, my name is {{name}}!";
- * var view = {name: "qooxdoo"};
- * q.template.render(template, view);
- *   // return "Hi, my name is qooxdoo!"
- * </pre>
- *
- * For further details, please visit the mustache.js documentation here:
- *   https://github.com/janl/mustache.js/blob/master/README.md
+ * Generic wrapper instance which wrapps a set of objects and forwards the API of
+ * the first object to all objects in the array.
  */
-qx.Bootstrap.define("qx.module.Template", {
-  statics : {
-    /**
-     * Helper method which provides direct access to templates stored as HTML in
-     * the DOM. The DOM node with the given ID will be treated as a template,
-     * parsed and a new DOM element will be returned containing the parsed data.
-     * Keep in mind that templates can only have one root element.
-     * Additionally, you should not put the template into a regular, hidden
-     * DOM element because the template may not be valid HTML due to the containing
-     * mustache tags. We suggest to put it into a script tag with the type
-     * <code>text/template</code>.
-     *
-     * @attachStatic{qxWeb, template.get}
-     * @param id {String} The id of the HTML template in the DOM.
-     * @param view {Object} The object holding the data to render.
-     * @param partials {Object} Object holding parts of a template.
-     * @return {qxWeb} Collection containing a single DOM element with the parsed
-     * template data.
-     */
-    get : function(id, view, partials){
+qx.Bootstrap.define("qx.core.Wrapper", {
+  extend : Array,
+  construct : function(){
 
-      var el = qx.bom.Template.get(id, view, partials);
-      el = qx.module.Template.__wrap(el);
-      return qxWeb.$init([el], qxWeb);
-    },
-    /**
-     * Original and only template method of mustache.js. For further
-     * documentation, please visit <a href="https://github.com/janl/mustache.js">mustache.js</a>.
-     *
-     * @attachStatic{qxWeb, template.render}
-     * @param template {String} The String containing the template.
-     * @param view {Object} The object holding the data to render.
-     * @param partials {Object} Object holding parts of a template.
-     * @return {String} The parsed template.
-     */
-    render : function(template, view, partials){
+    for(var i = 0,l = arguments.length;i < l;i++){
 
-      return qx.bom.Template.render(template, view, partials);
-    },
-    /**
-     * Combines {@link #render} and {@link #get}. Input is equal to {@link #render}
-     * and output is equal to {@link #get}. The advantage over {@link #get}
-     * is that you don't need a HTML template but can use a template
-     * string and still get a collection. Keep in mind that templates
-     * can only have one root element.
-     *
-     * @attachStatic{qxWeb, template.renderToNode}
-     * @param template {String} The String containing the template.
-     * @param view {Object} The object holding the data to render.
-     * @param partials {Object} Object holding parts of a template.
-     * @return {qxWeb} Collection containing a single DOM element with the parsed
-     * template data.
-     */
-    renderToNode : function(template, view, partials){
+      this.push(arguments[i]);
+    };
+    var firstItem = arguments[0];
+    for(var name in firstItem){
 
-      var el = qx.bom.Template.renderToNode(template, view, partials);
-      el = qx.module.Template.__wrap(el);
-      return qxWeb.$init([el], qxWeb);
-    },
-    /**
-     * If the given node is a DOM text node, wrap it in a span element and return
-     * the wrapper.
-     * @param el {Node} a DOM node
-     * @return {Element} Original element or wrapper
-     */
-    __wrap : function(el){
+      if(this[name] !== undefined){
 
-      if(qxWeb.isTextNode(el)){
-
-        var wrapper = document.createElement("span");
-        wrapper.appendChild(el);
-        el = wrapper;
+        continue;
       };
-      return el;
-    }
-  },
-  defer : function(statics){
+      if(firstItem[name] instanceof Function){
 
-    qxWeb.$attachStatic({
-      "template" : {
-        get : statics.get,
-        render : statics.render,
-        renderToNode : statics.renderToNode
-      }
-    });
+        this[name] = function(name){
+
+          var firstReturnValue;
+          var args = Array.prototype.slice.call(arguments, 0);
+          args.shift();
+          this.forEach(function(item){
+
+            var returnValue = item[name].apply(item, args);
+            if(firstReturnValue === undefined){
+
+              firstReturnValue = returnValue;
+            };
+          });
+          // return the collection if the return value was the collection
+          if(firstReturnValue === this[0]){
+
+            return this;
+          };
+          return firstReturnValue;
+        }.bind(this, name);
+      } else {
+
+        Object.defineProperty(this, name, {
+          enumerable : true,
+          get : function(name){
+
+            return this[name];
+          }.bind(firstItem, name),
+          set : function(name, value){
+
+            this.forEach(function(item){
+
+              item[name] = value;
+            });
+          }.bind(this, name)
+        });
+      };
+    };
   }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2012 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Martin Wittemann (martinwittemann)
-
-   ======================================================================
-
-   This class contains code based on the following work:
-
-   * Mustache.js version 0.8.1
-
-     Code:
-       https://github.com/janl/mustache.js
-
-     Copyright:
-       (c) 2009 Chris Wanstrath (Ruby)
-       (c) 2010 Jan Lehnardt (JavaScript)
-
-     License:
-       MIT: http://www.opensource.org/licenses/mit-license.php
-
-   ----------------------------------------------------------------------
-
-    The MIT License
-
-    Copyright (c) 2009 Chris Wanstrath (Ruby)
-    Copyright (c) 2010 Jan Lehnardt (JavaScript)
-
-    Permission is hereby granted, free of charge, to any person
-    obtaining a copy of this software and associated documentation files
-    (the "Software"), to deal in the Software without restriction,
-    including without limitation the rights to use, copy, modify, merge,
-    publish, distribute, sublicense, and/or sell copies of the Software,
-    and to permit persons to whom the Software is furnished to do so,
-    subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-    BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-    ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-
-************************************************************************ */
-/**
- * The is a template class which can be used for HTML templating. In fact,
- * this is a wrapper for mustache.js which is a "framework-agnostic way to
- * render logic-free views".
- *
- * Here is a basic example how to use it:
- * Template:
- * <pre class="javascript">
- * var template = "Hi, my name is {{name}}!";
- * var view = {name: "qooxdoo"};
- * qx.bom.Template.render(template, view);
- * // return "Hi, my name is qooxdoo!"
- * </pre>
- *
- * For further details, please visit the mustache.js documentation here:
- *   https://github.com/janl/mustache.js/blob/master/README.md
- *
- * @ignore(module)
- */
-qx.Bootstrap.define("qx.bom.Template", {
-  statics : {
-    /** Contains the mustache.js version. */
-    version : null,
-    /**
-     * Original and only template method of mustache.js. For further
-     * documentation, please visit https://github.com/janl/mustache.js
-     *
-     * @signature function(template, view, partials)
-     * @param template {String} The String containing the template.
-     * @param view {Object} The object holding the data to render.
-     * @param partials {Object} Object holding parts of a template.
-     * @return {String} The parsed template.
-     */
-    render : null,
-    /**
-     * Combines {@link #render} and {@link #get}. Input is equal to {@link #render}
-     * and output is equal to {@link #get}. The advantage over {@link #get}
-     * is that you don't need a HTML template but can use a template
-     * string and still get a DOM element. Keep in mind that templates
-     * can only have one root element.
-     *
-     * @param template {String} The String containing the template.
-     * @param view {Object} The object holding the data to render.
-     * @param partials {Object} Object holding parts of a template.
-     * @return {Element} A DOM element holding the parsed template data.
-     */
-    renderToNode : function(template, view, partials){
-
-      var renderedTmpl = this.render(template, view, partials);
-      return this._createNodeFromTemplate(renderedTmpl);
-    },
-    /**
-     * Helper method which provides you with a direct access to templates
-     * stored as HTML in the DOM. The DOM node with the given ID will be used
-     * as a template, parsed and a new DOM node will be returned containing the
-     * parsed data. Keep in mind to have only one root DOM element in the the
-     * template.
-     * Additionally, you should not put the template into a regular, hidden
-     * DOM element because the template may not be valid HTML due to the containing
-     * mustache tags. We suggest to put it into a script tag with the type
-     * <code>text/template</code>.
-     *
-     * @param id {String} The id of the HTML template in the DOM.
-     * @param view {Object} The object holding the data to render.
-     * @param partials {Object} Object holding parts of a template.
-     * @return {Element} A DOM element holding the parsed template data.
-     */
-    get : function(id, view, partials){
-
-      // get the content stored in the DOM
-      var template = document.getElementById(id);
-      return this.renderToNode(template.innerHTML, view, partials);
-    },
-    /**
-     * Accepts a parsed template and returns a (potentially nested) node.
-     *
-     * @param template {String} The String containing the template.
-     * @return {Element} A DOM element holding the parsed template data.
-     */
-    _createNodeFromTemplate : function(template){
-
-      // template is text only (no html elems) so use text node
-      if(template.search(/<|>/) === -1){
-
-        return document.createTextNode(template);
-      };
-      // template has html elems so convert string into DOM nodes
-      var helper = qx.dom.Element.create("div");
-      helper.innerHTML = template;
-      return helper.children[0];
-    }
-  }
-});
-(function(){
-
-  // prevent using CommonJS exports object,
-  // by shadowing global exports object
-  var exports;
-  // prevent using AMD compatible loader,
-  // by shadowing global define function
-  var define;
-  /**
-   * Below is the original mustache.js code. Snapshot date is mentioned in
-   * the head of this file.
-   * @ignore(exports)
-   * @ignore(define.*)
-   * @ignore(module.*)
-   * @lint ignoreNoLoopBlock()
-   */
-  /*!
-   * mustache.js - Logic-less {{mustache}} templates with JavaScript
-   * http://github.com/janl/mustache.js
-   */
-  /*global define: false*/
-  (function(root, factory){
-
-    if(typeof exports === "object" && exports){
-
-      factory(exports);
-    } else {
-
-      var mustache = {
-      };
-      factory(mustache);
-      if(typeof define === "function" && define.amd){
-
-        define(mustache);
-      } else {
-
-        root.Mustache = mustache;
-      };
-    };
-  }(this, function(mustache){
-
-    var whiteRe = /\s*/;
-    var spaceRe = /\s+/;
-    var nonSpaceRe = /\S/;
-    var eqRe = /\s*=/;
-    var curlyRe = /\s*\}/;
-    var tagRe = /#|\^|\/|>|\{|&|=|!/;
-    // Workaround for https://issues.apache.org/jira/browse/COUCHDB-577
-    // See https://github.com/janl/mustache.js/issues/189
-    var RegExp_test = RegExp.prototype.test;
-    function testRegExp(re, string){
-
-      return RegExp_test.call(re, string);
-    };
-    function isWhitespace(string){
-
-      return !testRegExp(nonSpaceRe, string);
-    };
-    var Object_toString = Object.prototype.toString;
-    var isArray = Array.isArray || function(object){
-
-      return Object_toString.call(object) === '[object Array]';
-    };
-    function isFunction(object){
-
-      return typeof object === 'function';
-    };
-    function escapeRegExp(string){
-
-      return string.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
-    };
-    var entityMap = {
-      "&" : "&amp;",
-      "<" : "&lt;",
-      ">" : "&gt;",
-      '"' : '&quot;',
-      "'" : '&#39;',
-      "/" : '&#x2F;'
-    };
-    function escapeHtml(string){
-
-      return String(string).replace(/[&<>"'\/]/g, function(s){
-
-        return entityMap[s];
-      });
-    };
-    function escapeTags(tags){
-
-      if(!isArray(tags) || tags.length !== 2){
-
-        throw new Error('Invalid tags: ' + tags);
-      };
-      return [new RegExp(escapeRegExp(tags[0]) + "\\s*"), new RegExp("\\s*" + escapeRegExp(tags[1]))];
-    };
-    /**
-     * Breaks up the given `template` string into a tree of tokens. If the `tags`
-     * argument is given here it must be an array with two string values: the
-     * opening and closing tags used in the template (e.g. [ "<%", "%>" ]). Of
-     * course, the default is to use mustaches (i.e. mustache.tags).
-     *
-     * A token is an array with at least 4 elements. The first element is the
-     * mustache symbol that was used inside the tag, e.g. "#" or "&". If the tag
-     * did not contain a symbol (i.e. {{myValue}}) this element is "name". For
-     * all template text that appears outside a symbol this element is "text".
-     *
-     * The second element of a token is its "value". For mustache tags this is
-     * whatever else was inside the tag besides the opening symbol. For text tokens
-     * this is the text itself.
-     *
-     * The third and fourth elements of the token are the start and end indices
-     * in the original template of the token, respectively.
-     *
-     * Tokens that are the root node of a subtree contain two more elements: an
-     * array of tokens in the subtree and the index in the original template at which
-     * the closing tag for that section begins.
-     */
-    function parseTemplate(template, tags){
-
-      tags = tags || mustache.tags;
-      template = template || '';
-      if(typeof tags === 'string'){
-
-        tags = tags.split(spaceRe);
-      };
-      var tagRes = escapeTags(tags);
-      var scanner = new Scanner(template);
-      var sections = [];
-      // Stack to hold section tokens
-      var tokens = [];
-      // Buffer to hold the tokens
-      var spaces = [];
-      // Indices of whitespace tokens on the current line
-      var hasTag = false;
-      // Is there a {{tag}} on the current line?
-      var nonSpace = false;
-      // Is there a non-space char on the current line?
-      // Strips all whitespace tokens array for the current line
-      // if there was a {{#tag}} on it and otherwise only space.
-      function stripSpace(){
-
-        if(hasTag && !nonSpace){
-
-          while(spaces.length){
-
-            delete tokens[spaces.pop()];
-          };
-        } else {
-
-          spaces = [];
-        };
-        hasTag = false;
-        nonSpace = false;
-      };
-      var start,type,value,chr,token,openSection;
-      while(!scanner.eos()){
-
-        start = scanner.pos;
-        // Match any text between tags.
-        value = scanner.scanUntil(tagRes[0]);
-        if(value){
-
-          for(var i = 0,len = value.length;i < len;++i){
-
-            chr = value.charAt(i);
-            if(isWhitespace(chr)){
-
-              spaces.push(tokens.length);
-            } else {
-
-              nonSpace = true;
-            };
-            tokens.push(['text', chr, start, start + 1]);
-            start += 1;
-            // Check for whitespace on the current line.
-            if(chr === '\n'){
-
-              stripSpace();
-            };
-          };
-        };
-        // Match the opening tag.
-        if(!scanner.scan(tagRes[0]))break;
-        hasTag = true;
-        // Get the tag type.
-        type = scanner.scan(tagRe) || 'name';
-        scanner.scan(whiteRe);
-        // Get the tag value.
-        if(type === '='){
-
-          value = scanner.scanUntil(eqRe);
-          scanner.scan(eqRe);
-          scanner.scanUntil(tagRes[1]);
-        } else if(type === '{'){
-
-          value = scanner.scanUntil(new RegExp('\\s*' + escapeRegExp('}' + tags[1])));
-          scanner.scan(curlyRe);
-          scanner.scanUntil(tagRes[1]);
-          type = '&';
-        } else {
-
-          value = scanner.scanUntil(tagRes[1]);
-        };
-        // Match the closing tag.
-        if(!scanner.scan(tagRes[1])){
-
-          throw new Error('Unclosed tag at ' + scanner.pos);
-        };
-        token = [type, value, start, scanner.pos];
-        tokens.push(token);
-        if(type === '#' || type === '^'){
-
-          sections.push(token);
-        } else if(type === '/'){
-
-          // Check section nesting.
-          openSection = sections.pop();
-          if(!openSection){
-
-            throw new Error('Unopened section "' + value + '" at ' + start);
-          };
-          if(openSection[1] !== value){
-
-            throw new Error('Unclosed section "' + openSection[1] + '" at ' + start);
-          };
-        } else if(type === 'name' || type === '{' || type === '&'){
-
-          nonSpace = true;
-        } else if(type === '='){
-
-          // Set the tags for the next time around.
-          tagRes = escapeTags(tags = value.split(spaceRe));
-        };;;
-      };
-      // Make sure there are no open sections when we're done.
-      openSection = sections.pop();
-      if(openSection){
-
-        throw new Error('Unclosed section "' + openSection[1] + '" at ' + scanner.pos);
-      };
-      return nestTokens(squashTokens(tokens));
-    };
-    /**
-     * Combines the values of consecutive text tokens in the given `tokens` array
-     * to a single token.
-     */
-    function squashTokens(tokens){
-
-      var squashedTokens = [];
-      var token,lastToken;
-      for(var i = 0,len = tokens.length;i < len;++i){
-
-        token = tokens[i];
-        if(token){
-
-          if(token[0] === 'text' && lastToken && lastToken[0] === 'text'){
-
-            lastToken[1] += token[1];
-            lastToken[3] = token[3];
-          } else {
-
-            squashedTokens.push(token);
-            lastToken = token;
-          };
-        };
-      };
-      return squashedTokens;
-    };
-    /**
-     * Forms the given array of `tokens` into a nested tree structure where
-     * tokens that represent a section have two additional items: 1) an array of
-     * all tokens that appear in that section and 2) the index in the original
-     * template that represents the end of that section.
-     */
-    function nestTokens(tokens){
-
-      var nestedTokens = [];
-      var collector = nestedTokens;
-      var sections = [];
-      var token,section;
-      for(var i = 0,len = tokens.length;i < len;++i){
-
-        token = tokens[i];
-        switch(token[0]){case '#':case '^':
-        collector.push(token);
-        sections.push(token);
-        collector = token[4] = [];
-        break;case '/':
-        section = sections.pop();
-        section[5] = token[2];
-        collector = sections.length > 0 ? sections[sections.length - 1][4] : nestedTokens;
-        break;default:
-        collector.push(token);};
-      };
-      return nestedTokens;
-    };
-    /**
-     * A simple string scanner that is used by the template parser to find
-     * tokens in template strings.
-     */
-    function Scanner(string){
-
-      this.string = string;
-      this.tail = string;
-      this.pos = 0;
-    };
-    /**
-     * Returns `true` if the tail is empty (end of string).
-     */
-    Scanner.prototype.eos = function(){
-
-      return this.tail === "";
-    };
-    /**
-     * Tries to match the given regular expression at the current position.
-     * Returns the matched text if it can match, the empty string otherwise.
-     */
-    Scanner.prototype.scan = function(re){
-
-      var match = this.tail.match(re);
-      if(match && match.index === 0){
-
-        var string = match[0];
-        this.tail = this.tail.substring(string.length);
-        this.pos += string.length;
-        return string;
-      };
-      return "";
-    };
-    /**
-     * Skips all text until the given regular expression can be matched. Returns
-     * the skipped string, which is the entire tail if no match can be made.
-     */
-    Scanner.prototype.scanUntil = function(re){
-
-      var index = this.tail.search(re),match;
-      switch(index){case -1:
-      match = this.tail;
-      this.tail = "";
-      break;case 0:
-      match = "";
-      break;default:
-      match = this.tail.substring(0, index);
-      this.tail = this.tail.substring(index);};
-      this.pos += match.length;
-      return match;
-    };
-    /**
-     * Represents a rendering context by wrapping a view object and
-     * maintaining a reference to the parent context.
-     */
-    function Context(view, parentContext){
-
-      this.view = view == null ? {
-      } : view;
-      this.cache = {
-        '.' : this.view
-      };
-      this.parent = parentContext;
-    };
-    /**
-     * Creates a new context using the given view with this context
-     * as the parent.
-     */
-    Context.prototype.push = function(view){
-
-      return new Context(view, this);
-    };
-    /**
-     * Returns the value of the given name in this context, traversing
-     * up the context hierarchy if the value is absent in this context's view.
-     */
-    Context.prototype.lookup = function(name){
-
-      var value;
-      if(name in this.cache){
-
-        value = this.cache[name];
-      } else {
-
-        var context = this;
-        while(context){
-
-          if(name.indexOf('.') > 0){
-
-            value = context.view;
-            var names = name.split('.'),i = 0;
-            while(value != null && i < names.length){
-
-              value = value[names[i++]];
-            };
-          } else {
-
-            value = context.view[name];
-          };
-          if(value != null)break;
-          context = context.parent;
-        };
-        this.cache[name] = value;
-      };
-      if(isFunction(value)){
-
-        value = value.call(this.view);
-      };
-      return value;
-    };
-    /**
-     * A Writer knows how to take a stream of tokens and render them to a
-     * string, given a context. It also maintains a cache of templates to
-     * avoid the need to parse the same template twice.
-     */
-    function Writer(){
-
-      this.cache = {
-      };
-    };
-    /**
-     * Clears all cached templates in this writer.
-     */
-    Writer.prototype.clearCache = function(){
-
-      this.cache = {
-      };
-    };
-    /**
-     * Parses and caches the given `template` and returns the array of tokens
-     * that is generated from the parse.
-     */
-    Writer.prototype.parse = function(template, tags){
-
-      var cache = this.cache;
-      var tokens = cache[template];
-      if(tokens == null){
-
-        tokens = cache[template] = parseTemplate(template, tags);
-      };
-      return tokens;
-    };
-    /**
-     * High-level method that is used to render the given `template` with
-     * the given `view`.
-     *
-     * The optional `partials` argument may be an object that contains the
-     * names and templates of partials that are used in the template. It may
-     * also be a function that is used to load partial templates on the fly
-     * that takes a single argument: the name of the partial.
-     */
-    Writer.prototype.render = function(template, view, partials){
-
-      var tokens = this.parse(template);
-      var context = (view instanceof Context) ? view : new Context(view);
-      return this.renderTokens(tokens, context, partials, template);
-    };
-    /**
-     * Low-level method that renders the given array of `tokens` using
-     * the given `context` and `partials`.
-     *
-     * Note: The `originalTemplate` is only ever used to extract the portion
-     * of the original template that was contained in a higher-order section.
-     * If the template doesn't use higher-order sections, this argument may
-     * be omitted.
-     */
-    Writer.prototype.renderTokens = function(tokens, context, partials, originalTemplate){
-
-      var buffer = '';
-      // This function is used to render an arbitrary template
-      // in the current context by higher-order sections.
-      var self = this;
-      function subRender(template){
-
-        return self.render(template, context, partials);
-      };
-      var token,value;
-      for(var i = 0,len = tokens.length;i < len;++i){
-
-        token = tokens[i];
-        switch(token[0]){case '#':
-        value = context.lookup(token[1]);
-        if(!value)continue;
-        if(isArray(value)){
-
-          for(var j = 0,jlen = value.length;j < jlen;++j){
-
-            buffer += this.renderTokens(token[4], context.push(value[j]), partials, originalTemplate);
-          };
-        } else if(typeof value === 'object' || typeof value === 'string'){
-
-          buffer += this.renderTokens(token[4], context.push(value), partials, originalTemplate);
-        } else if(isFunction(value)){
-
-          if(typeof originalTemplate !== 'string'){
-
-            throw new Error('Cannot use higher-order sections without the original template');
-          };
-          // Extract the portion of the original template that the section contains.
-          value = value.call(context.view, originalTemplate.slice(token[3], token[5]), subRender);
-          if(value != null)buffer += value;
-        } else {
-
-          buffer += this.renderTokens(token[4], context, partials, originalTemplate);
-        };;
-        break;case '^':
-        value = context.lookup(token[1]);
-        // Use JavaScript's definition of falsy. Include empty arrays.
-        // See https://github.com/janl/mustache.js/issues/186
-        if(!value || (isArray(value) && value.length === 0)){
-
-          buffer += this.renderTokens(token[4], context, partials, originalTemplate);
-        };
-        break;case '>':
-        if(!partials)continue;
-        value = isFunction(partials) ? partials(token[1]) : partials[token[1]];
-        if(value != null)buffer += this.renderTokens(this.parse(value), context, partials, value);
-        break;case '&':
-        value = context.lookup(token[1]);
-        if(value != null)buffer += value;
-        break;case 'name':
-        value = context.lookup(token[1]);
-        if(value != null)buffer += mustache.escape(value);
-        break;case 'text':
-        buffer += token[1];
-        break;};
-      };
-      return buffer;
-    };
-    mustache.name = "mustache.js";
-    mustache.version = "0.8.1";
-    mustache.tags = ["{{", "}}"];
-    // All high-level mustache.* functions use this writer.
-    var defaultWriter = new Writer();
-    /**
-     * Clears all cached templates in the default writer.
-     */
-    mustache.clearCache = function(){
-
-      return defaultWriter.clearCache();
-    };
-    /**
-     * Parses and caches the given template in the default writer and returns the
-     * array of tokens it contains. Doing this ahead of time avoids the need to
-     * parse templates on the fly as they are rendered.
-     */
-    mustache.parse = function(template, tags){
-
-      return defaultWriter.parse(template, tags);
-    };
-    /**
-     * Renders the `template` with the given `view` and `partials` using the
-     * default writer.
-     */
-    mustache.render = function(template, view, partials){
-
-      return defaultWriter.render(template, view, partials);
-    };
-    // This is here for backwards compatibility with 0.4.x.
-    mustache.to_html = function(template, view, partials, send){
-
-      var result = mustache.render(template, view, partials);
-      if(isFunction(send)){
-
-        send(result);
-      } else {
-
-        return result;
-      };
-    };
-    // Export the escaping function so that the user may override it.
-    // See https://github.com/janl/mustache.js/issues/244
-    mustache.escape = escapeHtml;
-    // Export these mainly for testing, but also for advanced usage.
-    mustache.Scanner = Scanner;
-    mustache.Context = Context;
-    mustache.Writer = Writer;
-  }));
-  /**
-   * Above is the original mustache code.
-   */
-  // EXPOSE qooxdoo variant
-  qx.bom.Template.version = this.Mustache.version;
-  qx.bom.Template.render = this.Mustache.render;
-}).call({
 });
 
 /* ************************************************************************
@@ -2748,6 +1873,7 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
     "changeSelected" : "Number"
   },
   members : {
+    __mediaQueryListener : null,
     init : function(){
 
       if(!this.base(arguments)){
@@ -2760,99 +1886,96 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
         this.setConfig("orientation", this._initMediaQueryListener(mediaQuery));
       };
       var orientation = this.getConfig("orientation");
-      this._forEachElementWrapped(function(tabs){
+      this.addClasses([this.getCssPrefix(), this.getCssPrefix() + "-" + orientation, "qx-flex-ready"]);
+      if(this.getChildren("ul").length === 0){
 
-        tabs.addClasses([this.getCssPrefix(), this.getCssPrefix() + "-" + orientation]);
-        if(tabs.getChildren("ul").length === 0){
+        var list = qxWeb.create("<ul/>");
+        var content = this.getChildren();
+        if(content.length > 0){
 
-          var list = qxWeb.create("<ul/>");
-          var content = tabs.getChildren();
-          if(content.length > 0){
+          list.insertBefore(content.eq(0));
+        } else {
 
-            list.insertBefore(content.eq(0));
-          } else {
-
-            tabs.append(list);
-          };
+          this.append(list);
         };
-        var container = tabs.find("> ." + this.getCssPrefix() + "-container");
-        var buttons = tabs.getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page");
-        buttons._forEachElementWrapped(function(button){
+      };
+      var container = this.find("> ." + this.getCssPrefix() + "-container");
+      var buttons = this.getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page");
+      buttons._forEachElementWrapped(function(button){
 
-          button.addClass(this.getCssPrefix() + "-button");
-          var pageSelector = button.getData(this.getCssPrefix() + "-page");
-          if(!pageSelector){
+        button.addClass(this.getCssPrefix() + "-button");
+        var pageSelector = button.getData(this.getCssPrefix() + "-page");
+        if(!pageSelector){
 
-            return;
-          };
-          button.addClass(this.getCssPrefix() + "-button").$onFirstCollection("tap", this._onTap, tabs);
-          var page = tabs._getPage(button);
-          if(page.length > 0){
+          return;
+        };
+        button.addClass(this.getCssPrefix() + "-button").on("tap", this._onTap, this);
+        var page = this._getPage(button);
+        if(page.length > 0){
 
-            page.addClass(this.getCssPrefix() + "-page");
-            if(orientation == "vertical"){
+          page.addClass(this.getCssPrefix() + "-page");
+          if(orientation == "vertical"){
 
-              this.__deactivateTransition(page);
-              if(q.getNodeName(page[0]) == "div"){
+            this.__deactivateTransition(page);
+            if(q.getNodeName(page[0]) == "div"){
 
-                var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id")).insertAfter(button[0]);
-                page.remove().getChildren().appendTo(li);
-                page = li;
-              };
-              this._storePageHeight(page);
-            } else if(orientation == "horizontal"){
-
-              if(q.getNodeName(page[0]) == "li"){
-
-                var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
-                page.remove().getChildren().appendTo(div);
-                page = div;
-              };
+              var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id")).insertAfter(button[0]);
+              page.remove().getChildren().appendTo(li);
+              page = li;
             };
-            if(orientation == "horizontal"){
+            this._storePageHeight(page);
+          } else if(orientation == "horizontal"){
 
-              if(container.length === 0){
+            if(q.getNodeName(page[0]) == "li"){
 
-                container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(tabs.find("> ul")[0]);
-              };
-              page.appendTo(container[0]);
+              var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
+              page.remove().getChildren().appendTo(div);
+              page = div;
             };
           };
-          this._showPage(null, button);
-          this.__activateTransition(page);
-        }.bind(this));
-        if(orientation == "vertical" && container.length == 1 && container.getChildren().length === 0){
+          if(orientation == "horizontal"){
 
-          container.remove();
-        };
-        if(orientation == "horizontal" && this.getConfig("align") == "right" && q.env.get("engine.name") == "mshtml" && q.env.get("browser.documentmode") < 10){
+            if(container.length === 0){
 
-          buttons.remove();
-          for(var i = buttons.length - 1;i >= 0;i--){
-
-            tabs.find("> ul").append(buttons[i]);
+              container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(this.find("> ul")[0]);
+            };
+            page.appendTo(container[0]);
           };
         };
-        var active = buttons.filter("." + this.getCssPrefix() + "-button-active");
-        var preselected = this.getConfig("preselected");
-        if(active.length === 0 && typeof preselected == "number"){
-
-          active = buttons.eq(preselected).addClass(this.getCssPrefix() + "-button-active");
-        };
-        if(active.length > 0){
-
-          var activePage = this._getPage(active);
-          this.__deactivateTransition(activePage);
-          this._showPage(active, null);
-          this.__activateTransition(activePage);
-        };
-        tabs.getChildren("ul").getFirst().$onFirstCollection("keydown", this._onKeyDown, this);
-        if(orientation === "horizontal"){
-
-          this._applyAlignment(tabs);
-        };
-        qxWeb(window).on("resize", tabs._onResize, tabs);
+        this._showPage(null, button);
+        this.__activateTransition(page);
       }.bind(this));
+      if(orientation == "vertical" && container.length == 1 && container.getChildren().length === 0){
+
+        container.remove();
+      };
+      if(orientation == "horizontal" && this.getConfig("align") == "right" && q.env.get("engine.name") == "mshtml" && q.env.get("browser.documentmode") < 10){
+
+        buttons.remove();
+        for(var i = buttons.length - 1;i >= 0;i--){
+
+          this.find("> ul").append(buttons[i]);
+        };
+      };
+      var active = buttons.filter("." + this.getCssPrefix() + "-button-active");
+      var preselected = this.getConfig("preselected");
+      if(active.length === 0 && typeof preselected == "number"){
+
+        active = buttons.eq(preselected).addClass(this.getCssPrefix() + "-button-active");
+      };
+      if(active.length > 0){
+
+        var activePage = this._getPage(active);
+        this.__deactivateTransition(activePage);
+        this._showPage(active, null);
+        this.__activateTransition(activePage);
+      };
+      this.getChildren("ul").getFirst().on("keydown", this._onKeyDown, this);
+      if(orientation === "horizontal"){
+
+        this._applyAlignment(this);
+      };
+      qxWeb(window).on("resize", this._onResize, this);
       return true;
     },
     render : function(){
@@ -2879,11 +2002,11 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     _initMediaQueryListener : function(mediaQuery){
 
-      var mql = this.getProperty("mediaQueryListener");
+      var mql = this.__mediaQueryListener;
       if(!mql){
 
         mql = q.matchMedia(mediaQuery);
-        this.setProperty("mediaQueryListener", mql);
+        this.__mediaQueryListener = mql;
         mql.on("change", function(query){
 
           this.render();
@@ -2903,39 +2026,36 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     _renderHorizontal : function(){
 
-      this._forEachElementWrapped(function(tabs){
+      this.removeClass(this.getCssPrefix() + "-vertical").addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-horizontal"]).find("> ul").addClass("qx-hbox");
+      var container = this.find("> ." + this.getCssPrefix() + "-container");
+      if(container.length == 0){
 
-        tabs.removeClass(this.getCssPrefix() + "-vertical").addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-horizontal", "qx-flex-ready"]).find("> ul").addClass("qx-hbox");
-        var container = tabs.find("> ." + this.getCssPrefix() + "-container");
-        if(container.length == 0){
+        container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(this.find("> ul")[0]);
+      };
+      var selectedPage;
+      this.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(li){
 
-          container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(tabs.find("> ul")[0]);
+        var page = this.find(li.getData(this.getCssPrefix() + "-page"));
+        if(q.getNodeName(page[0]) == "li"){
+
+          var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
+          page.remove().getChildren().appendTo(div);
+          page = div;
         };
-        var selectedPage;
-        tabs.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(li){
+        page.appendTo(container[0]);
+        this._switchPages(page, null);
+        if(li.hasClass(this.getCssPrefix() + "-button-active")){
 
-          var page = qxWeb(li.getData(this.getCssPrefix() + "-page"));
-          if(q.getNodeName(page[0]) == "li"){
-
-            var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
-            page.remove().getChildren().appendTo(div);
-            page = div;
-          };
-          page.appendTo(container[0]);
-          tabs._switchPages(page, null);
-          if(li.hasClass(this.getCssPrefix() + "-button-active")){
-
-            selectedPage = page;
-          };
-        }.bind(this));
-        if(!selectedPage){
-
-          var firstButton = tabs.find("> ul > ." + this.getCssPrefix() + "-button").eq(0).addClass(this.getCssPrefix() + "-button-active");
-          selectedPage = this._getPage(firstButton);
+          selectedPage = page;
         };
-        tabs._switchPages(null, selectedPage);
-        this._applyAlignment(tabs);
-      });
+      }.bind(this));
+      if(!selectedPage){
+
+        var firstButton = this.find("> ul > ." + this.getCssPrefix() + "-button").eq(0).addClass(this.getCssPrefix() + "-button-active");
+        selectedPage = this._getPage(firstButton);
+      };
+      this._switchPages(null, selectedPage);
+      this._applyAlignment(this);
       this.setEnabled(this.getEnabled());
       return this;
     },
@@ -2945,36 +2065,33 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     _renderVertical : function(){
 
-      this._forEachElementWrapped(function(tabs){
+      this.find("> ul.qx-hbox").removeClass("qx-hbox");
+      this.removeClasses([this.getCssPrefix() + "-horizontal"]).addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-vertical"]).getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page")._forEachElementWrapped(function(button){
 
-        tabs.find("> ul.qx-hbox").removeClass("qx-hbox");
-        tabs.removeClasses([this.getCssPrefix() + "-horizontal", "qx-flex-ready"]).addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-vertical"]).getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page")._forEachElementWrapped(function(button){
+        button.addClass(this.getCssPrefix() + "-button");
+        var page = this._getPage(button);
+        if(page.length === 0){
 
-          button.addClass(this.getCssPrefix() + "-button");
-          var page = this._getPage(button);
-          if(page.length === 0){
+          return;
+        };
+        this.__deactivateTransition(page);
+        if(q.getNodeName(page[0]) == "div"){
 
-            return;
-          };
-          this.__deactivateTransition(page);
-          if(q.getNodeName(page[0]) == "div"){
+          var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
+          page.getChildren().appendTo(li);
+          li.insertAfter(button[0]);
+          page.remove();
+          page = li;
+        };
+        this._storePageHeight(page);
+        if(button.hasClass(this.getCssPrefix() + "-button-active")){
 
-            var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
-            page.getChildren().appendTo(li);
-            li.insertAfter(button[0]);
-            page.remove();
-            page = li;
-          };
-          this._storePageHeight(page);
-          if(button.hasClass(this.getCssPrefix() + "-button-active")){
+          this._switchPages(null, page);
+        } else {
 
-            this._switchPages(null, page);
-          } else {
-
-            this._switchPages(page, null);
-          };
-          this.__activateTransition(page);
-        }.bind(this));
+          this._switchPages(page, null);
+        };
+        this.__activateTransition(page);
       }.bind(this));
       this.setEnabled(this.getEnabled());
       return this;
@@ -3004,39 +2121,36 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     addButton : function(label, pageSelector){
 
-      this._forEachElementWrapped(function(item){
+      var link = qxWeb.create(qxWeb.template.render(this.getTemplate("button"), {
+        content : label
+      })).addClass(this.getCssPrefix() + "-button");
+      var list = this.find("> ul");
+      var links = list.getChildren("li");
+      if(list.hasClass(this.getCssPrefix() + "-right") && links.length > 0){
 
-        var link = qxWeb.create(qxWeb.template.render(item.getTemplate("button"), {
-          content : label
-        })).addClass(this.getCssPrefix() + "-button");
-        var list = item.find("> ul");
-        var links = list.getChildren("li");
-        if(list.hasClass(this.getCssPrefix() + "-right") && links.length > 0){
+        link.insertBefore(links.getFirst());
+      } else {
 
-          link.insertBefore(links.getFirst());
+        link.appendTo(list);
+      };
+      link.on("tap", this._onTap, this).addClass(this.getCssPrefix() + "-button");
+      if(this.find("> ul ." + this.getCssPrefix() + "-button").length === 1){
+
+        link.addClass(this.getCssPrefix() + "-button-active");
+      };
+      if(pageSelector){
+
+        link.setData(this.getCssPrefix() + "-page", pageSelector);
+        var page = this._getPage(link);
+        page.addClass(this.getCssPrefix() + "-page");
+        if(link.hasClass(this.getCssPrefix() + "-button-active")){
+
+          this._switchPages(null, page);
         } else {
 
-          link.appendTo(list);
+          this._switchPages(page, null);
         };
-        link.$onFirstCollection("tap", this._onTap, item).addClass(this.getCssPrefix() + "-button");
-        if(item.find("> ul ." + this.getCssPrefix() + "-button").length === 1){
-
-          link.addClass(this.getCssPrefix() + "-button-active");
-        };
-        if(pageSelector){
-
-          link.setData(this.getCssPrefix() + "-page", pageSelector);
-          var page = this._getPage(link);
-          page.addClass(this.getCssPrefix() + "-page");
-          if(link.hasClass(this.getCssPrefix() + "-button-active")){
-
-            this._switchPages(null, page);
-          } else {
-
-            this._switchPages(page, null);
-          };
-        };
-      }, this);
+      };
       return this;
     },
     /**
@@ -3047,18 +2161,15 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     select : function(index){
 
-      this._forEachElementWrapped(function(tabs){
+      var buttons = this.find("> ul > ." + this.getCssPrefix() + "-button");
+      var oldButton = this.find("> ul > ." + this.getCssPrefix() + "-button-active").removeClass(this.getCssPrefix() + "-button-active");
+      if(this.getConfig("align") == "right"){
 
-        var buttons = tabs.find("> ul > ." + this.getCssPrefix() + "-button");
-        var oldButton = tabs.find("> ul > ." + this.getCssPrefix() + "-button-active").removeClass(this.getCssPrefix() + "-button-active");
-        if(this.getConfig("align") == "right"){
-
-          index = buttons.length - 1 - index;
-        };
-        var newButton = buttons.eq(index).addClass(this.getCssPrefix() + "-button-active");
-        tabs._showPage(newButton, oldButton);
-        tabs.emit("changeSelected", index);
-      });
+        index = buttons.length - 1 - index;
+      };
+      var newButton = buttons.eq(index).addClass(this.getCssPrefix() + "-button-active");
+      this._showPage(newButton, oldButton);
+      this.emit("changeSelected", index);
       return this;
     },
     /**
@@ -3074,39 +2185,36 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
       };
       var orientation = this.getConfig("orientation");
       var tappedButton = e.getCurrentTarget();
-      this._forEachElementWrapped(function(tabs){
+      var oldButton = this.find("> ul > ." + this.getCssPrefix() + "-button-active");
+      if(oldButton[0] == tappedButton && orientation == "horizontal"){
 
-        var oldButton = tabs.find("> ul > ." + this.getCssPrefix() + "-button-active");
-        if(oldButton[0] == tappedButton && orientation == "horizontal"){
+        return;
+      };
+      oldButton.removeClass(this.getCssPrefix() + "-button-active");
+      if(orientation == "vertical"){
+
+        this._showPage(null, oldButton);
+        if(oldButton[0] == tappedButton && orientation == "vertical"){
 
           return;
         };
-        oldButton.removeClass(this.getCssPrefix() + "-button-active");
-        if(orientation == "vertical"){
+      };
+      var newButton;
+      var buttons = this.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(button){
 
-          this._showPage(null, oldButton);
-          if(oldButton[0] == tappedButton && orientation == "vertical"){
+        if(tappedButton === button[0]){
 
-            return;
-          };
+          newButton = button;
         };
-        var newButton;
-        var buttons = tabs.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(button){
-
-          if(tappedButton === button[0]){
-
-            newButton = button;
-          };
-        });
-        tabs._showPage(newButton, oldButton);
-        newButton.addClass(this.getCssPrefix() + "-button-active");
-        var index = buttons.indexOf(newButton[0]);
-        if(this.getConfig("align") == "right"){
-
-          index = buttons.length - 1 - index;
-        };
-        tabs.emit("changeSelected", index);
       });
+      this._showPage(newButton, oldButton);
+      newButton.addClass(this.getCssPrefix() + "-button-active");
+      var index = buttons.indexOf(newButton[0]);
+      if(this.getConfig("align") == "right"){
+
+        index = buttons.length - 1 - index;
+      };
+      this.emit("changeSelected", index);
     },
     /**
      * Allows tab selection using the left and right arrow keys
@@ -3232,7 +2340,7 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
 
         pageSelector = button.getData(this.getCssPrefix() + "-page");
       };
-      return qxWeb(pageSelector);
+      return this.find(pageSelector);
     },
     /**
      * Apply the CSS classes for the alignment
@@ -3268,7 +2376,7 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
         };
       } else {
 
-        tabs.addClass("qx-flex-ready").find("> ul").addClass("qx-hbox");
+        tabs.find("> ul").addClass("qx-hbox");
         if(align == "justify"){
 
           buttons.addClass("qx-flex1");
@@ -3341,13 +2449,11 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
     },
     dispose : function(){
 
+      this.__mediaQueryListener = undefined;
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(tabs){
-
-        qxWeb(window).off("resize", tabs._onResize, tabs);
-        tabs.find("> ul > ." + this.getCssPrefix() + "-button").$offFirstCollection("tap", tabs._onTap, tabs);
-        tabs.getChildren("ul").getFirst().$offFirstCollection("keydown", tabs._onKeyDown, tabs).setHtml("");
-      });
+      qxWeb(window).off("resize", this._onResize, this);
+      this.find("> ul > ." + this.getCssPrefix() + "-button").off("tap", this._onTap, this);
+      this.getChildren("ul").getFirst().off("keydown", this._onKeyDown, this).setHtml("");
       this.setHtml("").removeClasses([cssPrefix, "qx-flex-ready"]);
       return this.base(arguments);
     }
@@ -3480,15 +2586,7 @@ qx.Bootstrap.define("qx.module.util.Object", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "object" : {
-        "clone" : statics.clone,
-        "getValues" : statics.getValues,
-        "invert" : statics.invert,
-        "contains" : statics.contains,
-        "merge" : statics.merge
-      }
-    });
+    qxWeb.$attachAll(this, "object");
   }
 });
 
@@ -3569,6 +2667,16 @@ qx.Bootstrap.define("qx.ui.website.Accordion", {
   extend : qx.ui.website.Tabs,
   statics : {
     /**
+     * *button*
+     *
+     * Template used by {@link qx.ui.website.Tabs#addButton} to create a new button.
+     *
+     * Default value: <pre><li><button>{{{content}}}</button></li></pre>
+     */
+    _templates : {
+      button : "<li><button>{{{content}}}</button></li>"
+    },
+    /**
      * Factory method which converts the current collection into a collection of
      * accordion widgets.
      *
@@ -3623,10 +2731,6 @@ qx.Bootstrap.define("qx.ui.website.Accordion", {
  * Utility for checking the type of a variable.
  * It adds a <code>type</code> key static to q and offers the given method.
  *
- * <pre class="javascript">
- * q.type.get("abc"); // return "String" e.g.
- * </pre>
- *
  * @group (Utilities)
  */
 qx.Bootstrap.define("qx.module.util.Type", {
@@ -3653,11 +2757,7 @@ qx.Bootstrap.define("qx.module.util.Type", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      type : {
-        get : statics.get
-      }
-    });
+    qxWeb.$attachAll(this, "type");
   }
 });
 
@@ -3688,7 +2788,7 @@ qx.Bootstrap.define("qx.module.util.Type", {
  * http://www.w3.org/TR/css3-3d-transforms/
  */
 qx.Bootstrap.define("qx.module.Transform", {
-  statics : {
+  members : {
     /**
      * Method to apply multiple transforms at once to the given element. It
      * takes a map containing the transforms you want to apply plus the values
@@ -3941,23 +3041,7 @@ qx.Bootstrap.define("qx.module.Transform", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "transform" : statics.transform,
-      "translate" : statics.translate,
-      "rotate" : statics.rotate,
-      "skew" : statics.skew,
-      "scale" : statics.scale,
-      "setTransformStyle" : statics.setTransformStyle,
-      "getTransformStyle" : statics.getTransformStyle,
-      "setTransformOrigin" : statics.setTransformOrigin,
-      "getTransformOrigin" : statics.getTransformOrigin,
-      "setTransformPerspective" : statics.setTransformPerspective,
-      "getTransformPerspective" : statics.getTransformPerspective,
-      "setTransformPerspectiveOrigin" : statics.setTransformPerspectiveOrigin,
-      "getTransformPerspectiveOrigin" : statics.getTransformPerspectiveOrigin,
-      "setTransformBackfaceVisibility" : statics.setTransformBackfaceVisibility,
-      "getTransformBackfaceVisibility" : statics.getTransformBackfaceVisibility
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -4771,6 +3855,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
   },
   members : {
     __dragMode : null,
+    _value : 0,
     init : function(){
 
       if(!this.base(arguments)){
@@ -4782,23 +3867,20 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
 
         var step = this.getConfig("step");
         var defaultVal = qxWeb.type.get(step) == "Array" ? step[0] : this.getConfig("minimum");
-        this.setProperty("value", defaultVal);
+        this._value = defaultVal;
       };
-      this._forEachElementWrapped(function(slider){
+      this.on("pointerup", this._onSliderPointerUp, this).on("focus", this._onSliderFocus, this).setStyle("touch-action", "pan-y");
+      qxWeb(document).on("pointerup", this._onDocPointerUp, this);
+      qxWeb(window).on("resize", this._onWindowResize, this);
+      if(this.getChildren("." + cssPrefix + "-knob").length === 0){
 
-        slider.$onFirstCollection("pointerup", slider._onSliderPointerUp, slider).$onFirstCollection("focus", slider._onSliderFocus, slider).setStyle("touch-action", "pan-y");
-        qxWeb(document).on("pointerup", slider._onDocPointerUp, slider);
-        qxWeb(window).$onFirstCollection("resize", slider._onWindowResize, slider);
-        if(slider.getChildren("." + cssPrefix + "-knob").length === 0){
-
-          slider.append(qx.ui.website.Widget.create("<button>").addClass(cssPrefix + "-knob"));
-        };
-        slider.getChildren("." + cssPrefix + "-knob").setAttributes({
-          "draggable" : "false",
-          "unselectable" : "true"
-        }).setHtml(slider._getKnobContent()).$onFirstCollection("pointerdown", slider._onPointerDown, slider).$onFirstCollection("dragstart", slider._onDragStart, slider).$onFirstCollection("focus", slider._onKnobFocus, slider).$onFirstCollection("blur", slider._onKnobBlur, slider);
-        slider.render();
-      });
+        this.append(qx.ui.website.Widget.create("<button>").addClass(cssPrefix + "-knob"));
+      };
+      this.getChildren("." + cssPrefix + "-knob").setAttributes({
+        "draggable" : "false",
+        "unselectable" : "true"
+      }).setHtml(this._getKnobContent()).on("pointerdown", this._onPointerDown, this).on("dragstart", this._onDragStart, this).on("focus", this._onKnobFocus, this).on("blur", this._onKnobBlur, this);
+      this.render();
       return true;
     },
     /**
@@ -4808,7 +3890,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     getValue : function(){
 
-      return this.getProperty("value");
+      return this._value;
     },
     /**
      * Sets the current value of the slider.
@@ -4841,7 +3923,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
           value = Math.round(value / step) * step;
         };
       };
-      this.setProperty("value", value);
+      this._value = value;
       if(qxWeb.type.get(step) != "Array" || step.indexOf(value) != -1){
 
         this.__valueToPosition(value);
@@ -5084,7 +4166,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     _onKnobFocus : function(e){
 
-      this.getChildren("." + this.getCssPrefix() + "-knob").$onFirstCollection("keydown", this._onKeyDown, this);
+      this.getChildren("." + this.getCssPrefix() + "-knob").on("keydown", this._onKeyDown, this);
     },
     /**
      * Removes the event listener for keyboard support from the knob on blur
@@ -5092,7 +4174,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     _onKnobBlur : function(e){
 
-      this.getChildren("." + this.getCssPrefix() + "-knob").$offFirstCollection("keydown", this._onKeyDown, this);
+      this.getChildren("." + this.getCssPrefix() + "-knob").off("keydown", this._onKeyDown, this);
     },
     /**
      * Moves the knob if the left or right arrow key is pressed
@@ -5165,12 +4247,11 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     _onWindowResize : function(){
 
-      var value = this.getProperty("value");
       if(qxWeb.type.get(this.getConfig("step")) == "Array"){
 
         this._getPixels();
       };
-      this.__valueToPosition(value);
+      this.__valueToPosition(this._value);
     },
     /**
      * Positions the slider knob to the given value and fires the "changePosition"
@@ -5202,13 +4283,10 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
     },
     dispose : function(){
 
-      this._forEachElementWrapped(function(slider){
-
-        qxWeb(document).off("pointerup", slider._onDocPointerUp, slider);
-        qxWeb(window).$offFirstCollection("resize", slider._onWindowResize, slider);
-        slider.$offFirstCollection("pointerup", slider._onSliderPointerUp, slider).$offFirstCollection("focus", slider._onSliderFocus, slider);
-        slider.getChildren("." + this.getCssPrefix() + "-knob").$offFirstCollection("pointerdown", slider._onPointerDown, slider).$offFirstCollection("dragstart", slider._onDragStart, slider).$offFirstCollection("focus", slider._onKnobFocus, slider).$offFirstCollection("blur", slider._onKnobBlur, slider).$offFirstCollection("keydown", slider._onKeyDown, slider);
-      });
+      qxWeb(document).off("pointerup", this._onDocPointerUp, this);
+      qxWeb(window).off("resize", this._onWindowResize, this);
+      this.off("pointerup", this._onSliderPointerUp, this).off("focus", this._onSliderFocus, this);
+      this.getChildren("." + this.getCssPrefix() + "-knob").off("pointerdown", this._onPointerDown, this).off("dragstart", this._onDragStart, this).off("focus", this._onKnobFocus, this).off("blur", this._onKnobBlur, this).off("keydown", this._onKeyDown, this);
       this.setHtml("");
       return this.base(arguments);
     }
@@ -5311,17 +4389,14 @@ qx.Bootstrap.define("qx.ui.website.Button", {
 
         return false;
       };
-      this._forEachElementWrapped(function(button){
+      if(this.getChildren("span") == 0){
 
-        if(button.getChildren("span") == 0){
+        qxWeb.create("<span>").appendTo(this);
+      };
+      if(this.getChildren("img") == 0){
 
-          qxWeb.create("<span>").appendTo(button);
-        };
-        if(button.getChildren("img") == 0){
-
-          qxWeb.create("<img>").appendTo(button).setStyle("display", "none");
-        };
-      });
+        qxWeb.create("<img>").appendTo(this).setStyle("display", "none");
+      };
       return true;
     },
     /**
@@ -5555,7 +4630,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     table : function(model){
 
       var table = new qx.ui.website.Table(this);
-      table.setProperty("__model", model);
+      table.__model = model;
       table.init();
       return table;
     },
@@ -5635,6 +4710,15 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     __descSortingClass : "qqx-table-sort-desc"
   },
   members : {
+    __model : null,
+    __columnMeta : null,
+    __sortingFunction : null,
+    __filterFunction : null,
+    __filterFunc : null,
+    __filters : null,
+    __inputName : null,
+    __hovered : null,
+    __sortingData : null,
     // overridden
     init : function(){
 
@@ -5642,25 +4726,22 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         return false;
       };
-      var model = this.getProperty("__model");
-      this._forEachElementWrapped(function(table){
+      var model = this.__model;
+      if(qxWeb.getNodeName(this).toUpperCase() !== "TABLE"){
 
-        if(qxWeb.getNodeName(table).toUpperCase() !== "TABLE"){
+        throw new Error("collection should contains only table elements !!");
+      };
+      if(!this[0].tHead){
 
-          throw new Error("collection should contains only table elements !!");
-        };
-        if(!table[0].tHead){
-
-          throw new Error("A Table header element is required for this widget.");
-        };
-        table.find("tbody td").addClass("qx-table-cell");
-        table.setProperty("__inputName", "input" + qx.ui.website.Table.__getUID());
-        table.__getColumnMetaData(model);
-        table.setModel(model);
-        table.setSortingFunction(table.__defaultColumnSort);
-        table.__registerEvents();
-        this.setProperty("__hovered", null);
-      }.bind(this));
+        throw new Error("A Table header element is required for this widget.");
+      };
+      this.find("tbody td").addClass("qx-table-cell");
+      this.__inputName = "input" + qx.ui.website.Table.__getUID();
+      this.__getColumnMetaData(model);
+      this.setModel(model);
+      this.setSortingFunction(this.__defaultColumnSort);
+      this.__registerEvents();
+      this.__hovered = null;
       return true;
     },
     /**
@@ -5671,20 +4752,17 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     setModel : function(model){
 
-      this._forEachElementWrapped(function(table){
+      if(typeof model != "undefined"){
 
-        if(typeof model != "undefined"){
+        if(qx.lang.Type.isArray(model)){
 
-          if(qx.lang.Type.isArray(model)){
+          this.__model = model;
+          this.emit("modelChange", model);
+        } else {
 
-            table.setProperty("__model", model);
-            table.emit("modelChange", model);
-          } else {
-
-            throw new Error("model must be an Array !!");
-          };
+          throw new Error("model must be an Array !!");
         };
-      });
+      };
       return this;
     },
     /**
@@ -5695,11 +4773,8 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     setColumnType : function(columnName, type){
 
-      this._forEachElementWrapped(function(table){
-
-        table.__checkColumnExistance(columnName);
-        table.getProperty("__columnMeta")[columnName].type = type;
-      }.bind(this));
+      this.__checkColumnExistance(columnName);
+      this.__columnMeta[columnName].type = type;
       return this;
     },
     /**
@@ -5710,7 +4785,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     getColumnType : function(columnName){
 
       this.eq(0).__checkColumnExistance(columnName);
-      return this.eq(0).getProperty("__columnMeta")[columnName].type;
+      return this.eq(0).__columnMeta[columnName].type;
     },
     /**
      * Returns the cell at the given position for the first widget in the collection
@@ -5739,10 +4814,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     setCompareFunction : function(type, compareFunc){
 
       type = qxWeb.string.firstUp(type);
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("_compare" + type, compareFunc);
-      }.bind(this));
+      this.setProperty(["_compare" + type], compareFunc);
       return this;
     },
     /**
@@ -5755,10 +4827,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       type = qxWeb.string.firstUp(type);
       var compareFunc = this["_compare" + type] || this._compareString;
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("_compare" + type, compareFunc);
-      }.bind(this));
+      this.setProperty(["_compare" + type], compareFunc);
       return this;
     },
     /**
@@ -5769,7 +4838,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     getCompareFunction : function(type){
 
       type = qxWeb.string.firstUp(type);
-      return this.eq(0).getProperty("_compare" + type) || this["_compare" + type];
+      return this.getProperty("_compare" + type) || this["_compare" + type];
     },
     /**
      * Set the function that control the sorting process
@@ -5780,10 +4849,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       func = func || function(){
       };
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__sortingFunction", func);
-      }.bind(this));
+      this.__sortingFunction = func;
       return this;
     },
     /**
@@ -5792,10 +4858,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     unsetSortingFunction : function(){
 
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__sortingFunction", this.__defaultColumnSort);
-      }.bind(this));
+      this.__sortingFunction = this.__defaultColumnSort;
       return this;
     },
     /**
@@ -5805,10 +4868,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     setFilterFunction : function(func){
 
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__filterFunction", func);
-      }.bind(this));
+      this.__filterFunction = func;
       return this;
     },
     /**
@@ -5817,10 +4877,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     unsetFilterFunction : function(){
 
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__filterFunction", this.__defaultColumnFilter);
-      }.bind(this));
+      this.__filterFunction = this.__defaultColumnFilter;
       return this;
     },
     /**
@@ -5832,16 +4889,13 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     setColumnFilter : function(columnName, func){
 
-      this._forEachElementWrapped(function(table){
+      this.__checkColumnExistance(columnName);
+      if(!this.__filterFunc){
 
-        table.__checkColumnExistance(columnName);
-        if(!table.getProperty("__filterFunc")){
-
-          table.setProperty("__filterFunc", {
-          });
+        this.__filterFunc = {
         };
-        table.getProperty("__filterFunc")[columnName] = func;
-      }.bind(this));
+      };
+      this.__filterFunc[columnName] = func;
       return this;
     },
     /**
@@ -5853,9 +4907,9 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     getColumnFilter : function(columnName){
 
-      if(this.eq(0).getProperty("__filterFunc")){
+      if(this.__filterFunc){
 
-        return this.eq(0).getProperty("__filterFunc")[columnName];
+        return this.__filterFunc[columnName];
       };
       return null;
     },
@@ -5866,15 +4920,12 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     setRowFilter : function(func){
 
-      this._forEachElementWrapped(function(table){
+      if(!this.__filterFunc){
 
-        if(!table.getProperty("__filterFunc")){
-
-          table.setProperty("__filterFunc", {
-          });
+        this.__filterFunc = {
         };
-        table.getProperty("__filterFunc").row = func;
-      }.bind(this));
+      };
+      this.__filterFunc.row = func;
       return this;
     },
     /**
@@ -5884,9 +4935,9 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     getRowFilter : function(){
 
-      if(this.eq(0).getProperty("__filterFunc")){
+      if(this.__filterFunc){
 
-        return this.eq(0).getProperty("__filterFunc").row;
+        return this.__filterFunc.row;
       };
       return null;
     },
@@ -5899,11 +4950,8 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     sort : function(columnName, dir){
 
       this.__checkColumnExistance(columnName);
-      this._forEachElementWrapped(function(table){
-
-        table.setSortingClass(columnName, dir);
-        table.__sortDOM(table.__sort(columnName, dir));
-      }.bind(this));
+      this.setSortingClass(columnName, dir);
+      this.__sortDOM(this.__sort(columnName, dir));
       this.emit("sort", {
         columName : columnName,
         direction : dir
@@ -5929,26 +4977,23 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         columnName = qx.ui.website.Table.__allColumnSelector;
       };
-      this._forEachElementWrapped(function(table){
+      if(!this.__filters){
 
-        if(!table.getProperty("__filters")){
-
-          table.setProperty("__filters", {
-          });
+        this.__filters = {
         };
-        if(table.getProperty("__filters")[columnName]){
+      };
+      if(this.__filters[columnName]){
 
-          table.getProperty("__filters")[columnName].keyword = keyword;
-          table.__getRoot().appendChild(table.getProperty("__filters")[columnName].rows);
-        } else {
+        this.__filters[columnName].keyword = keyword;
+        this.__getRoot().appendChild(this.__filters[columnName].rows);
+      } else {
 
-          table.getProperty("__filters")[columnName] = {
-            keyword : keyword,
-            rows : document.createDocumentFragment()
-          };
+        this.__filters[columnName] = {
+          keyword : keyword,
+          rows : document.createDocumentFragment()
         };
-        table.__filterDom(keyword, columnName);
-      }.bind(this));
+      };
+      this.__filterDom(keyword, columnName);
       this.emit("filter", {
         columName : columnName,
         keyword : keyword
@@ -5963,23 +5008,20 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     resetFilter : function(columnName){
 
       var filters = null;
-      this._forEachElementWrapped(function(table){
+      filters = this.__filters;
+      if(filters){
 
-        filters = table.getProperty("__filters");
-        if(filters){
+        if(columnName){
 
-          if(columnName){
+          this.__getRoot().appendChild(filters[columnName].rows);
+        } else {
 
-            table.__getRoot().appendChild(filters[columnName].rows);
-          } else {
+          for(var col in filters){
 
-            for(var col in filters){
-
-              table.__getRoot().appendChild(filters[col].rows);
-            };
+            this.__getRoot().appendChild(filters[col].rows);
           };
         };
-      });
+      };
       return this;
     },
     /**
@@ -6058,13 +5100,13 @@ qx.Bootstrap.define("qx.ui.website.Table", {
         data = {
           columnName : columnName,
           columnIndex : colIndex,
-          cell : colIndex ? qxWeb(rows[i].cells.item(colIndex)) : null,
+          cell : colIndex > -1 ? qxWeb(rows[i].cells.item(colIndex)) : null,
           row : qxWeb(rows[i]),
           keyword : keyword
         };
         if(!filterFunc.bind(this)(data)){
 
-          this.getProperty("__filters")[columnName].rows.appendChild(rows[i]);
+          this.__filters[columnName].rows.appendChild(rows[i]);
         };
       };
       return this;
@@ -6075,25 +5117,22 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     getSortingData : function(){
 
-      return this.eq(0).getProperty("__sortingData");
+      return this.__sortingData;
     },
     //overriden
     render : function(){
 
-      this._forEachElementWrapped(function(table){
+      var sortingData = this.getSortingData();
+      var rowSelection = this.getConfig("rowSelection");
+      this.__applyTemplate(this.__model);
+      if(qx.ui.website.Table.__selectionTypes.indexOf(rowSelection) != -1){
 
-        var sortingData = table.getSortingData();
-        var rowSelection = table.getConfig("rowSelection");
-        table.__applyTemplate(table.getProperty("__model"));
-        if(qx.ui.website.Table.__selectionTypes.indexOf(rowSelection) != -1){
+        this.__processSelectionInputs(rowSelection);
+      };
+      if(sortingData){
 
-          table.__processSelectionInputs(rowSelection);
-        };
-        if(sortingData){
-
-          table.__sortDOM(table.__sort(sortingData.columnName, sortingData.direction));
-        };
-      });
+        this.__sortDOM(this.__sort(sortingData.columnName, sortingData.direction));
+      };
       return this;
     },
     //Private API
@@ -6149,7 +5188,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         nodeName = qxWeb.getNodeName(qxWeb(row.cells.item(0)));
       };
-      var clazz = qx.ui.website.Table,inputName = this.getProperty("__inputName");
+      var inputName = this.__inputName;
       var className = (nodeName == "th") ? clazz.__internalSelectionClass + " " + clazz.__internalHeaderClass : clazz.__internalSelectionClass;
       var currentInput = qxWeb(row).find("." + clazz.__internalSelectionClass);
       if(currentInput.length > 0){
@@ -6177,7 +5216,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     __checkColumnExistance : function(columnName){
 
-      var data = this.getProperty("__columnMeta");
+      var data = this.__columnMeta;
       if(data && !data[columnName]){
 
         throw new Error("Column " + columnName + " does not exists !");
@@ -6234,7 +5273,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
           name : colName
         };
       };
-      this.setProperty("__columnMeta", data);
+      this.__columnMeta = data;
       return this;
     },
     /**
@@ -6274,7 +5313,6 @@ qx.Bootstrap.define("qx.ui.website.Table", {
           qxWeb(dataRows[i]).insertBefore(qxWeb(this.__getRoot().rows.item(0)));
         };
       };
-      this.setProperty("__dataRows", dataRows);
       return this;
     },
     /**
@@ -6288,7 +5326,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         if(data.cell && data.cell.hasClass(qx.ui.website.Table.__internalHeaderClass)){
 
-          this.getProperty("__sortingFunction").bind(this)(data);
+          this.__sortingFunction.bind(this)(data);
         };
       }, this);
       this.on("pointerover", this.__cellHover, this);
@@ -6432,7 +5470,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       var target = e.getTarget();
       var cell = qxWeb(target);
-      var hovered = this.getProperty("__hovered");
+      var hovered = this.__hovered;
       if(!cell.hasClass("qx-table-cell") && !cell.hasClass("qx-table-header")){
 
         cell = cell.getClosest(".qx-table-cell, .qx-table-header");
@@ -6441,9 +5479,9 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         if(hovered){
 
-          this.emit("cellOut", this.getProperty("__hovered"));
+          this.emit("cellOut", hovered);
         };
-        this.setProperty("__hovered", this.__fireEvent("cellHover", cell, target));
+        this.__hovered = this.__fireEvent("cellHover", cell, target);
       };
     },
     /**
@@ -6455,12 +5493,12 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       var relatedTarget = e.getRelatedTarget();
       var cell = qxWeb(relatedTarget);
-      if(this.getProperty("__hovered")){
+      if(this.__hovered){
 
         if(!cell.isChildOf(this)){
 
-          this.emit("cellOut", this.getProperty("__hovered"));
-          this.setProperty("__hovered", null);
+          this.emit("cellOut", this.__hovered);
+          this.__hovered = null;
         } else {
 
           if(!cell.hasClass("qx-table-cell") && !cell.hasClass("qx-table-header")){
@@ -6468,8 +5506,8 @@ qx.Bootstrap.define("qx.ui.website.Table", {
             cell = cell.getClosest(".qx-table-cell, .qx-table-header");
             if(cell.hasClass("qx-table-row-selection")){
 
-              this.emit("cellOut", this.getProperty("__hovered"));
-              this.setProperty("__hovered", null);
+              this.emit("cellOut", this.__hovered);
+              this.__hovered = null;
             };
           };
         };
@@ -6567,7 +5605,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     __getDataForColumn : function(columName){
 
-      return this.getProperty("__columnMeta")[columName];
+      return this.__columnMeta[columName];
     },
     /**
      * Gets the Root element contening the data rows
@@ -6619,7 +5657,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
         columnName : columnName,
         direction : dir
       };
-      this.setProperty("__sortingData", data);
+      this.__sortingData = data;
       this.__addSortingClassToCol(this[0].tHead, columnName, dir);
     },
     /**
@@ -6750,7 +5788,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     __getCellValue : function(cell){
 
-      return cell.getTextContent() || "";
+      return cell[0].textContent || cell[0].innerText || "";
     },
     /**
      * Gets the table's data rows from the DOM
@@ -6911,9 +5949,14 @@ qx.Bootstrap.define("qx.ui.website.Table", {
  *       <td>Identifies and styles the "next month" container</td>
  *     </tr>
  *     <tr>
- *       <td><code>qx-calendar-othermonth</code></td>
+ *       <td><code>qx-calendar-previous-month</code></td>
  *       <td>Day cell (<code>td</code>)</td>
- *       <td>Identifies and styles calendar cells for days from the previous or following month</td>
+ *       <td>Identifies and styles calendar cells for days from the previous month</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-calendar-next-month</code></td>
+ *       <td>Day cell (<code>td</code>)</td>
+ *       <td>Identifies and styles calendar cells for days from the next month</td>
  *     </tr>
  *     <tr>
  *       <td><code>qx-calendar-dayname</code></td>
@@ -6939,6 +5982,23 @@ qx.Bootstrap.define("qx.ui.website.Table", {
  *       <td><code>qx-calendar-selected</code></td>
  *       <td>Day cell (<code>td</code>)</td>
  *       <td>Identifies and styles the cell containing the selected day's button</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-calendar-today</code></td>
+ *       <td>Day cell (<code>td</code>)</td>
+ *       <td>Identifies and styles the cell containing the current day button</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-calendar-past</code></td>
+ *       <td>Day cell (<code>td</code>)</td>
+ *       <td>Identifies and styles all cells containing day buttons in the past</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-hidden</code></td>
+ *       <td>Day (<code>button</code>)</td>
+ *       <td>Added to days of previous / next month if the configuration <code>hideDaysOtherMonth</code>
+             is set to <code>true</code> <br /> The default style property used is <code>visibility: hidden</code>
+         </td>
  *     </tr>
  *   </tbody>
  * </table>
@@ -6984,7 +6044,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      * Default value:
      * <pre><tr>
      *   {{#row}}<td class='{{cssClass}}'>
-     *     <button class='{{cssPrefix}}-day' value='{{date}}'>{{day}}</button>
+     *     <button class='{{cssPrefix}}-day {{hidden}}' value='{{date}}'>{{day}}</button>
      *   </td>{{/row}}
      * </tr></pre>
      *
@@ -6999,7 +6059,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
     _templates : {
       controls : "<tr>" + "<td colspan='1' class='{{cssPrefix}}-prev-container'><button class='{{cssPrefix}}-prev' {{prevDisabled}} title='Previous Month'>&lt;</button></td>" + "<td colspan='5' class='{{cssPrefix}}-month'>{{month}} {{year}}</td>" + "<td colspan='1' class='{{cssPrefix}}-next-container'><button class='{{cssPrefix}}-next' {{nextDisabled}} title='Next Month'>&gt;</button></td>" + "</tr>",
       dayRow : "<tr>" + "{{#row}}<td class='{{cssPrefix}}-dayname'>{{.}}</td>{{/row}}" + "</tr>",
-      row : "<tr>" + "{{#row}}<td class='{{cssClass}}'><button class='{{cssPrefix}}-day' {{disabled}} value='{{date}}'>{{day}}</button></td>{{/row}}" + "</tr>",
+      row : "<tr>" + "{{#row}}<td class='{{cssClass}}'><button class='{{cssPrefix}}-day {{hidden}}' {{disabled}} value='{{date}}'>{{day}}</button></td>{{/row}}" + "</tr>",
       table : "<table class='{{cssPrefix}}-container'><thead>{{{thead}}}</thead><tbody>{{{tbody}}}</tbody></table>"
     },
     /**
@@ -7034,6 +6094,20 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      * *selectionMode*
      *
      * The Selection mode the calendar will use. Possible values are 'single' and 'range' . Default: <code>single</code>
+     *
+     * *hideDaysOtherMonth*
+     *
+     * Hide all days of the previous/next month. If the entire last row of the calandar are days of
+     * the next month the whole row is not rendered. Default: <code>false</code> <br /> <br />
+     * <strong>Important: </strong>If you like to have a <em>mixed</em> mode like displaying the days
+     * of the previous month and hiding the days of the next month you should work with the
+     * <code>rendered</code> event to manipulate the DOM nodes after the rendering. Take a look at
+     * the samples to get a idea of it.
+     *
+     * *disableDaysOtherMonth*
+     *
+     * Disable all days of the previous/next month. The days are visible, but are not responding to
+     * user input. Default: <code>false</code>
      */
     _config : {
       monthNames : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -7041,7 +6115,9 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       minDate : null,
       maxDate : null,
       selectableWeekDays : [0, 1, 2, 3, 4, 5, 6],
-      selectionMode : "single"
+      selectionMode : "single",
+      hideDaysOtherMonth : false,
+      disableDaysOtherMonth : false
     },
     /**
      * Factory method which converts the current collection into a collection of
@@ -7069,9 +6145,15 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
   },
   events : {
     /** Fired at each value change */
-    "changeValue" : "Date"
+    "changeValue" : "Date",
+    /** Fired whenvever a render process finished. This event can be used as hook to add
+        custom markup and/or manipulate existing. */
+    "rendered" : ""
   },
   members : {
+    __range : null,
+    _value : null,
+    _shownValue : null,
     // overridden
     init : function(){
 
@@ -7079,12 +6161,10 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
         return false;
       };
+      this.__range = [];
       var today = new Date();
-      this._normalizeDate(today);
-      this._forEachElementWrapped(function(calendar){
-
-        calendar.showValue(today);
-      });
+      today = this._getNormalizedDate(today);
+      this.showValue(today);
       return true;
     },
     // overridden
@@ -7093,41 +6173,28 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var minDate = this.getConfig("minDate");
       if(minDate){
 
-        this._normalizeDate(minDate);
+        minDate = this._getNormalizedDate(minDate);
       };
       var maxDate = this.getConfig("maxDate");
       if(maxDate){
 
-        this._normalizeDate(maxDate);
+        maxDate = this._getNormalizedDate(maxDate);
       };
-      this.showValue(this.getProperty("shownValue"));
-      this.setEnabled(this.getEnabled());
+      this.showValue(this._shownValue);
       return this;
     },
     // overridden
     setEnabled : function(value){
 
-      var minDate = this.getConfig("minDate");
-      var maxDate = this.getConfig("maxDate");
-      var currentDate = null;
-      this.base(arguments, value);
-      if(value && (minDate || maxDate)){
+      this.setAttribute("disabled", !value);
+      if(value === true){
 
-        this.find("button.qx-calendar-day").map(function(button){
+        // let the render process decide which state to set for the different DOM elements
+        // this highly depends on the configuration (e.g. 'minDate', 'maxDate' or 'disableDaysOtherMonth')
+        this.render();
+      } else {
 
-          currentDate = new Date(button.getAttribute("value"));
-          button = qxWeb(button);
-          // Disables a day when the current date is smaller than minDate
-          if(minDate && currentDate < minDate){
-
-            button.setAttribute("disabled", true);
-          };
-          // Disables a day when it current date is greater than maxDate
-          if(maxDate && currentDate > maxDate){
-
-            button.setAttribute("disabled", true);
-          };
-        });
+        this.find("*").setAttribute("disabled", !value);
       };
       return this;
     },
@@ -7143,14 +6210,14 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var maxDate = this.getConfig("maxDate");
       if(this.getConfig("selectionMode") == "single"){
 
-        this._normalizeDate(value);
+        value = this._getNormalizedDate(value);
         if(this.getConfig("selectableWeekDays").indexOf(value.getDay()) == -1){
 
           throw new Error("The given date's week day is not selectable.");
         };
         if(minDate){
 
-          this._normalizeDate(minDate);
+          minDate = this._getNormalizedDate(minDate);
           if(value < minDate){
 
             throw new Error("Given date " + value.toDateString() + " is earlier than configured minDate " + minDate.toDateString());
@@ -7158,7 +6225,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
         };
         if(maxDate){
 
-          this._normalizeDate(maxDate);
+          maxDate = this._getNormalizedDate(maxDate);
           if(value > maxDate){
 
             throw new Error("Given date " + value.toDateString() + " is later than configured maxDate " + maxDate.toDateString());
@@ -7166,12 +6233,12 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
         };
       } else if(this.getConfig("selectionMode") == "range"){
 
-        if(!this.getProperty("__range")){
+        if(!this.__range){
 
-          this.setProperty("__range", value.map(function(val){
+          this.__range = value.map(function(val){
 
             return val.toDateString();
-          }));
+          });
         };
         if(value.length == 2){
 
@@ -7182,10 +6249,10 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
           value = this._generateRange(value);
         } else {
 
-          this._normalizeDate(value[0]);
+          value[0] = this._getNormalizedDate(value[0]);
         };
       };
-      this.setProperty("value", value);
+      this._value = value;
       this.showValue(value);
       if((this.getConfig("selectionMode") == "single") || ((this.getConfig("selectionMode") == "range") && (value.length >= 1))){
 
@@ -7201,7 +6268,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     getValue : function(){
 
-      var value = this.getProperty("value");
+      var value = this._value;
       return value ? (qx.Bootstrap.isArray(value) ? value : new Date(value)) : null;
     },
     /**
@@ -7214,27 +6281,24 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
       // If value is an array, show the last selected date
       value = qx.Bootstrap.isArray(value) ? value[value.length - 1] : value;
-      this.setProperty("shownValue", value);
+      this._shownValue = value;
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(item){
+      if(this.getAttribute("tabindex") < 0){
 
-        if(item.getAttribute("tabindex") < 0){
-
-          item.setAttribute("tabindex", 0);
-        };
-        item.find("." + cssPrefix + "-prev").$offFirstCollection("tap", this._prevMonth, item);
-        item.find("." + cssPrefix + "-next").$offFirstCollection("tap", this._nextMonth, item);
-        item.find("." + cssPrefix + "-day").$offFirstCollection("tap", this._selectDay, item);
-        item.$offFirstCollection("focus", this._onFocus, item, true).$offFirstCollection("blur", this._onBlur, item, true);
-      }, this);
+        this.setAttribute("tabindex", 0);
+      };
+      this.find("." + cssPrefix + "-prev").off("tap", this._prevMonth, this);
+      this.find("." + cssPrefix + "-next").off("tap", this._nextMonth, this);
+      this.find("." + cssPrefix + "-day").off("tap", this._selectDay, this);
+      this.off("focus", this._onFocus, this, true).off("blur", this._onBlur, this, true);
       this.setHtml(this._getTable(value));
-      this._forEachElementWrapped(function(item){
-
-        item.find("." + cssPrefix + "-prev").$onFirstCollection("tap", this._prevMonth, item);
-        item.find("." + cssPrefix + "-next").$onFirstCollection("tap", this._nextMonth, item);
-        item.find("td").not(".qx-calendar-invalid").find("." + cssPrefix + "-day").$onFirstCollection("tap", this._selectDay, item);
-        item.$onFirstCollection("focus", this._onFocus, item, true).$onFirstCollection("blur", this._onBlur, item, true);
-      }, this);
+      this.find("." + cssPrefix + "-prev").on("tap", this._prevMonth, this);
+      this.find("." + cssPrefix + "-next").on("tap", this._nextMonth, this);
+      this.find("td").not(".qx-calendar-invalid").find("." + cssPrefix + "-day").on("tap", this._selectDay, this);
+      this.on("focus", this._onFocus, this, true).on("blur", this._onBlur, this, true);
+      // signal the rendering process is done - this is useful for application developers if they
+      // want to hook into and change / adapt the DOM elements of the calendar
+      this.emit('rendered');
       return this;
     },
     /**
@@ -7242,7 +6306,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     _prevMonth : function(){
 
-      var shownValue = this.getProperty("shownValue");
+      var shownValue = this._shownValue;
       this.showValue(new Date(shownValue.getFullYear(), shownValue.getMonth() - 1));
     },
     /**
@@ -7250,7 +6314,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     _nextMonth : function(){
 
-      var shownValue = this.getProperty("shownValue");
+      var shownValue = this._shownValue;
       this.showValue(new Date(shownValue.getFullYear(), shownValue.getMonth() + 1));
     },
     /**
@@ -7264,17 +6328,13 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var newValue = new Date(newStr);
       if(this.getConfig("selectionMode") == "range"){
 
-        if(!this.getProperty("__range")){
-
-          this.setProperty("__range", []);
-        };
-        var range = this.getProperty("__range").slice(0);
+        var range = this.__range.slice(0);
         if(range.length == 2){
 
           range = [];
         };
         range.push(newStr);
-        this.setProperty("__range", range);
+        this.__range = range;
         range = range.map(function(item){
 
           return new Date(item);
@@ -7320,7 +6380,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var minDate = this.getConfig("minDate");
       if(minDate){
 
-        this._normalizeDate(minDate);
+        minDate = this._getNormalizedDate(minDate);
         if(date.getMonth() <= minDate.getMonth()){
 
           prevDisabled = "disabled";
@@ -7330,7 +6390,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var maxDate = this.getConfig("maxDate");
       if(maxDate){
 
-        this._normalizeDate(maxDate);
+        maxDate = this._getNormalizedDate(maxDate);
         if(date.getMonth() >= maxDate.getMonth()){
 
           nextDisabled = "disabled";
@@ -7373,16 +6433,18 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var minDate = this.getConfig("minDate");
       if(minDate){
 
-        this._normalizeDate(minDate);
+        minDate = this._getNormalizedDate(minDate);
       };
       var maxDate = this.getConfig("maxDate");
       if(maxDate){
 
-        this._normalizeDate(maxDate);
+        this._getNormalizedDate(maxDate);
       };
-      if(qx.Bootstrap.isArray(this.getProperty("value"))){
+      var hideDaysOtherMonth = this.getConfig("hideDaysOtherMonth");
+      var disableDaysOtherMonth = this.getConfig("disableDaysOtherMonth");
+      if(qx.Bootstrap.isArray(this._value)){
 
-        valueString = this.getProperty("value").map(function(currentDate){
+        valueString = this._value.map(function(currentDate){
 
           return currentDate.toDateString();
         });
@@ -7394,8 +6456,29 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
         };
         for(var i = 0;i < 7;i++){
 
-          var cssClasses = helpDate.getMonth() !== date.getMonth() ? cssPrefix + "-othermonth" : "";
-          if((this.getConfig("selectionMode") == "range") && qx.Bootstrap.isArray(this.getProperty("value"))){
+          var cssClasses = "";
+          var hidden = "";
+          var disabled = "";
+          if(helpDate.getMonth() !== date.getMonth()){
+
+            // first day of the last displayed week is already in the next month
+            if(hideDaysOtherMonth === true && week === 5 && i === 0){
+
+              break;
+            };
+            // set 'previous-month' and 'next-month' to make it easier for the developer to select
+            // the days after the render process
+            if((helpDate.getMonth() < date.getMonth() && helpDate.getFullYear() == date.getFullYear()) || (helpDate.getMonth() > date.getMonth() && helpDate.getFullYear() < date.getFullYear())){
+
+              cssClasses += cssPrefix + "-previous-month";
+            } else {
+
+              cssClasses += cssPrefix + "-next-month";
+            };
+            hidden += hideDaysOtherMonth ? "qx-hidden" : "";
+            disabled += disableDaysOtherMonth ? "disabled=disabled" : "";
+          };
+          if((this.getConfig("selectionMode") == "range") && qx.Bootstrap.isArray(this._value)){
 
             if(valueString.indexOf(helpDate.toDateString()) != -1){
 
@@ -7403,18 +6486,25 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
             };
           } else {
 
-            var range = this.getProperty("__range");
-            if(this.getProperty("value")){
+            var range = this.__range;
+            if(this._value){
 
-              value = this.getConfig("selectionMode") == "range" ? new Date(range[range.length - 1]) : this.getProperty("value");
+              value = this.getConfig("selectionMode") == "range" ? new Date(range[range.length - 1]) : this._value;
               cssClasses += helpDate.toDateString() === value.toDateString() ? " " + cssPrefix + "-selected" : "";
             };
           };
+          // extra check for today date necessary - otherwise 'today' would be marked as past day
+          var isPast = Date.parse(today) > Date.parse(helpDate) && today.toDateString() !== helpDate.toDateString();
+          cssClasses += isPast ? " " + cssPrefix + "-past" : "";
           cssClasses += today.toDateString() === helpDate.toDateString() ? " " + cssPrefix + "-today" : "";
-          var disabled = this.getEnabled() ? "" : "disabled";
-          if((minDate && helpDate < minDate) || (maxDate && helpDate > maxDate) || this.getConfig("selectableWeekDays").indexOf(helpDate.getDay()) == -1){
+          // if 'disableDaysOtherMonth' config is set - 'disabled' might already be set
+          if(disabled === ""){
 
-            disabled = "disabled";
+            disabled = this.getEnabled() ? "" : "disabled=disabled";
+            if((minDate && helpDate < minDate) || (maxDate && helpDate > maxDate) || this.getConfig("selectableWeekDays").indexOf(helpDate.getDay()) == -1){
+
+              disabled = "disabled=disabled";
+            };
           };
           cssClasses += (helpDate.getDay() === 0 || helpDate.getDay() === 6) ? " " + cssPrefix + "-weekend" : " " + cssPrefix + "-weekday";
           data.row.push({
@@ -7422,7 +6512,8 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
             date : helpDate.toDateString(),
             cssPrefix : cssPrefix,
             cssClass : cssClasses,
-            disabled : disabled
+            disabled : disabled,
+            hidden : hidden
           });
           helpDate.setDate(helpDate.getDate() + 1);
         };
@@ -7448,17 +6539,20 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       return helpDate;
     },
     /**
-     * Sets the hours, minutes and seconds of a date object to 0
+     * Returns a Date object with hours, minutes and seconds set to 0
      * to facilitate date comparisons.
      *
-     * @param date {Date} Date to normalize
+     * @param dateIn {Date} Date to normalize
+     * @return {Date} normalized
      */
-    _normalizeDate : function(date){
+    _getNormalizedDate : function(dateIn){
 
+      var date = new Date(dateIn.getTime());
       date.setHours(0);
       date.setMinutes(0);
       date.setSeconds(0);
       date.setMilliseconds(0);
+      return date;
     },
     /**
      * Attaches the keydown listener.
@@ -7467,7 +6561,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     _onFocus : function(e){
 
-      this.$onFirstCollection("keydown", this._onKeyDown, this);
+      this.on("keydown", this._onKeyDown, this);
     },
     /**
      * Removes the keydown listener if the focus moves outside of the calendar.
@@ -7478,7 +6572,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
       if(this.contains(e.getRelatedTarget()).length === 0){
 
-        this.$offFirstCollection("keydown", this._onKeyDown, this);
+        this.off("keydown", this._onKeyDown, this);
       };
     },
     /**
@@ -7604,11 +6698,11 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var list = [],current = range[0];
       var minDate = this.getConfig("minDate") ? this.getConfig("minDate") : new Date(range[0].toDateString());
       var maxDate = this.getConfig("maxDate") ? this.getConfig("maxDate") : new Date(range[1].toDateString());
-      this._normalizeDate(minDate);
-      this._normalizeDate(maxDate);
+      minDate = this._getNormalizedDate(minDate);
+      maxDate = this._getNormalizedDate(maxDate);
       while(current <= range[1]){
 
-        this._normalizeDate(current);
+        current = this._getNormalizedDate(current);
         list.push(new Date(current.toDateString()));
         current.setDate(current.getDate() + 1);
       };
@@ -7635,13 +6729,10 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
     dispose : function(){
 
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(item){
-
-        item.find("." + cssPrefix + "-prev").$offFirstCollection("tap", this._prevMonth, item);
-        item.find("." + cssPrefix + "-next").$offFirstCollection("tap", this._nextMonth, item);
-        item.find("." + cssPrefix + "-day").$offFirstCollection("tap", this._selectDay, item);
-        item.$offFirstCollection("focus", this._onFocus, item, true).$offFirstCollection("blur", this._onBlur, item, true).$offFirstCollection("keydown", this._onKeyDown, item);
-      }, this);
+      this.find("." + cssPrefix + "-prev").off("tap", this._prevMonth, this);
+      this.find("." + cssPrefix + "-next").off("tap", this._nextMonth, this);
+      this.find("." + cssPrefix + "-day").off("tap", this._selectDay, this);
+      this.off("focus", this._onFocus, this, true).off("blur", this._onBlur, this, true).off("keydown", this._onKeyDown, this);
       this.setHtml("");
       return this.base(arguments);
     }
@@ -7650,6 +6741,2270 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
     qxWeb.$attach({
       calendar : statics.calendar
+    });
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * Normalization for the track gesture. This gesture is based on <a href="#Pointer">Pointer events</a>,
+ * meaning that it's available on all devices, no matter which input device type is used (e.g. mouse or
+ * touchscreen).
+ *
+ * @require(qx.module.Event)
+ *
+ * @group (Event_Normalization)
+ */
+qx.Bootstrap.define("qx.module.event.Track", {
+  statics : {
+    /**
+     * List of event types to be normalized
+     */
+    TYPES : ["track"],
+    BIND_METHODS : ["getDelta"],
+    /**
+     * Returns a map with the calculated delta coordinates and axis,
+     * relative to the position on <code>trackstart</code> event.
+     *
+     * @return {Map} a map with contains the delta as <code>x</code> and
+     * <code>y</code> and the movement axis as <code>axis</code>.
+     */
+    getDelta : function(){
+
+      return this._original.delta;
+    },
+    /**
+     * Manipulates the native event object, adding methods if they're not
+     * already present
+     *
+     * @param event {Event} Native event object
+     * @param element {Element} DOM element the listener was attached to
+     * @return {Event} Normalized event object
+     * @internal
+     */
+    normalize : function(event, element){
+
+      if(!event){
+
+        return event;
+      };
+      // apply mouse event normalizations
+      var bindMethods = qx.module.event.Track.BIND_METHODS;
+      for(var i = 0,l = bindMethods.length;i < l;i++){
+
+        if(typeof event[bindMethods[i]] != "function"){
+
+          event[bindMethods[i]] = qx.module.event.Track[bindMethods[i]].bind(event);
+        };
+      };
+      return event;
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$registerEventNormalization(qx.module.event.Track.TYPES, statics.normalize);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * Normalization for the swipe gesture. This gesture is based on <a href="#Pointer">Pointer events</a>
+ * meaning that it's available on all devices, no matter which input device type is used (e.g. mouse or
+ * touchscreen).
+ *
+ * @require(qx.module.Event)
+ *
+ * @group (Event_Normalization)
+ */
+qx.Bootstrap.define("qx.module.event.Swipe", {
+  statics : {
+    /**
+     * List of event types to be normalized
+     */
+    TYPES : ["swipe"],
+    BIND_METHODS : ["getStartTime", "getDuration", "getAxis", "getDirection", "getVelocity", "getDistance"],
+    /**
+     * Returns the start time of the performed swipe.
+     *
+     * @return {Integer} the start time
+     */
+    getStartTime : function(){
+
+      return this._original.swipe.startTime;
+    },
+    /**
+     * Returns the duration the performed swipe took.
+     *
+     * @return {Integer} the duration
+     */
+    getDuration : function(){
+
+      return this._original.swipe.duration;
+    },
+    /**
+     * Returns whether the performed swipe was on the x or y axis.
+     *
+     * @return {String} "x"/"y" axis
+     */
+    getAxis : function(){
+
+      return this._original.swipe.axis;
+    },
+    /**
+     * Returns the direction of the performed swipe in reference to the axis.
+     * y = up / down
+     * x = left / right
+     *
+     * @return {String} the direction
+     */
+    getDirection : function(){
+
+      return this._original.swipe.direction;
+    },
+    /**
+     * Returns the velocity of the performed swipe.
+     *
+     * @return {Number} the velocity
+     */
+    getVelocity : function(){
+
+      return this._original.swipe.velocity;
+    },
+    /**
+     * Returns the distance of the performed swipe.
+     *
+     * @return {Integer} the distance
+     */
+    getDistance : function(){
+
+      return this._original.swipe.distance;
+    },
+    /**
+     * Manipulates the native event object, adding methods if they're not
+     * already present
+     *
+     * @param event {Event} Native event object
+     * @param element {Element} DOM element the listener was attached to
+     * @return {Event} Normalized event object
+     * @internal
+     */
+    normalize : function(event, element){
+
+      if(!event){
+
+        return event;
+      };
+      // apply mouse event normalizations
+      var bindMethods = qx.module.event.Swipe.BIND_METHODS;
+      for(var i = 0,l = bindMethods.length;i < l;i++){
+
+        if(typeof event[bindMethods[i]] != "function"){
+
+          event[bindMethods[i]] = qx.module.event.Swipe[bindMethods[i]].bind(event);
+        };
+      };
+      return event;
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$registerEventNormalization(qx.module.event.Swipe.TYPES, statics.normalize);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * Creates a gesture handler that fires high-level events such as "swipe"
+ * based on low-level event sequences on the given element
+ *
+ * @require(qx.module.Event)
+ * @require(qx.module.event.PointerHandler)
+ *
+ * @group (Event_Normalization)
+ */
+qx.Bootstrap.define("qx.module.event.GestureHandler", {
+  statics : {
+    TYPES : ["tap", "longtap", "swipe", "dbltap", "track", "trackstart", "trackend", "roll", "rotate", "pinch"],
+    /**
+     * Creates a gesture handler for the given element when a gesture event listener
+     * is attached to it
+     *
+     * @param element {Element} DOM element
+     * @param type {String} event type
+     */
+    register : function(element, type){
+
+      if(!element.$$gestureHandler){
+
+        if(!qx.core.Environment.get("event.dispatchevent")){
+
+          if(!element.$$emitter){
+
+            element.$$emitter = new qx.event.Emitter();
+          };
+        };
+        element.$$gestureHandler = new qx.event.handler.GestureCore(element, element.$$emitter);
+      };
+    },
+    /**
+     * Removes the gesture event handler from the element if there are no more
+     * gesture event listeners attached to it
+     * @param element {Element} DOM element
+     */
+    unregister : function(element){
+
+      // check if there are any registered listeners left
+      if(element.$$gestureHandler){
+
+        var listeners = element.$$emitter.getListeners();
+        for(var type in listeners){
+
+          if(qx.module.event.GestureHandler.TYPES.indexOf(type) !== -1){
+
+            if(listeners[type].length > 0){
+
+              return;
+            };
+          };
+        };
+        // no more listeners, get rid of the handler
+        element.$$gestureHandler.dispose();
+        element.$$gestureHandler = undefined;
+      };
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$registerEventHook(statics.TYPES, statics.register, statics.unregister);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Christopher Zuendorf (czuendorf)
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * Listens for (native or synthetic) pointer events and fires events
+ * for gestures like "tap" or "swipe"
+ */
+qx.Bootstrap.define("qx.event.handler.GestureCore", {
+  extend : Object,
+  statics : {
+    TYPES : ["tap", "swipe", "longtap", "dbltap", "track", "trackstart", "trackend", "rotate", "pinch", "roll"],
+    GESTURE_EVENTS : ["gesturebegin", "gesturefinish", "gesturemove", "gesturecancel"],
+    /** @type {Map} Maximum distance between a pointer-down and pointer-up event, values are configurable */
+    TAP_MAX_DISTANCE : {
+      "touch" : 40,
+      "mouse" : 5,
+      "pen" : 20
+    },
+    // values are educated guesses
+    /** @type {Map} Maximum distance between two subsequent taps, values are configurable */
+    DOUBLETAP_MAX_DISTANCE : {
+      "touch" : 10,
+      "mouse" : 4,
+      "pen" : 10
+    },
+    // values are educated guesses
+    /** @type {Map} The direction of a swipe relative to the axis */
+    SWIPE_DIRECTION : {
+      x : ["left", "right"],
+      y : ["up", "down"]
+    },
+    /**
+     * @type {Integer} The time delta in milliseconds to fire a long tap event.
+     */
+    LONGTAP_TIME : 500,
+    /**
+     * @type {Integer} Maximum time between two tap events that will still trigger a
+     * dbltap event.
+     */
+    DOUBLETAP_TIME : 500,
+    /**
+     * @type {Integer} Factor which is used for adapting the delta of the mouse wheel
+     * event to the roll events,
+     */
+    ROLL_FACTOR : 18
+  },
+  /**
+   * @param target {Element} DOM Element that should fire gesture events
+   * @param emitter {qx.event.Emitter?} Event emitter (used if dispatchEvent
+   * is not supported, e.g. in IE8)
+   */
+  construct : function(target, emitter){
+
+    this.__defaultTarget = target;
+    this.__emitter = emitter;
+    this.__gesture = {
+    };
+    this.__lastTap = {
+    };
+    this.__stopMomentum = {
+    };
+    this._initObserver();
+  },
+  members : {
+    __defaultTarget : null,
+    __emitter : null,
+    __gesture : null,
+    __eventName : null,
+    __primaryTarget : null,
+    __isMultiPointerGesture : null,
+    __initialAngle : null,
+    __lastTap : null,
+    __rollImpulseId : null,
+    __stopMomentum : null,
+    __initialDistance : null,
+    /**
+     * Register pointer event listeners
+     */
+    _initObserver : function(){
+
+      qx.event.handler.GestureCore.GESTURE_EVENTS.forEach(function(gestureType){
+
+        qxWeb(this.__defaultTarget).on(gestureType, this.checkAndFireGesture, this);
+      }.bind(this));
+      if(qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") < 9){
+
+        qxWeb(this.__defaultTarget).on("dblclick", this._onDblClick, this);
+      };
+      // list to wheel events
+      var data = qx.core.Environment.get("event.mousewheel");
+      qxWeb(data.target).on(data.type, this._fireRoll, this);
+    },
+    /**
+     * Remove native pointer event listeners.
+     */
+    _stopObserver : function(){
+
+      qx.event.handler.GestureCore.GESTURE_EVENTS.forEach(function(pointerType){
+
+        qxWeb(this.__defaultTarget).off(pointerType, this.checkAndFireGesture, this);
+      }.bind(this));
+      if(qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") < 9){
+
+        qxWeb(this.__defaultTarget).off("dblclick", this._onDblClick, this);
+      };
+      var data = qx.core.Environment.get("event.mousewheel");
+      qxWeb(data.target).off(data.type, this._fireRoll, this);
+    },
+    /**
+     * Checks if a gesture was made and fires the gesture event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param type {String ? null} type of the event
+     * @param target {Element ? null} event target
+     */
+    checkAndFireGesture : function(domEvent, type, target){
+
+      if(!type){
+
+        type = domEvent.type;
+      };
+      if(!target){
+
+        target = qx.bom.Event.getTarget(domEvent);
+      };
+      if(type == "gesturebegin"){
+
+        this.gestureBegin(domEvent, target);
+      } else if(type == "gesturemove"){
+
+        this.gestureMove(domEvent, target);
+      } else if(type == "gesturefinish"){
+
+        this.gestureFinish(domEvent, target);
+      } else if(type == "gesturecancel"){
+
+        this.gestureCancel(domEvent.pointerId);
+      };;;
+    },
+    /**
+     * Helper method for gesture start.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    gestureBegin : function(domEvent, target){
+
+      if(this.__gesture[domEvent.pointerId]){
+
+        this.__stopLongTapTimer(this.__gesture[domEvent.pointerId]);
+        delete this.__gesture[domEvent.pointerId];
+      };
+      /*
+        If the dom event's target or one of its ancestors have
+        a gesture handler, we don't need to fire the gesture again
+        since it bubbles.
+       */
+      if(this._hasIntermediaryHandler(target)){
+
+        return;
+      };
+      this.__gesture[domEvent.pointerId] = {
+        "startTime" : new Date().getTime(),
+        "lastEventTime" : new Date().getTime(),
+        "startX" : domEvent.clientX,
+        "startY" : domEvent.clientY,
+        "clientX" : domEvent.clientX,
+        "clientY" : domEvent.clientY,
+        "velocityX" : 0,
+        "velocityY" : 0,
+        "target" : target,
+        "isTap" : true,
+        "isPrimary" : domEvent.isPrimary,
+        "longTapTimer" : window.setTimeout(this.__fireLongTap.bind(this, domEvent, target), qx.event.handler.GestureCore.LONGTAP_TIME)
+      };
+      if(domEvent.isPrimary){
+
+        this.__isMultiPointerGesture = false;
+        this.__primaryTarget = target;
+        this.__fireTrack("trackstart", domEvent, target);
+      } else {
+
+        this.__isMultiPointerGesture = true;
+        if(Object.keys(this.__gesture).length === 2){
+
+          this.__initialAngle = this._calcAngle();
+          this.__initialDistance = this._calcDistance();
+        };
+      };
+    },
+    /**
+     * Helper method for gesture move.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    gestureMove : function(domEvent, target){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(gesture){
+
+        var oldClientX = gesture.clientX;
+        var oldClientY = gesture.clientY;
+        gesture.clientX = domEvent.clientX;
+        gesture.clientY = domEvent.clientY;
+        gesture.lastEventTime = new Date().getTime();
+        if(oldClientX){
+
+          gesture.velocityX = gesture.clientX - oldClientX;
+        };
+        if(oldClientY){
+
+          gesture.velocityY = gesture.clientY - oldClientY;
+        };
+        if(Object.keys(this.__gesture).length === 2){
+
+          this.__fireRotate(domEvent, gesture.target);
+          this.__firePinch(domEvent, gesture.target);
+        };
+        if(!this.__isMultiPointerGesture){
+
+          this.__fireTrack("track", domEvent, gesture.target);
+          this._fireRoll(domEvent, "touch", gesture.target);
+        };
+        // abort long tap timer if the distance is too big
+        if(gesture.isTap){
+
+          gesture.isTap = this._isBelowTapMaxDistance(domEvent);
+          if(!gesture.isTap){
+
+            this.__stopLongTapTimer(gesture);
+          };
+        };
+      };
+    },
+    /**
+     * Checks if a DOM element located between the target of a gesture
+     * event and the element this handler is attached to has a gesture
+     * handler of its own.
+     *
+     * @param target {Element} The gesture event's target
+     * @return {Boolean}
+     */
+    _hasIntermediaryHandler : function(target){
+
+      while(target && target !== this.__defaultTarget){
+
+        if(target.$$gestureHandler){
+
+          return true;
+        };
+        target = target.parentNode;
+      };
+      return false;
+    },
+    /**
+     * Helper method for gesture end.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    gestureFinish : function(domEvent, target){
+
+      // If no start position is available for this pointerup event, cancel gesture recognition.
+      if(!this.__gesture[domEvent.pointerId]){
+
+        return;
+      };
+      var gesture = this.__gesture[domEvent.pointerId];
+      // delete the long tap
+      this.__stopLongTapTimer(gesture);
+      /*
+        If the dom event's target or one of its ancestors have
+        a gesture handler, we don't need to fire the gesture again
+        since it bubbles.
+       */
+      if(this._hasIntermediaryHandler(target)){
+
+        return;
+      };
+      // always start the roll impulse on the original target
+      this.__handleRollImpulse(gesture.velocityX, gesture.velocityY, domEvent, gesture.target);
+      this.__fireTrack("trackend", domEvent, gesture.target);
+      if(gesture.isTap){
+
+        if(target !== gesture.target){
+
+          delete this.__gesture[domEvent.pointerId];
+          return;
+        };
+        this._fireEvent(domEvent, "tap", domEvent.target || target);
+        var isDblTap = false;
+        if(Object.keys(this.__lastTap).length > 0){
+
+          // delete old tap entries
+          var limit = Date.now() - qx.event.handler.GestureCore.DOUBLETAP_TIME;
+          for(var time in this.__lastTap){
+
+            if(time < limit){
+
+              delete this.__lastTap[time];
+            } else {
+
+              var lastTap = this.__lastTap[time];
+              var isBelowDoubleTapDistance = this.__isBelowDoubleTapDistance(lastTap.x, lastTap.y, domEvent.clientX, domEvent.clientY, domEvent.getPointerType());
+              var isSameTarget = lastTap.target === (domEvent.target || target);
+              var isSameButton = lastTap.button === domEvent.button;
+              if(isBelowDoubleTapDistance && isSameButton && isSameTarget){
+
+                isDblTap = true;
+                delete this.__lastTap[time];
+                this._fireEvent(domEvent, "dbltap", domEvent.target || target);
+              };
+            };
+          };
+        };
+        if(!isDblTap){
+
+          this.__lastTap[Date.now()] = {
+            x : domEvent.clientX,
+            y : domEvent.clientY,
+            target : domEvent.target || target,
+            button : domEvent.button
+          };
+        };
+      } else if(!this._isBelowTapMaxDistance(domEvent)){
+
+        var swipe = this.__getSwipeGesture(domEvent, target);
+        if(swipe){
+
+          domEvent.swipe = swipe;
+          this._fireEvent(domEvent, "swipe", gesture.target || target);
+        };
+      };
+      delete this.__gesture[domEvent.pointerId];
+    },
+    /**
+     * Stops the momentum scrolling currently running.
+     *
+     * @param id {Integer} The timeoutId of a 'roll' event
+     */
+    stopMomentum : function(id){
+
+      this.__stopMomentum[id] = true;
+    },
+    /**
+     * Cancels the gesture if running.
+     * @param id {Number} The pointer Id.
+     */
+    gestureCancel : function(id){
+
+      if(this.__gesture[id]){
+
+        this.__stopLongTapTimer(this.__gesture[id]);
+        delete this.__gesture[id];
+      };
+    },
+    /**
+     * Update the target of a running gesture. This is used in virtual widgets
+     * when the DOM element changes.
+     *
+     * @param id {String} The pointer id.
+     * @param target {Element} The new target element.
+     * @internal
+     */
+    updateGestureTarget : function(id, target){
+
+      this.__gesture[id].target = target;
+    },
+    /**
+     * Method which will be called recursively to provide a momentum scrolling.
+     * @param deltaX {Number} The last offset in X direction
+     * @param deltaY {Number} The last offset in Y direction
+     * @param domEvent {Event} The original gesture event
+     * @param target {Element} The target of the momentum roll events
+     * @param time {Number ?} The time in ms between the last two calls
+     */
+    __handleRollImpulse : function(deltaX, deltaY, domEvent, target, time){
+
+      var oldTimeoutId = domEvent.timeoutId;
+      // do nothing if we don't need to scroll
+      if((Math.abs(deltaY) < 1 && Math.abs(deltaX) < 1) || this.__stopMomentum[oldTimeoutId]){
+
+        delete this.__stopMomentum[oldTimeoutId];
+        return;
+      };
+      if(!time){
+
+        time = 1;
+        var startFactor = 2.8;
+        deltaY = deltaY / startFactor;
+        deltaX = deltaX / startFactor;
+      };
+      time += 0.0006;
+      deltaY = deltaY / time;
+      deltaX = deltaX / time;
+      // set up a new timer with the new delta
+      var timeoutId = qx.bom.AnimationFrame.request(qx.lang.Function.bind(function(deltaX, deltaY, domEvent, target, time){
+
+        this.__handleRollImpulse(deltaX, deltaY, domEvent, target, time);
+      }, this, deltaX, deltaY, domEvent, target, time));
+      deltaX = Math.round(deltaX * 100) / 100;
+      deltaY = Math.round(deltaY * 100) / 100;
+      // scroll the desired new delta
+      domEvent.delta = {
+        x : -deltaX,
+        y : -deltaY
+      };
+      domEvent.momentum = true;
+      domEvent.timeoutId = timeoutId;
+      this._fireEvent(domEvent, "roll", domEvent.target || target);
+    },
+    /**
+    * Calculates the angle of the primary and secondary pointer.
+    * @return {Number} the rotation angle of the 2 pointers.
+    */
+    _calcAngle : function(){
+
+      var pointerA = null;
+      var pointerB = null;
+      for(var pointerId in this.__gesture){
+
+        var gesture = this.__gesture[pointerId];
+        if(pointerA === null){
+
+          pointerA = gesture;
+        } else {
+
+          pointerB = gesture;
+        };
+      };
+      var x = pointerA.clientX - pointerB.clientX;
+      var y = pointerA.clientY - pointerB.clientY;
+      return (360 + Math.atan2(y, x) * (180 / Math.PI)) % 360;
+    },
+    /**
+     * Calculates the scaling distance between two pointers.
+     * @return {Number} the calculated distance.
+     */
+    _calcDistance : function(){
+
+      var pointerA = null;
+      var pointerB = null;
+      for(var pointerId in this.__gesture){
+
+        var gesture = this.__gesture[pointerId];
+        if(pointerA === null){
+
+          pointerA = gesture;
+        } else {
+
+          pointerB = gesture;
+        };
+      };
+      var scale = Math.sqrt(Math.pow(pointerA.clientX - pointerB.clientX, 2) + Math.pow(pointerA.clientY - pointerB.clientY, 2));
+      return scale;
+    },
+    /**
+     * Checks if the distance between the x/y coordinates of DOM event
+     * exceeds TAP_MAX_DISTANCE and returns the result.
+     *
+     * @param domEvent {Event} The DOM event from the browser.
+     * @return {Boolean|null} true if distance is below TAP_MAX_DISTANCE.
+     */
+    _isBelowTapMaxDistance : function(domEvent){
+
+      var delta = this._getDeltaCoordinates(domEvent);
+      var maxDistance = qx.event.handler.GestureCore.TAP_MAX_DISTANCE[domEvent.getPointerType()];
+      if(!delta){
+
+        return null;
+      };
+      return (Math.abs(delta.x) <= maxDistance && Math.abs(delta.y) <= maxDistance);
+    },
+    /**
+     * Checks if the distance between the x1/y1 and x2/y2 is
+     * below the TAP_MAX_DISTANCE and returns the result.
+     *
+     * @param x1 {Number} The x position of point one.
+     * @param y1 {Number} The y position of point one.
+     * @param x2 {Number} The x position of point two.
+     * @param y2 {Number} The y position of point two.
+     * @param type {String} The pointer type e.g. "mouse"
+     * @return {Boolean} <code>true</code>, if points are in range
+     */
+    __isBelowDoubleTapDistance : function(x1, y1, x2, y2, type){
+
+      var clazz = qx.event.handler.GestureCore;
+      var inX = Math.abs(x1 - x2) < clazz.DOUBLETAP_MAX_DISTANCE[type];
+      var inY = Math.abs(y1 - y2) < clazz.DOUBLETAP_MAX_DISTANCE[type];
+      return inX && inY;
+    },
+    /**
+    * Calculates the delta coordinates in relation to the position on <code>pointerstart</code> event.
+    * @param domEvent {Event} The DOM event from the browser.
+    * @return {Map} containing the deltaX as x, and deltaY as y.
+    */
+    _getDeltaCoordinates : function(domEvent){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(!gesture){
+
+        return null;
+      };
+      var deltaX = domEvent.clientX - gesture.startX;
+      var deltaY = domEvent.clientY - gesture.startY;
+      var axis = "x";
+      if(Math.abs(deltaX / deltaY) < 1){
+
+        axis = "y";
+      };
+      return {
+        "x" : deltaX,
+        "y" : deltaY,
+        "axis" : axis
+      };
+    },
+    /**
+     * Fire a gesture event with the given parameters
+     *
+     * @param domEvent {Event} DOM event
+     * @param type {String} type of the event
+     * @param target {Element ? null} event target
+     */
+    _fireEvent : function(domEvent, type, target){
+
+      // The target may have been removed, e.g. menu hide on tap
+      if(!this.__defaultTarget){
+
+        return;
+      };
+      var evt;
+      if(qx.core.Environment.get("event.dispatchevent")){
+
+        evt = new qx.event.type.dom.Custom(type, domEvent, {
+          bubbles : true,
+          swipe : domEvent.swipe,
+          scale : domEvent.scale,
+          angle : domEvent.angle,
+          delta : domEvent.delta,
+          pointerType : domEvent.pointerType,
+          momentum : domEvent.momentum
+        });
+        target.dispatchEvent(evt);
+      } else if(this.__emitter){
+
+        evt = new qx.event.type.dom.Custom(type, domEvent, {
+          target : this.__defaultTarget,
+          currentTarget : this.__defaultTarget,
+          srcElement : this.__defaultTarget,
+          swipe : domEvent.swipe,
+          scale : domEvent.scale,
+          angle : domEvent.angle,
+          delta : domEvent.delta,
+          pointerType : domEvent.pointerType,
+          momentum : domEvent.momentum
+        });
+        this.__emitter.emit(type, domEvent);
+      };
+    },
+    /**
+     * Fire "tap" and "dbltap" events after a native "dblclick"
+     * event to fix IE 8's broken mouse event sequence.
+     *
+     * @param domEvent {Event} dblclick event
+     */
+    _onDblClick : function(domEvent){
+
+      var target = qx.bom.Event.getTarget(domEvent);
+      this._fireEvent(domEvent, "tap", target);
+      this._fireEvent(domEvent, "dbltap", target);
+    },
+    /**
+     * Returns the swipe gesture when the user performed a swipe.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     * @return {Map|null} returns the swipe data when the user performed a swipe, null if the gesture was no swipe.
+     */
+    __getSwipeGesture : function(domEvent, target){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(!gesture){
+
+        return null;
+      };
+      var clazz = qx.event.handler.GestureCore;
+      var deltaCoordinates = this._getDeltaCoordinates(domEvent);
+      var duration = new Date().getTime() - gesture.startTime;
+      var axis = (Math.abs(deltaCoordinates.x) >= Math.abs(deltaCoordinates.y)) ? "x" : "y";
+      var distance = deltaCoordinates[axis];
+      var direction = clazz.SWIPE_DIRECTION[axis][distance < 0 ? 0 : 1];
+      var velocity = (duration !== 0) ? distance / duration : 0;
+      var swipe = {
+        startTime : gesture.startTime,
+        duration : duration,
+        axis : axis,
+        direction : direction,
+        distance : distance,
+        velocity : velocity
+      };
+      return swipe;
+    },
+    /**
+     * Fires a track event.
+     *
+     * @param type {String} the track type
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __fireTrack : function(type, domEvent, target){
+
+      domEvent.delta = this._getDeltaCoordinates(domEvent);
+      this._fireEvent(domEvent, type, domEvent.target || target);
+    },
+    /**
+     * Fires a roll event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param type {String} The type of the dom event
+     * @param target {Element} event target
+     */
+    _fireRoll : function(domEvent, type, target){
+
+      if(domEvent.type === qx.core.Environment.get("event.mousewheel").type){
+
+        domEvent.delta = {
+          x : qx.util.Wheel.getDelta(domEvent, "x") * qx.event.handler.GestureCore.ROLL_FACTOR,
+          y : qx.util.Wheel.getDelta(domEvent, "y") * qx.event.handler.GestureCore.ROLL_FACTOR
+        };
+        domEvent.delta.axis = Math.abs(domEvent.delta.x / domEvent.delta.y) < 1 ? "y" : "x";
+        domEvent.pointerType = "wheel";
+      } else {
+
+        var gesture = this.__gesture[domEvent.pointerId];
+        domEvent.delta = {
+          x : -gesture.velocityX,
+          y : -gesture.velocityY,
+          axis : Math.abs(gesture.velocityX / gesture.velocityY) < 1 ? "y" : "x"
+        };
+      };
+      this._fireEvent(domEvent, "roll", domEvent.target || target);
+    },
+    /**
+     * Fires a rotate event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __fireRotate : function(domEvent, target){
+
+      if(!domEvent.isPrimary){
+
+        var angle = this._calcAngle();
+        domEvent.angle = Math.round((angle - this.__initialAngle) % 360);
+        this._fireEvent(domEvent, "rotate", this.__primaryTarget);
+      };
+    },
+    /**
+     * Fires a pinch event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __firePinch : function(domEvent, target){
+
+      if(!domEvent.isPrimary){
+
+        var distance = this._calcDistance();
+        var scale = distance / this.__initialDistance;
+        domEvent.scale = (Math.round(scale * 100) / 100);
+        this._fireEvent(domEvent, "pinch", this.__primaryTarget);
+      };
+    },
+    /**
+     * Fires the long tap event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __fireLongTap : function(domEvent, target){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(gesture){
+
+        this._fireEvent(domEvent, "longtap", domEvent.target || target);
+        gesture.longTapTimer = null;
+        gesture.isTap = false;
+      };
+    },
+    /**
+     * Stops the time for the long tap event.
+     * @param gesture {Map} Data may representing the gesture.
+     */
+    __stopLongTapTimer : function(gesture){
+
+      if(gesture.longTapTimer){
+
+        window.clearTimeout(gesture.longTapTimer);
+        gesture.longTapTimer = null;
+      };
+    },
+    /**
+     * Checks if the distance between the x/y coordinates of touchstart/mousedown and touchmove/mousemove event
+     * exceeds TAP_MAX_DISTANCE and returns the result.
+     *
+     * @param event {Event} The event from the browser.
+     * @return {Boolean} true if distance is below TAP_MAX_DISTANCE.
+     */
+    isBelowTapMaxDistance : function(event){
+
+      var deltaCoordinates = this._calcDelta(event);
+      var clazz = qx.event.handler.GestureCore;
+      return (Math.abs(deltaCoordinates.x) <= clazz.TAP_MAX_DISTANCE && Math.abs(deltaCoordinates.y) <= clazz.TAP_MAX_DISTANCE);
+    },
+    /**
+     * Dispose the current instance
+     */
+    dispose : function(){
+
+      for(var gesture in this.__gesture){
+
+        this.__stopLongTapTimer(gesture);
+      };
+      this._stopObserver();
+      this.__defaultTarget = this.__emitter = null;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (wittemann)
+
+************************************************************************ */
+/**
+ * This is a cross browser wrapper for requestAnimationFrame. For further
+ * information about the feature, take a look at spec:
+ * http://www.w3.org/TR/animation-timing/
+ *
+ * This class offers two ways of using this feature. First, the plain
+ * API the spec describes.
+ *
+ * Here is a sample usage:
+ * <pre class='javascript'>var start = +(new Date());
+ * var clb = function(time) {
+ *   if (time >= start + duration) {
+ *     // ... do some last tasks
+ *   } else {
+ *     var timePassed = time - start;
+ *     // ... calculate the current step and apply it
+ *     qx.bom.AnimationFrame.request(clb, this);
+ *   }
+ * };
+ * qx.bom.AnimationFrame.request(clb, this);
+ * </pre>
+ *
+ * Another way of using it is to use it as an instance emitting events.
+ *
+ * Here is a sample usage of that API:
+ * <pre class='javascript'>var frame = new qx.bom.AnimationFrame();
+ * frame.on("end", function() {
+ *   // ... do some last tasks
+ * }, this);
+ * frame.on("frame", function(timePassed) {
+ *   // ... calculate the current step and apply it
+ * }, this);
+ * frame.startSequence(duration);
+ * </pre>
+ *
+ * @require(qx.lang.normalize.Date)
+ */
+qx.Bootstrap.define("qx.bom.AnimationFrame", {
+  extend : qx.event.Emitter,
+  events : {
+    /** Fired as soon as the animation has ended. */
+    "end" : undefined,
+    /**
+     * Fired on every frame having the passed time as value
+     * (might be a float for higher precision).
+     */
+    "frame" : "Number"
+  },
+  members : {
+    __canceled : false,
+    /**
+     * Method used to start a series of animation frames. The series will end as
+     * soon as the given duration is over.
+     *
+     * @param duration {Number} The duration the sequence should take.
+     */
+    startSequence : function(duration){
+
+      this.__canceled = false;
+      var start = +(new Date());
+      var clb = function(time){
+
+        if(this.__canceled){
+
+          this.id = null;
+          return;
+        };
+        // final call
+        if(time >= start + duration){
+
+          this.emit("end");
+          this.id = null;
+        } else {
+
+          var timePassed = Math.max(time - start, 0);
+          this.emit("frame", timePassed);
+          this.id = qx.bom.AnimationFrame.request(clb, this);
+        };
+      };
+      this.id = qx.bom.AnimationFrame.request(clb, this);
+    },
+    /**
+     * Cancels a started sequence of frames. It will do nothing if no
+     * sequence is running.
+     */
+    cancelSequence : function(){
+
+      this.__canceled = true;
+    }
+  },
+  statics : {
+    /**
+     * The default time in ms the timeout fallback implementation uses.
+     */
+    TIMEOUT : 30,
+    /**
+     * Calculation of the predefined timing functions. Approximation of the real
+     * bezier curves has been used for easier calculation. This is good and close
+     * enough for the predefined functions like <code>ease</code> or
+     * <code>linear</code>.
+     *
+     * @param func {String} The defined timing function. One of the following values:
+     *   <code>"ease-in"</code>, <code>"ease-out"</code>, <code>"linear"</code>,
+     *   <code>"ease-in-out"</code>, <code>"ease"</code>.
+     * @param x {Integer} The percent value of the function.
+     * @return {Integer} The calculated value
+     */
+    calculateTiming : function(func, x){
+
+      if(func == "ease-in"){
+
+        var a = [3.1223e-7, 0.0757, 1.2646, -0.167, -0.4387, 0.2654];
+      } else if(func == "ease-out"){
+
+        var a = [-7.0198e-8, 1.652, -0.551, -0.0458, 0.1255, -0.1807];
+      } else if(func == "linear"){
+
+        return x;
+      } else if(func == "ease-in-out"){
+
+        var a = [2.482e-7, -0.2289, 3.3466, -1.0857, -1.7354, 0.7034];
+      } else {
+
+        // default is 'ease'
+        var a = [-0.0021, 0.2472, 9.8054, -21.6869, 17.7611, -5.1226];
+      };;;
+      // A 6th grade polynomial has been used as approximation of the original
+      // bezier curves  described in the transition spec
+      // http://www.w3.org/TR/css3-transitions/#transition-timing-function_tag
+      // (the same is used for animations as well)
+      var y = 0;
+      for(var i = 0;i < a.length;i++){
+
+        y += a[i] * Math.pow(x, i);
+      };
+      return y;
+    },
+    /**
+     * Request for an animation frame. If the native <code>requestAnimationFrame</code>
+     * method is supported, it will be used. Otherwise, we use timeouts with a
+     * 30ms delay. The HighResolutionTime will be used if supported but the time given
+     * to the callback will still be a timestamp starting at 1 January 1970 00:00:00 UTC.
+     *
+     * @param callback {Function} The callback function which will get the current
+     *   time as argument (which could be a float for higher precision).
+     * @param context {var} The context of the callback.
+     * @return {Number} The id of the request.
+     */
+    request : function(callback, context){
+
+      var req = qx.core.Environment.get("css.animation.requestframe");
+      var clb = function(time){
+
+        // check for high resolution time
+        if(time < 1e10){
+
+          time = this.__start + time;
+        };
+        time = time || +(new Date());
+        callback.call(context, time);
+      };
+      if(req){
+
+        return window[req](clb);
+      } else {
+
+        // make sure to use an indirection because setTimeout passes a
+        // number as first argument as well
+        return window.setTimeout(function(){
+
+          clb();
+        }, qx.bom.AnimationFrame.TIMEOUT);
+      };
+    }
+  },
+  /**
+   * @ignore(performance.timing.*)
+   */
+  defer : function(statics){
+
+    // check and use the high resolution start time if available
+    statics.__start = window.performance && performance.timing && performance.timing.navigationStart;
+    // if not, simply use the current time
+    if(!statics.__start){
+
+      statics.__start = Date.now();
+    };
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (wittemann)
+
+************************************************************************ */
+/**
+ * Responsible for checking all relevant animation properties.
+ *
+ * Spec: http://www.w3.org/TR/css3-animations/
+ *
+ * @require(qx.bom.Stylesheet)
+ * @internal
+ */
+qx.Bootstrap.define("qx.bom.client.CssAnimation", {
+  statics : {
+    /**
+     * Main check method which returns an object if CSS animations are
+     * supported. This object contains all necessary keys to work with CSS
+     * animations.
+     * <ul>
+     *  <li><code>name</code> The name of the css animation style</li>
+     *  <li><code>play-state</code> The name of the play-state style</li>
+     *  <li><code>start-event</code> The name of the start event</li>
+     *  <li><code>iternation-event</code> The name of the iternation event</li>
+     *  <li><code>end-event</code> The name of the end event</li>
+     *  <li><code>fill-mode</code> The fill-mode style</li>
+     *  <li><code>keyframes</code> The name of the keyframes selector.</li>
+     * </ul>
+     *
+     * @internal
+     * @return {Object|null} The described object or null, if animations are
+     *   not supported.
+     */
+    getSupport : function(){
+
+      var name = qx.bom.client.CssAnimation.getName();
+      if(name != null){
+
+        return {
+          "name" : name,
+          "play-state" : qx.bom.client.CssAnimation.getPlayState(),
+          "start-event" : qx.bom.client.CssAnimation.getAnimationStart(),
+          "iteration-event" : qx.bom.client.CssAnimation.getAnimationIteration(),
+          "end-event" : qx.bom.client.CssAnimation.getAnimationEnd(),
+          "fill-mode" : qx.bom.client.CssAnimation.getFillMode(),
+          "keyframes" : qx.bom.client.CssAnimation.getKeyFrames()
+        };
+      };
+      return null;
+    },
+    /**
+     * Checks for the 'animation-fill-mode' CSS style.
+     * @internal
+     * @return {String|null} The name of the style or null, if the style is
+     *   not supported.
+     */
+    getFillMode : function(){
+
+      return qx.bom.Style.getPropertyName("AnimationFillMode");
+    },
+    /**
+     * Checks for the 'animation-play-state' CSS style.
+     * @internal
+     * @return {String|null} The name of the style or null, if the style is
+     *   not supported.
+     */
+    getPlayState : function(){
+
+      return qx.bom.Style.getPropertyName("AnimationPlayState");
+    },
+    /**
+     * Checks for the style name used for animations.
+     * @internal
+     * @return {String|null} The name of the style or null, if the style is
+     *   not supported.
+     */
+    getName : function(){
+
+      return qx.bom.Style.getPropertyName("animation");
+    },
+    /**
+     * Checks for the event name of animation start.
+     * @internal
+     * @return {String} The name of the event.
+     */
+    getAnimationStart : function(){
+
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationstart")){
+
+        return "webkitAnimationStart";
+      };
+      var mapping = {
+        "msAnimation" : "MSAnimationStart",
+        "WebkitAnimation" : "webkitAnimationStart",
+        "MozAnimation" : "animationstart",
+        "OAnimation" : "oAnimationStart",
+        "animation" : "animationstart"
+      };
+      return mapping[this.getName()];
+    },
+    /**
+     * Checks for the event name of animation end.
+     * @internal
+     * @return {String} The name of the event.
+     */
+    getAnimationIteration : function(){
+
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationiteration")){
+
+        return "webkitAnimationIteration";
+      };
+      var mapping = {
+        "msAnimation" : "MSAnimationIteration",
+        "WebkitAnimation" : "webkitAnimationIteration",
+        "MozAnimation" : "animationiteration",
+        "OAnimation" : "oAnimationIteration",
+        "animation" : "animationiteration"
+      };
+      return mapping[this.getName()];
+    },
+    /**
+     * Checks for the event name of animation end.
+     * @internal
+     * @return {String} The name of the event.
+     */
+    getAnimationEnd : function(){
+
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationend")){
+
+        return "webkitAnimationEnd";
+      };
+      var mapping = {
+        "msAnimation" : "MSAnimationEnd",
+        "WebkitAnimation" : "webkitAnimationEnd",
+        "MozAnimation" : "animationend",
+        "OAnimation" : "oAnimationEnd",
+        "animation" : "animationend"
+      };
+      return mapping[this.getName()];
+    },
+    /**
+     * Checks what selector should be used to add keyframes to stylesheets.
+     * @internal
+     * @return {String|null} The name of the selector or null, if the selector
+     *   is not supported.
+     */
+    getKeyFrames : function(){
+
+      var prefixes = qx.bom.Style.VENDOR_PREFIXES;
+      var keyFrames = [];
+      for(var i = 0;i < prefixes.length;i++){
+
+        var key = "@" + qx.bom.Style.getCssName(prefixes[i]) + "-keyframes";
+        keyFrames.push(key);
+      };
+      keyFrames.unshift("@keyframes");
+      var sheet = qx.bom.Stylesheet.createElement();
+      for(var i = 0;i < keyFrames.length;i++){
+
+        try{
+
+          qx.bom.Stylesheet.addRule(sheet, keyFrames[i] + " name", "");
+          return keyFrames[i];
+        } catch(e) {
+        };
+      };
+      return null;
+    },
+    /**
+     * Checks for the requestAnimationFrame method and return the prefixed name.
+     * @internal
+     * @return {String|null} A string the method name or null, if the method
+     *   is not supported.
+     */
+    getRequestAnimationFrame : function(){
+
+      var choices = ["requestAnimationFrame", "msRequestAnimationFrame", "webkitRequestAnimationFrame", "mozRequestAnimationFrame", "oRequestAnimationFrame"];
+      for(var i = 0;i < choices.length;i++){
+
+        if(window[choices[i]] != undefined){
+
+          return choices[i];
+        };
+      };
+      return null;
+    }
+  },
+  defer : function(statics){
+
+    qx.core.Environment.add("css.animation", statics.getSupport);
+    qx.core.Environment.add("css.animation.requestframe", statics.getRequestAnimationFrame);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (martinwittemann)
+
+ ************************************************************************ */
+/**
+ * Util for mouse wheel normalization.
+ */
+qx.Bootstrap.define("qx.util.Wheel", {
+  statics : {
+    /**
+     * The maximal measured scroll wheel delta.
+     * @internal
+     */
+    MAXSCROLL : null,
+    /**
+     * The minimal measured scroll wheel delta.
+     * @internal
+     */
+    MINSCROLL : null,
+    /**
+     * The normalization factor for the speed calculation.
+     * @internal
+     */
+    FACTOR : 1,
+    /**
+     * Get the amount the wheel has been scrolled
+     *
+     * @param domEvent {Event} The native wheel event.
+     * @param axis {String?} Optional parameter which defines the scroll axis.
+     *   The value can either be <code>"x"</code> or <code>"y"</code>.
+     * @return {Integer} Scroll wheel movement for the given axis. If no axis
+     *   is given, the y axis is used.
+     */
+    getDelta : function(domEvent, axis){
+
+      // default case
+      if(axis === undefined){
+
+        // default case
+        var delta = 0;
+        if(domEvent.wheelDelta !== undefined){
+
+          delta = -domEvent.wheelDelta;
+        } else if(domEvent.detail !== 0){
+
+          delta = domEvent.detail;
+        } else if(domEvent.deltaY !== undefined){
+
+          // use deltaY as default for firefox
+          delta = domEvent.deltaY;
+        };;
+        return this.__normalize(delta);
+      };
+      // get the x scroll delta
+      if(axis === "x"){
+
+        var x = 0;
+        if(domEvent.wheelDelta !== undefined){
+
+          if(domEvent.wheelDeltaX !== undefined){
+
+            x = domEvent.wheelDeltaX ? this.__normalize(-domEvent.wheelDeltaX) : 0;
+          };
+        } else {
+
+          if(domEvent.axis && domEvent.axis == domEvent.HORIZONTAL_AXIS && (domEvent.detail !== undefined) && (domEvent.detail > 0)){
+
+            x = this.__normalize(domEvent.detail);
+          } else if(domEvent.deltaX !== undefined){
+
+            x = this.__normalize(domEvent.deltaX);
+          };
+        };
+        return x;
+      };
+      // get the y scroll delta
+      if(axis === "y"){
+
+        var y = 0;
+        if(domEvent.wheelDelta !== undefined){
+
+          if(domEvent.wheelDeltaY !== undefined){
+
+            y = domEvent.wheelDeltaY ? this.__normalize(-domEvent.wheelDeltaY) : 0;
+          } else {
+
+            y = this.__normalize(-domEvent.wheelDelta);
+          };
+        } else {
+
+          if(!(domEvent.axis && domEvent.axis == domEvent.HORIZONTAL_AXIS) && (domEvent.detail !== undefined) && (domEvent.detail > 0)){
+
+            y = this.__normalize(domEvent.detail);
+          } else if(domEvent.deltaY !== undefined){
+
+            y = this.__normalize(domEvent.deltaY);
+          };
+        };
+        return y;
+      };
+      // default case, return 0
+      return 0;
+    },
+    /**
+     * Normalizer for the mouse wheel data.
+     *
+     * @param delta {Number} The mouse delta.
+     * @return {Number} The normalized delta value
+     */
+    __normalize : function(delta){
+
+      var absDelta = Math.abs(delta);
+      if(absDelta === 0){
+
+        return 0;
+      };
+      // store the min value
+      if(qx.util.Wheel.MINSCROLL == null || qx.util.Wheel.MINSCROLL > absDelta){
+
+        qx.util.Wheel.MINSCROLL = absDelta;
+        this.__recalculateMultiplicator();
+      };
+      // store the max value
+      if(qx.util.Wheel.MAXSCROLL == null || qx.util.Wheel.MAXSCROLL < absDelta){
+
+        qx.util.Wheel.MAXSCROLL = absDelta;
+        this.__recalculateMultiplicator();
+      };
+      // special case for systems not speeding up
+      if(qx.util.Wheel.MAXSCROLL === absDelta && qx.util.Wheel.MINSCROLL === absDelta){
+
+        return 2 * (delta / absDelta);
+      };
+      var range = qx.util.Wheel.MAXSCROLL - qx.util.Wheel.MINSCROLL;
+      var ret = (delta / range) * Math.log(range) * qx.util.Wheel.FACTOR;
+      // return at least 1 or -1
+      return ret < 0 ? Math.min(ret, -1) : Math.max(ret, 1);
+    },
+    /**
+     * Recalculates the factor with which the calculated delta is normalized.
+     */
+    __recalculateMultiplicator : function(){
+
+      var max = qx.util.Wheel.MAXSCROLL || 0;
+      var min = qx.util.Wheel.MINSCROLL || max;
+      if(max <= min){
+
+        return;
+      };
+      var range = max - min;
+      var maxRet = (max / range) * Math.log(range);
+      if(maxRet == 0){
+
+        maxRet = 1;
+      };
+      qx.util.Wheel.FACTOR = 6 / maxRet;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014-2015 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+************************************************************************ */
+/**
+ * A carousel is a widget which can switch between several sub pages {@link qx.ui.website.Widget}.
+ * A page switch is triggered by a swipe to left, for next page, or a swipe to right for
+ * previous page. Pages can also be switched by dragging.
+ *
+ * A carousel shows by default a pagination indicator at the bottom of the carousel.
+ *
+ * @require(qx.module.Transform)
+ * @require(qx.module.event.Swipe)
+ * @require(qx.module.event.GestureHandler)
+ * @require(qx.module.event.Track)
+ */
+qx.Bootstrap.define("qx.ui.website.Carousel", {
+  extend : qx.ui.website.Widget,
+  statics : {
+    _config : {
+      /**
+       * The time in milliseconds for the page switch animation.
+       */
+      pageSwitchDuration : 500
+    },
+    /**
+     * Factory method which converts the current collection into a collection of
+     * Carousel widgets.
+     *
+     * @return {qx.ui.website.Carousel} A new carousel collection.
+     * @attach {qxWeb}
+     */
+    carousel : function(){
+
+      var carousel = new qx.ui.website.Carousel(this);
+      carousel.init();
+      return carousel;
+    }
+  },
+  construct : function(selector, context){
+
+    this.base(arguments, selector, context);
+  },
+  members : {
+    __active : null,
+    __pageContainer : null,
+    __scrollContainer : null,
+    __paginationLabels : null,
+    __startPosLeft : null,
+    __pagination : null,
+    _ie9 : false,
+    __blocked : false,
+    // overridden
+    init : function(){
+
+      if(!this.base(arguments)){
+
+        return false;
+      };
+      this._ie9 = qx.core.Environment.get("browser.documentmode") === 9;
+      if(this._ie9){
+
+        this.setConfig("pageSwitchDuration", 10);
+      } else {
+
+        this.addClass("qx-flex-ready");
+      };
+      qxWeb(window).on("resize", this._onResize, this);
+      var prefix = this.getCssPrefix();
+      this.__scrollContainer = qxWeb.create("<div>").addClass(prefix + "-container").appendTo(this);
+      this.__pageContainer = qxWeb.create("<div>").addClass("qx-hbox").setStyle("height", "100%").appendTo(this.__scrollContainer);
+      this.__paginationLabels = [];
+      this.__pagination = qxWeb.create("<div>").addClasses([prefix + "-pagination", "qx-hbox", "qx-flex1"]).setStyle("visibility", "excluded").appendTo(this);
+      if(this._ie9){
+
+        this.__pageContainer.setStyle("display", "table");
+        this.__pagination.setStyle("textAlign", "center");
+      } else {
+
+        this.on("trackstart", this._onTrackStart, this).on("track", this._onTrack, this).on("trackend", this._onTrackEnd, this);
+      };
+      this.on("swipe", this._onSwipe, this);
+      this.render();
+      return true;
+    },
+    render : function(){
+
+      var pages = this.find("." + this.getCssPrefix() + "-page");
+      pages.forEach(function(page){
+
+        this.addPage(qxWeb(page));
+      }.bind(this));
+      if(pages.length > 0){
+
+        this.setActive(pages.eq(0));
+      };
+      return this;
+    },
+    /**
+     * Sets one of the Carousel's pages as active, meaning it will be
+     * visible.
+     *
+     * @param page {qxWeb} The page to be activated
+     */
+    setActive : function(page){
+
+      var old = this.__active;
+      this.__active = page;
+      this._update();
+      var data = {
+        value : page,
+        old : old,
+        target : this
+      };
+      this.emit("changeActive", data);
+    },
+    /**
+     * Returns the currently active (i.e. visible) page
+     * @return {qxWeb} The active page
+     */
+    getActive : function(){
+
+      return this.__active;
+    },
+    /**
+     * Scrolls the carousel to the next page.
+     *
+     * @return {qx.ui.website.Carousel} Self instance for chaining
+     */
+    nextPage : function(){
+
+      var pages = this._getPages();
+      if(pages.length == 0){
+
+        return this;
+      };
+      var next = this.getActive().getNext();
+      // prevent overflow if we don't use the endless loop mode
+      if(pages.length > 2){
+
+        if(next.length === 0){
+
+          next = pages.eq(0);
+        };
+      };
+      if(next.length > 0){
+
+        this.setActive(next);
+      };
+      return this;
+    },
+    /**
+     * Scrolls the carousel to the previous page.
+     *
+     * @return {qx.ui.website.Carousel} Self instance for chaining
+     */
+    previousPage : function(){
+
+      var pages = this._getPages();
+      if(pages.length == 0){
+
+        return this;
+      };
+      var prev = this.getActive().getPrev();
+      // prevent overflow if we don't use the endless loop mode
+      if(pages.length > 2){
+
+        if(prev.length == 0){
+
+          prev = pages.eq(pages.length - 1);
+        };
+      };
+      if(prev.length > 0){
+
+        this.setActive(prev);
+      };
+      return this;
+    },
+    /**
+     * Adds a page to the Carousel. Updates the pagination,
+     * scroll position, active property and the sizing.
+     * @param child {qxWeb} The added child.
+     */
+    addPage : function(child){
+
+      child.addClasses(["qx-flex1", this.getCssPrefix() + "-page"]).appendTo(this.__pageContainer);
+      if(this.find("." + this.getCssPrefix() + "-page").length > this.__paginationLabels.length){
+
+        var paginationLabel = this._createPaginationLabel();
+        this.__paginationLabels.push(paginationLabel);
+        this.__pagination.append(paginationLabel);
+      };
+      this._updateWidth();
+      if(!this.getActive()){
+
+        this.setActive(child);
+      } else if(this._getPages().length > 2){
+
+        this._updateOrder();
+      };
+      if(this._ie9){
+
+        child.setStyle("display", "table-cell");
+      };
+      this.find(".scroll").setStyle("touchAction", "pan-y");
+      // scroll as soon as we have the third page added
+      if(this._getPages().length === 3 && !this._ie9){
+
+        this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+      };
+      this._updatePagination();
+    },
+    /**
+     * Removes a page from the Carousel. Updates the pagination,
+     * scroll position, active property and the sizing.
+     * @param child {qxWeb} The removed child.
+     */
+    removePage : function(child){
+
+      child.remove();
+      // reset the active page if we don' have any page at all
+      if(this._getPages().length == 0){
+
+        this.__pagination.empty();
+        this.__paginationLabels = [];
+        this.setActive(null);
+        return;
+      };
+      this._updateWidth();
+      if(this.getActive()[0] == child[0]){
+
+        this.setActive(this._getPages().eq(0));
+      } else if(this._getPages().length > 2){
+
+        this._updateOrder();
+      } else {
+
+        // remove all order properties
+        this._setOrder(this._getPages(), 0);
+      };
+      this.__paginationLabels.splice(child.priorPosition, 1)[0].remove();
+      for(var i = 0;i < this.__paginationLabels.length;i++){
+
+        this.__paginationLabels[i].getChildren(".label").setHtml((i + 1) + "");
+      };
+      this._updatePagination();
+    },
+    /**
+     * Updates the order, scroll position and pagination.
+     */
+    _update : function(){
+
+      if(!this.getActive()){
+
+        return;
+      };
+      // special case for only one page
+      if(this._getPages().length < 2){
+
+        return;
+      } else if(this._getPages().length == 2){
+
+        if(this._getPages()[0] === this.getActive()[0]){
+
+          this._translateTo(0);
+        } else {
+
+          this._translateTo(this.getWidth());
+        };
+        this._updatePagination();
+        return;
+      };
+      var left;
+      if(!this._ie9){
+
+        var direction = this._updateOrder();
+        if(direction == "right"){
+
+          left = this._getPositionLeft() - this.__scrollContainer.getWidth();
+        } else if(direction == "left"){
+
+          left = this._getPositionLeft() + this.__scrollContainer.getWidth();
+        } else if(this._getPages().length >= 3){
+
+          // back snapping if the order has not changed
+          this._translateTo(this.getWidth());
+          return;
+        } else {
+
+          // do nothing if we don't have enough pages
+          return;
+        };;
+        if(left !== undefined){
+
+          // first, translate the old page into view
+          this.__scrollContainer.translate([(-left) + "px", 0, 0]);
+          // animate to the new page
+          this._translateTo(this.getWidth());
+        };
+      } else {
+
+        var index = this._getPages().indexOf(this.getActive());
+        left = index * this.getWidth();
+        this._translateTo(left);
+      };
+      this._updatePagination();
+    },
+    /**
+     * Updates the CSS order property of the flexbox layout.
+     * The active page should be the second in order with a order property of '0'.
+     * The page left to the active has the order property set to '-1' and is the
+     * only one on the left side. All other pages get increasing order numers and
+     * are alligned on the right side.
+     *
+     * @return {String} The scroll direction, either 'left' or 'right'.
+     */
+    _updateOrder : function(){
+
+      if(this._ie9){
+
+        return "left";
+      };
+      var scrollDirection;
+      var pages = this._getPages();
+      var orderBefore = this._getOrder(this.getActive());
+      if(orderBefore > 0){
+
+        scrollDirection = "right";
+      } else if(orderBefore < 0){
+
+        scrollDirection = "left";
+      };
+      var activeIndex = pages.indexOf(this.getActive());
+      this._setOrder(this.getActive(), 0);
+      // active page should always have order 0
+      var order = 1;
+      // order all pages with a higher index than the active page
+      for(var i = activeIndex + 1;i < pages.length;i++){
+
+        // move the last page to the left of the active page
+        if(activeIndex === 0 && i == pages.length - 1){
+
+          order = -1;
+        };
+        this._setOrder(pages.eq(i), order++);
+      };
+      // order all pages with a lower index than the active page
+      for(i = 0;i < activeIndex;i++){
+
+        // move the last page to the left of the active page
+        if(i == activeIndex - 1){
+
+          order = -1;
+        };
+        this._setOrder(pages.eq(i), order++);
+      };
+      return scrollDirection;
+    },
+    /**
+     * Updates the width of the container and the pages.
+     */
+    _updateWidth : function(){
+
+      if(!this.isRendered() || this.getProperty("offsetWidth") === 0){
+
+        this.setStyle("visibility", "hidden");
+        if(!this.hasListener("appear", this._updateWidth, this)){
+
+          this.once("appear", this._updateWidth, this);
+        };
+        return;
+      };
+      // set the inital transition on first appear
+      if(this._getPositionLeft() === 0 && this._getPages().length > 2 && !this._ie9){
+
+        this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+      };
+      // set the container width to total width of all pages
+      var containerWidth = this.getWidth() * this._getPages().length;
+      this.__pageContainer.setStyle("width", containerWidth + "px");
+      // set the width of all pages to the carousel width
+      this._getPages().setStyle("width", this.getWidth() + "px");
+      this.setStyle("visibility", "visible");
+    },
+    /**
+     * Handler for trackstart. It saves the initial scroll position and
+     * cancels any running animation.
+     */
+    _onTrackStart : function(){
+
+      if(this.__blocked){
+
+        return;
+      };
+      this.__startPosLeft = this._getPositionLeft();
+      this.__scrollContainer.stop().translate([(-Math.round(this.__startPosLeft)) + "px", 0, 0]);
+    },
+    /**
+     * Track handler which updates the scroll position.
+     * @param e {Event} The track event.
+     */
+    _onTrack : function(e){
+
+      if(this.__blocked){
+
+        return;
+      };
+      if(e.delta.axis == "x" && this._getPages().length > 2){
+
+        this.__scrollContainer.translate([-(this.__startPosLeft - e.delta.x) + "px", 0, 0]);
+      };
+    },
+    /**
+     * TrackEnd handler for enabling the scroll events.
+     */
+    _onTrackEnd : function(){
+
+      if(this.__startPosLeft == null || this.__blocked){
+
+        // dont end if we didn't start
+        return;
+      };
+      // make sure the trackend handling is done after the swipe handling
+      window.setTimeout(function(){
+
+        if(this._getPages().length < 3 || this.__scrollContainer.isPlaying()){
+
+          return;
+        };
+        this.__startPosLeft = null;
+        var width = this.getWidth();
+        var pages = this._getPages();
+        var oldActive = this.getActive();
+        // if more than 50% is visible of the previous page
+        if(this._getPositionLeft() < (width - (width / 2))){
+
+          var prev = this.getActive().getPrev();
+          if(prev.length == 0){
+
+            prev = pages.eq(pages.length - 1);
+          };
+          this.setActive(prev);
+        } else if(this._getPositionLeft() > (width + width / 2)){
+
+          var next = this.getActive().getNext();
+          if(next.length == 0){
+
+            next = pages.eq(0);
+          };
+          this.setActive(next);
+        };
+        if(this.getActive() == oldActive){
+
+          this._update();
+        };
+      }.bind(this), 0);
+    },
+    /**
+     * Swipe handler which triggers page changes based on the
+     * velocity and the direction.
+     * @param e {Event} The swipe event.
+     */
+    _onSwipe : function(e){
+
+      if(this.__blocked){
+
+        return;
+      };
+      var velocity = Math.abs(e.getVelocity());
+      if(e.getAxis() == "x" && velocity > 0.25){
+
+        if(e.getDirection() == "left"){
+
+          this.nextPage();
+        } else if(e.getDirection() == "right"){
+
+          this.previousPage();
+        };
+      };
+    },
+    /**
+     * Factory method for a paginationLabel.
+     * @return {qxWeb} the created pagination label.
+     */
+    _createPaginationLabel : function(){
+
+      var paginationIndex = this._getPages().length;
+      return qxWeb.create('<div class="' + this.getCssPrefix() + '-pagination-label"></div>').on("tap", this._onPaginationLabelTap, this).append(qxWeb.create('<div class="label">' + paginationIndex + '</div>'));
+    },
+    /**
+     * Handles the tap on pagination labels and changes to the desired page.
+     * @param e {Event} The tap event.
+     */
+    _onPaginationLabelTap : function(e){
+
+      this.__paginationLabels.forEach(function(label, index){
+
+        if(label[0] === e.currentTarget){
+
+          var pages = this._getPages();
+          // wo don't reorder with two pages there just set the active property
+          if(pages.length === 2){
+
+            this.setActive(pages.eq(index));
+            return;
+          };
+          var activeIndex = pages.indexOf(this.getActive());
+          var distance = index - activeIndex;
+          // set the order to deault dom order
+          this._setOrder(pages, 0);
+          // get the active page into view
+          this.__scrollContainer.translate([(-activeIndex * this.getWidth()) + "px", 0, 0]);
+          this.__blocked = true;
+          // animate to the desired page
+          this._translateTo((activeIndex + distance) * this.getWidth());
+          this.__scrollContainer.once("animationEnd", function(page){
+
+            this.__blocked = false;
+            // set the viewport back to the default position
+            this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+            this.setActive(page);
+            // this also updates the order
+            this._updatePagination();
+          }.bind(this, pages.eq(index)));
+        };
+      }.bind(this));
+    },
+    /**
+     * Updates the pagination indicator of this carousel.
+     * Adds the 'active' CSS class to the currently visible page's
+     * pagination button.
+     */
+    _updatePagination : function(){
+
+      // hide the pagination for one page
+      this._getPages().length < 2 ? this.__pagination.setStyle("visibility", "excluded") : this.__pagination.setStyle("visibility", "visible");
+      this.__pagination.find("." + this.getCssPrefix() + "-pagination-label").removeClass("active");
+      var pages = this._getPages();
+      this.__paginationLabels[pages.indexOf(this.getActive())].addClass("active");
+    },
+    /**
+     * Resize handler. It updates the sizes, snap points and scroll position.
+     */
+    _onResize : function(){
+
+      this._updateWidth();
+      if(this._getPages().length > 2){
+
+        this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+      };
+    },
+    /**
+     * Animates using CSS translations to the given left position.
+     * @param left {Number} The new left position
+     */
+    _translateTo : function(left){
+
+      this.__scrollContainer.animate({
+        duration : this.getConfig("pageSwitchDuration"),
+        keep : 100,
+        timing : "ease",
+        keyFrames : {
+          '0' : {
+          },
+          '100' : {
+            translate : [(-left) + "px", 0, 0]
+          }
+        }
+      });
+    },
+    /**
+     * Sets the given order on the given collection.
+     * @param col {qxWeb} The collection to set the css property.
+     * @param value {Number|String} The value for the order property
+     */
+    _setOrder : function(col, value){
+
+      col.setStyles({
+        order : value,
+        msFlexOrder : value
+      });
+    },
+    /**
+     * Returns the order css property of the given collection.
+     * @param col {qxWeb} The collection to check.
+     * @return {Number} The order as number.
+     */
+    _getOrder : function(col){
+
+      var order = parseInt(col.getStyle("order"));
+      if(isNaN(order)){
+
+        order = parseInt(col.getStyle("msFlexOrder"));
+      };
+      return order;
+    },
+    /**
+     * Geturns a collection of all pages.
+     * @return {qxWeb} All pages.
+     */
+    _getPages : function(){
+
+      return this.__pageContainer.find("." + this.getCssPrefix() + "-page");
+    },
+    /**
+     * Returns the current left position.
+     * @return {Number} The position in px.
+     */
+    _getPositionLeft : function(){
+
+      var containerRect = this.__scrollContainer[0].getBoundingClientRect();
+      var parentRect = this[0].getBoundingClientRect();
+      return -(containerRect.left - parentRect.left);
+    },
+    // overridden
+    dispose : function(){
+
+      qxWeb(window).off("resize", this._onResize, this);
+      this.off("trackstart", this._onTrackStart, this).off("track", this._onTrack, this).off("swipe", this._onSwipe, this).off("trackend", this._onTrackEnd, this);
+      return this.base(arguments);
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$attach({
+      carousel : statics.carousel
     });
   }
 });
@@ -7706,9 +9061,11 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
  *
  * @group (Widget)
  */
-qx.Bootstrap.define("qx.ui.website.DatePicker", {
+qx.Bootstrap.define('qx.ui.website.DatePicker', {
   extend : qx.ui.website.Widget,
   statics : {
+    /** List of valid positions to check against */
+    __validPositions : null,
     /**
      * *format*
      *
@@ -7743,6 +9100,27 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
      *
      * Default value:
      * <pre>input</pre>
+     *
+     * *position*
+     *
+     * Position of the calendar popup from the point of view of the <code>INPUT</code> element.
+     * Possible values are
+     *
+     * * <code>top-left</code>
+     * * <code>top-center</code>
+     * * <code>top-right</code>
+     * * <code>bottom-left</code>
+     * * <code>bottom-center</code>
+     * * <code>bottom-right</code>
+     * * <code>left-top</code>
+     * * <code>left-middle</code>
+     * * <code>left-bottom</code>
+     * * <code>right-top</code>
+     * * <code>right-middle</code>
+     * * <code>right-bottom</code>
+     *
+     * Default value:
+     * <pre>bottom-left</pre>
      */
     _config : {
       format : function(date){
@@ -7751,7 +9129,8 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
       },
       readonly : true,
       icon : null,
-      mode : 'input'
+      mode : 'input',
+      position : 'bottom-left'
     },
     /**
      * Factory method which converts the current collection into a collection of
@@ -7774,6 +9153,9 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
     this.base(arguments, selector, context);
   },
   members : {
+    _calendarId : null,
+    _iconId : null,
+    _uniqueId : null,
     /**
      * Get the associated calendar widget
      * @return {qx.ui.website.Calendar} calendar widget instance
@@ -7781,10 +9163,7 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
     getCalendar : function(){
 
       var calendarCollection = qxWeb();
-      this._forEachElementWrapped(function(datepicker){
-
-        calendarCollection = calendarCollection.concat(qxWeb('div#' + datepicker.getProperty('calendarId')));
-      });
+      calendarCollection = calendarCollection.concat(qxWeb('div#' + this._calendarId));
       return calendarCollection;
     },
     // overridden
@@ -7800,43 +9179,51 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
 
         return false;
       };
-      this._forEachElementWrapped(function(datepicker){
+      var uniqueId = Math.round(Math.random() * 10000);
+      this._uniqueId = uniqueId;
+      this.__setReadOnly(this);
+      this.__setIcon(this);
+      this.__addInputListener(this);
+      var calendarId = 'datepicker-calendar-' + uniqueId;
+      var calendar = qxWeb.create('<div id="' + calendarId + '"></div>').calendar();
+      calendar.on('tap', this._onCalendarTap);
+      calendar.appendTo(document.body).hide();
+      // create the connection between the date picker and the corresponding calendar widget
+      this._calendarId = calendarId;
+      // grab tap events at the body element to be able to hide the calender popup
+      // if the user taps outside
+      var bodyElement = qxWeb.getDocument(this).body;
+      qxWeb(bodyElement).on('tap', this._onBodyTap, this);
+      // react on date selection
+      calendar.on('changeValue', this._calendarChangeValue, this);
+      if(date !== undefined){
 
-        var uniqueId = Math.round(Math.random() * 10000);
-        datepicker.setProperty('uniqueId', uniqueId);
-        this.__setReadOnly(datepicker);
-        this.__setIcon(datepicker);
-        this.__addInputListener(datepicker);
-        var calendarId = 'datepicker-calendar-' + uniqueId;
-        var calendar = qxWeb.create('<div id="' + calendarId + '"></div>').calendar();
-        calendar.on('tap', this._onCalendarTap);
-        calendar.appendTo(document.body).hide();
-        // create the connection between the date picker and the corresponding calendar widget
-        datepicker.setProperty('calendarId', calendarId);
-        // grab tap events at the body element to be able to hide the calender popup
-        // if the user taps outside
-        var bodyElement = qxWeb.getDocument(datepicker).body;
-        qxWeb(bodyElement).on('tap', datepicker._onBodyTap, datepicker);
-        // react on date selection
-        calendar.on('changeValue', datepicker._calendarChangeValue, datepicker);
-        if(date !== undefined){
-
-          calendar.setValue(date);
-        };
-      });
+        calendar.setValue(date);
+      };
       return true;
     },
     // overridden
     render : function(){
 
       this.getCalendar().render();
-      this._forEachElementWrapped(function(datepicker){
-
-        this.__setReadOnly(datepicker);
-        this.__setIcon(datepicker);
-        this.__addInputListener(datepicker);
-      });
+      this.__setReadOnly(this);
+      this.__setIcon(this);
+      this.__addInputListener(this);
       this.setEnabled(this.getEnabled());
+      return this;
+    },
+    // overridden
+    setConfig : function(name, config){
+
+      if(name === 'position'){
+
+        var validPositions = qx.ui.website.DatePicker.__validPositions;
+        if(validPositions.indexOf(config) === -1){
+
+          throw new Error('Wrong config value for "position"! ' + 'Only the values "' + validPositions.join('", "') + '" are supported!');
+        };
+      };
+      this.base(arguments, name, config);
       return this;
     },
     /**
@@ -7851,10 +9238,10 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
 
         return;
       };
-      var calendar = qxWeb('div#' + this.getProperty('calendarId'));
-      if(calendar.getStyle("display") == "none"){
+      var calendar = qxWeb('div#' + this._calendarId);
+      if(calendar.getStyle('display') == 'none'){
 
-        this.getCalendar().show().placeTo(this, 'bottom-left');
+        this.getCalendar().show().placeTo(this, this.getConfig('position'));
       } else {
 
         this.getCalendar().hide();
@@ -7885,7 +9272,7 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
       // fast check for tap on the configured icon
       if(this.getConfig('icon') !== null){
 
-        var icon = qxWeb('#' + this.getProperty('iconId'));
+        var icon = qxWeb('#' + this._iconId);
         if(icon.length > 0 && target.length > 0 && icon[0] == target[0]){
 
           return;
@@ -7940,7 +9327,7 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
       var icon;
       if(collection.getConfig('icon') === null){
 
-        icon = collection.getNext('img#' + collection.getProperty('iconId'));
+        icon = collection.getNext('img#' + collection._iconId);
         if(icon.length === 1){
 
           icon.off('tap', this._onTap, collection);
@@ -7948,11 +9335,11 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
         };
       } else {
 
-        var iconId = 'datepicker-icon-' + collection.getProperty('uniqueId');
+        var iconId = 'datepicker-icon-' + collection._uniqueId;
         // check if there is already an icon
-        if(collection.getProperty('iconId') === undefined){
+        if(collection._iconId == undefined){
 
-          collection.setProperty('iconId', iconId);
+          collection._iconId = iconId;
           icon = qxWeb.create('<img>');
           icon.setAttributes({
             id : iconId,
@@ -7978,27 +9365,24 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
 
       if(collection.getConfig('mode') === 'icon'){
 
-        collection.$offFirstCollection('tap', collection._onTap);
+        collection.off('tap', collection._onTap);
       } else {
 
-        collection.$onFirstCollection('tap', collection._onTap);
+        collection.on('tap', collection._onTap);
       };
     },
     // overridden
     dispose : function(){
 
-      this._forEachElementWrapped(function(datepicker){
-
-        datepicker.removeAttribute('readonly');
-        datepicker.getNext('img#' + datepicker.getProperty('iconId')).remove();
-        datepicker.$offFirstCollection('tap', datepicker._onTap);
-        var bodyElement = qxWeb.getDocument(datepicker).body;
-        qxWeb(bodyElement).off('tap', datepicker._onBodyTap, datepicker);
-        datepicker.getCalendar().off('changeValue', this._calendarChangeValue, datepicker).off('tap', this._onCalendarTap);
-        var calendar = qxWeb('div#' + datepicker.getProperty('calendarId'));
-        calendar.remove();
-        calendar.dispose();
-      });
+      this.removeAttribute('readonly');
+      this.getNext('img#' + this._iconId).remove();
+      this.off('tap', this._onTap);
+      var bodyElement = qxWeb.getDocument(this).body;
+      qxWeb(bodyElement).off('tap', this._onBodyTap, this);
+      this.getCalendar().off('changeValue', this._calendarChangeValue, this).off('tap', this._onCalendarTap);
+      var calendar = qxWeb('div#' + this._calendarId);
+      calendar.remove();
+      calendar.dispose();
       return this.base(arguments);
     }
   },
@@ -8007,6 +9391,7 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
     qxWeb.$attach({
       datepicker : statics.datepicker
     });
+    statics.__validPositions = ['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'left-top', 'left-middle', 'left-bottom', 'right-top', 'right-middle', 'right-bottom'];
   }
 });
 
@@ -8148,14 +9533,11 @@ qx.Bootstrap.define("qx.ui.website.Rating", {
       };
       this._updateSymbolLength();
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(rating){
+      if(this.getAttribute("tabindex") < 0){
 
-        if(rating.getAttribute("tabindex") < 0){
-
-          rating.setAttribute("tabindex", 0);
-        };
-        rating.$onFirstCollection("focus", this._onFocus, rating).$onFirstCollection("blur", this._onBlur, rating).getChildren("span").addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).$onFirstCollection("tap", this._onTap, rating);
-      }.bind(this));
+        this.setAttribute("tabindex", 0);
+      };
+      this.on("focus", this._onFocus, this).on("blur", this._onBlur, this).getChildren("span").addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).on("tap", this._onTap, this);
       return true;
     },
     /**
@@ -8176,13 +9558,10 @@ qx.Bootstrap.define("qx.ui.website.Rating", {
         value = 0;
       };
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(rating){
-
-        var children = rating.getChildren("span");
-        children.removeClass(cssPrefix + "-item-off");
-        children.slice(value, children.length).addClass(cssPrefix + "-item-off");
-        rating.emit("changeValue", rating.getValue());
-      });
+      var children = this.getChildren("span");
+      children.removeClass(cssPrefix + "-item-off");
+      children.slice(value, children.length).addClass(cssPrefix + "-item-off");
+      this.emit("changeValue", this.getValue());
       return this;
     },
     /**
@@ -8194,7 +9573,7 @@ qx.Bootstrap.define("qx.ui.website.Rating", {
     getValue : function(){
 
       var cssPrefix = this.getCssPrefix();
-      return this.eq(0).getChildren("span").not("." + cssPrefix + "-item-off").length;
+      return this.getChildren("span").not("." + cssPrefix + "-item-off").length;
     },
     // overridden
     render : function(){
@@ -8210,25 +9589,22 @@ qx.Bootstrap.define("qx.ui.website.Rating", {
 
       var cssPrefix = this.getCssPrefix();
       var length = this.getConfig("length");
-      this._forEachElementWrapped(function(el){
+      var children = this.getChildren();
+      children.setHtml(this.getConfig("symbol"));
+      var diff = length - children.length;
+      if(diff > 0){
 
-        var children = el.getChildren();
-        children.setHtml(this.getConfig("symbol"));
-        var diff = length - children.length;
-        if(diff > 0){
+        for(var i = 0;i < diff;i++){
 
-          for(var i = 0;i < diff;i++){
-
-            qxWeb.create("<span>" + this.getConfig("symbol") + "</span>").$onFirstCollection("tap", el._onTap, el).addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).appendTo(el);
-          };
-        } else {
-
-          for(var i = 0;i < Math.abs(diff);i++){
-
-            el.getChildren().getLast().$offFirstCollection("tap", el._onTap, el).remove();
-          };
+          qxWeb.create("<span>" + this.getConfig("symbol") + "</span>").on("tap", this._onTap, this).addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).appendTo(this);
         };
-      }.bind(this));
+      } else {
+
+        for(var i = 0;i < Math.abs(diff);i++){
+
+          this.getChildren().getLast().off("tap", this._onTap, this).remove();
+        };
+      };
       return this;
     },
     /**
@@ -8277,12 +9653,9 @@ qx.Bootstrap.define("qx.ui.website.Rating", {
     // overridden
     dispose : function(){
 
-      this._forEachElementWrapped(function(rating){
-
-        qxWeb(document.documentElement).off("keydown", this._onKeyDown, rating);
-        rating.$offFirstCollection("focus", this._onFocus, rating).$offFirstCollection("blur", this._onBlur, rating);
-        rating.getChildren("span").$offFirstCollection("tap", rating._onTap, rating);
-      });
+      qxWeb(document.documentElement).off("keydown", this._onKeyDown, this);
+      this.off("focus", this._onFocus, this).off("blur", this._onBlur, this);
+      this.getChildren("span").off("tap", this._onTap, this);
       this.setHtml("");
       return this.base(arguments);
     }

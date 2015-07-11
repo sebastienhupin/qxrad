@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -36,6 +36,40 @@ qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{
  */
 qx.Bootstrap.define("qx.module.TextSelection", {
   statics : {
+    /**
+     * Checks if the given DOM node is a text input field or textarea
+     *
+     * @param el {Element} The node to check
+     * @return {Boolean} <code>true</code> if the given node is an input field
+     *
+     * @attach {qxWeb}
+     */
+    __isInput : function(el){
+
+      var tag = el.tagName ? el.tagName.toLowerCase() : null;
+      return (tag === "input" || tag === "textarea");
+    },
+    /**
+     * Returns the first text child node of the given element
+     *
+     * @param el {Element} DOM element
+     * @return {Node|null} text node
+     *
+     * @attach {qxWeb}
+     */
+    __getTextNode : function(el){
+
+      for(var i = 0,l = el.childNodes.length;i < l;i++){
+
+        if(el.childNodes[i].nodeType === 3){
+
+          return el.childNodes[i];
+        };
+      };
+      return null;
+    }
+  },
+  members : {
     /**
      * Get the text selection of the first element.
      *
@@ -163,50 +197,11 @@ qx.Bootstrap.define("qx.module.TextSelection", {
         };
       });
       return this;
-    },
-    /**
-     * Checks if the given DOM node is a text input field or textarea
-     *
-     * @param el {Element} The node to check
-     * @return {Boolean} <code>true</code> if the given node is an input field
-     *
-     * @attach {qxWeb}
-     */
-    __isInput : function(el){
-
-      var tag = el.tagName ? el.tagName.toLowerCase() : null;
-      return (tag === "input" || tag === "textarea");
-    },
-    /**
-     * Returns the first text child node of the given element
-     *
-     * @param el {Element} DOM element
-     * @return {Node|null} text node
-     *
-     * @attach {qxWeb}
-     */
-    __getTextNode : function(el){
-
-      for(var i = 0,l = el.childNodes.length;i < l;i++){
-
-        if(el.childNodes[i].nodeType === 3){
-
-          return el.childNodes[i];
-        };
-      };
-      return null;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "getTextSelection" : statics.getTextSelection,
-      "getTextSelectionLength" : statics.getTextSelectionLength,
-      "getTextSelectionStart" : statics.getTextSelectionStart,
-      "getTextSelectionEnd" : statics.getTextSelectionEnd,
-      "setTextSelection" : statics.setTextSelection,
-      "clearTextSelection" : statics.clearTextSelection
-    });
+    qxWeb.$attachAll(this);
   }
 });
 

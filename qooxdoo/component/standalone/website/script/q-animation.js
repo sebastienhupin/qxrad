@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -50,22 +50,6 @@ qx.Bootstrap.define("qx.module.Animation", {
   },
   statics : {
     /**
-     * Returns the stored animation handles. The handles are only
-     * available while an animation is running.
-     *
-     * @internal
-     * @return {Array} An array of animation handles.
-     */
-    getAnimationHandles : function(){
-
-      var animationHandles = [];
-      for(var i = 0;i < this.length;i++){
-
-        animationHandles[i] = this[i].$$animation;
-      };
-      return animationHandles;
-    },
-    /**
      * Animation description used in {@link #fadeOut}.
      */
     _fadeOut : {
@@ -97,76 +81,6 @@ qx.Bootstrap.define("qx.module.Animation", {
           opacity : 1
         }
       }
-    },
-    /**
-     * Starts the animation with the given description.
-     * The description should be a map, which could look like this:
-     *
-     * <pre class="javascript">
-     * {
-     *   "duration": 1000,
-     *   "keep": 100,
-     *   "keyFrames": {
-     *     0 : {"opacity": 1, "scale": 1},
-     *     100 : {"opacity": 0, "scale": 0}
-     *   },
-     *   "origin": "50% 50%",
-     *   "repeat": 1,
-     *   "timing": "ease-out",
-     *   "alternate": false,
-     *   "delay": 2000
-     * }
-     * </pre>
-     *
-     * *duration* is the time in milliseconds one animation cycle should take.
-     *
-     * *keep* is the key frame to apply at the end of the animation. (optional)
-     *
-     * *keyFrames* is a map of separate frames. Each frame is defined by a
-     *   number which is the percentage value of time in the animation. The value
-     *   is a map itself which holds css properties or transforms
-     *   (Transforms only for CSS Animations).
-     *
-     * *origin* maps to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin">transform origin</a>
-     * (Only for CSS animations).
-     *
-     * *repeat* is the amount of time the animation should be run in
-     *   sequence. You can also use "infinite".
-     *
-     * *timing* takes one of these predefined values:
-     *   <code>ease</code> | <code>linear</code> | <code>ease-in</code>
-     *   | <code>ease-out</code> | <code>ease-in-out</code> |
-     *   <code>cubic-bezier(&lt;number&gt;, &lt;number&gt;, &lt;number&gt;, &lt;number&gt;)</code>
-     *   (cubic-bezier only available for CSS animations)
-     *
-     * *alternate* defines if every other animation should be run in reverse order.
-     *
-     * *delay* is the time in milliseconds the animation should wait before start.
-     *
-     * @attach {qxWeb}
-     * @param desc {Map} The animation"s description.
-     * @param duration {Number?} The duration in milliseconds of the animation,
-     *   which will override the duration given in the description.
-     * @return {qxWeb} The collection for chaining.
-     */
-    animate : function(desc, duration){
-
-      qx.module.Animation._animate.bind(this)(desc, duration, false);
-      return this;
-    },
-    /**
-     * Starts an animation in reversed order. For further details, take a look at
-     * the {@link #animate} method.
-     * @attach {qxWeb}
-     * @param desc {Map} The animation"s description.
-     * @param duration {Number?} The duration in milliseconds of the animation,
-     *   which will override the duration given in the description.
-     * @return {qxWeb} The collection for chaining.
-     */
-    animateReverse : function(desc, duration){
-
-      qx.module.Animation._animate.bind(this)(desc, duration, true);
-      return this;
     },
     /**
      * Animation execute either regular or reversed direction.
@@ -217,6 +131,77 @@ qx.Bootstrap.define("qx.module.Animation", {
           self.emit("animationEnd");
         }, el);
       });
+    }
+  },
+  members : {
+    /**
+     * Returns the stored animation handles. The handles are only
+     * available while an animation is running.
+     *
+     * @internal
+     * @return {Array} An array of animation handles.
+     */
+    getAnimationHandles : function(){
+
+      var animationHandles = [];
+      for(var i = 0;i < this.length;i++){
+
+        animationHandles[i] = this[i].$$animation;
+      };
+      return animationHandles;
+    },
+    /**
+     * Starts the animation with the given description.
+     *
+     * *duration* is the time in milliseconds one animation cycle should take.
+     *
+     * *keep* is the key frame to apply at the end of the animation. (optional)
+     *
+     * *keyFrames* is a map of separate frames. Each frame is defined by a
+     *   number which is the percentage value of time in the animation. The value
+     *   is a map itself which holds css properties or transforms
+     *   (Transforms only for CSS Animations).
+     *
+     * *origin* maps to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin">transform origin</a>
+     * (Only for CSS animations).
+     *
+     * *repeat* is the amount of time the animation should be run in
+     *   sequence. You can also use "infinite".
+     *
+     * *timing* takes one of these predefined values:
+     *   <code>ease</code> | <code>linear</code> | <code>ease-in</code>
+     *   | <code>ease-out</code> | <code>ease-in-out</code> |
+     *   <code>cubic-bezier(&lt;number&gt;, &lt;number&gt;, &lt;number&gt;, &lt;number&gt;)</code>
+     *   (cubic-bezier only available for CSS animations)
+     *
+     * *alternate* defines if every other animation should be run in reverse order.
+     *
+     * *delay* is the time in milliseconds the animation should wait before start.
+     *
+     * @attach {qxWeb}
+     * @param desc {Map} The animation"s description.
+     * @param duration {Number?} The duration in milliseconds of the animation,
+     *   which will override the duration given in the description.
+     * @return {qxWeb} The collection for chaining.
+     */
+    animate : function(desc, duration){
+
+      qx.module.Animation._animate.bind(this)(desc, duration, false);
+      return this;
+    },
+    /**
+     * Starts an animation in reversed order. For further details, take a look at
+     * the {@link #animate} method.
+     * @attach {qxWeb}
+     * @param desc {Map} The animation"s description.
+     * @param duration {Number?} The duration in milliseconds of the animation,
+     *   which will override the duration given in the description.
+     * @return {qxWeb} The collection for chaining.
+     */
+    animateReverse : function(desc, duration){
+
+      qx.module.Animation._animate.bind(this)(desc, duration, true);
+      return this;
     },
     /**
      * Manipulates the play state of the animation.
@@ -330,18 +315,7 @@ qx.Bootstrap.define("qx.module.Animation", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "animate" : statics.animate,
-      "animateReverse" : statics.animateReverse,
-      "fadeIn" : statics.fadeIn,
-      "fadeOut" : statics.fadeOut,
-      "play" : statics.play,
-      "pause" : statics.pause,
-      "stop" : statics.stop,
-      "isEnded" : statics.isEnded,
-      "isPlaying" : statics.isPlaying,
-      "getAnimationHandles" : statics.getAnimationHandles
-    });
+    qxWeb.$attachAll(this);
     /**
      * End value for opacity style. This value is modified for all browsers which are
      * 'optimizing' this style value by not setting it (like IE9). This leads to a wrong
@@ -616,6 +590,11 @@ qx.Bootstrap.define("qx.bom.client.CssAnimation", {
      */
     getAnimationStart : function(){
 
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationstart")){
+
+        return "webkitAnimationStart";
+      };
       var mapping = {
         "msAnimation" : "MSAnimationStart",
         "WebkitAnimation" : "webkitAnimationStart",
@@ -632,6 +611,11 @@ qx.Bootstrap.define("qx.bom.client.CssAnimation", {
      */
     getAnimationIteration : function(){
 
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationiteration")){
+
+        return "webkitAnimationIteration";
+      };
       var mapping = {
         "msAnimation" : "MSAnimationIteration",
         "WebkitAnimation" : "webkitAnimationIteration",
@@ -648,6 +632,11 @@ qx.Bootstrap.define("qx.bom.client.CssAnimation", {
      */
     getAnimationEnd : function(){
 
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationend")){
+
+        return "webkitAnimationEnd";
+      };
       var mapping = {
         "msAnimation" : "MSAnimationEnd",
         "WebkitAnimation" : "webkitAnimationEnd",
@@ -875,7 +864,10 @@ qx.Bootstrap.define("qx.bom.element.AnimationCss", {
      */
     __onAnimationStart : function(e){
 
-      e.target.$$animation.emit("start", e.target);
+      if(e.target.$$animation){
+
+        e.target.$$animation.emit("start", e.target);
+      };
     },
     /**
      * Handler for the animation iteration.
@@ -1065,7 +1057,36 @@ qx.Bootstrap.define("qx.bom.element.AnimationCss", {
       qx.bom.Stylesheet.addRule(this.__sheet, selector, rule);
       this.__rules[rule] = name;
       return name;
+    },
+    /**
+     * Internal helper to reset the cache.
+     */
+    __clearCache : function(){
+
+      this.__id = 0;
+      if(this.__sheet){
+
+        this.__sheet.ownerNode.remove();
+        this.__sheet = null;
+        this.__rules = {
+        };
+      };
     }
+  },
+  defer : function(statics){
+
+    // iOS 8 seems to stumble over the old sheet object on tab
+    // changes or leaving the browser [BUG #8986]
+    if(qx.core.Environment.get("os.name") === "ios" && parseInt(qx.core.Environment.get("os.version")) >= 8){
+
+      document.addEventListener("visibilitychange", function(){
+
+        if(!document.hidden){
+
+          statics.__clearCache();
+        };
+      }, false);
+    };
   }
 });
 
@@ -2609,7 +2630,7 @@ qx.Bootstrap.define("qx.util.ColorUtil", {
       var red = parseInt(RegExp.$1, 10);
       var green = parseInt(RegExp.$2, 10);
       var blue = parseInt(RegExp.$3, 10);
-      var alpha = parseInt(RegExp.$4, 10);
+      var alpha = parseFloat(RegExp.$4, 10);
       if(red === 0 && green === 0 & blue === 0 && alpha === 0){
 
         return [-1, -1, -1];

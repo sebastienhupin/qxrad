@@ -31,18 +31,19 @@ addSample(".accordion", {
   },
   executable: true
 });
-;addSample(".animate", function() {
+;addSample(".animate", function () {
   q('#someElement').animate({
-    'duration': 150,
-    'timing': 'ease-out',
-    'keep': 100,
-    'keyFrames': {
-      0: { 'height': '250px' },
-      100: { 'height': '120px' }
+    "duration": 1000,
+    "keep": 100,
+    "keyFrames": {
+      0: {"opacity": 1, "scale": 1},
+      100: {"opacity": 0, "scale": 0}
     },
-    'repeat': 1,
-    'alternate': false,
-    'delay': 0
+    "origin": "50% 50%",
+    "repeat": 1,
+    "timing": "ease-out",
+    "alternate": false,
+    "delay": 2000
   });
 });
 
@@ -270,12 +271,41 @@ addSample("button.setMenu", {
 ;addSample(".calendar", {
   html : ['<div id="calendar-example"></div>'],
   javascript: function() {
-    q("#calendar-example").calendar(new Date());
+q("#calendar-example").calendar(new Date());
   },
   executable: true,
   showMarkup: true
 });
-;addSample("q.cookie.set", function() {
+
+addSample(".calendar", {
+  html : ['<div id="calendar-example"></div>'],
+  javascript: function() {
+var renderHook = function() {
+
+  // get all days of the next month in reversed order
+  var futureDays = this.find(".qx-calendar-next-month").reverse();
+
+  if (futureDays.length >= 7) {
+
+    // 'display:none' for the last seven days
+    futureDays.slice(0, 7).hide();
+
+    // hide all other days - use the children (button) DOM nodes
+    futureDays.slice(7).getChildren().setStyle('visibility', 'hidden');
+
+  } else {
+
+    // hide all days of the next month - use the children (button) DOM nodes
+    futureDays.getChildren().setStyle('visibility', 'hidden');
+
+  }
+};
+var calendar = q("#calendar-example").calendar(new Date());
+calendar.on("rendered", renderHook);
+},
+  executable: true,
+  showMarkup: true
+});;addSample("q.cookie.set", function() {
   q.cookie.set("someKey", "someValue", 365);
 });
 
@@ -445,17 +475,22 @@ addSample(".map", {
         '  color: firebrick;',
         '}'],
   javascript: function() {
-    // q.map() => map method which operates on collections
-    var parentNodes = q('.desc').map(function(elem) {
-      return elem.parentNode;
-    }).toArray();
+// q.map() => map method which operates on collections
+// return type is a new q collection
+var parentNodes = q('.desc').map(function(elem) {
+  return elem.parentNode;
+});
 
-    // Array.map() => map method which operates on arrays
-    var ids = parentNodes.map(function(elem) {
-      return elem.id;
-    });
+// clone and transform it into an Array
+var parentNodesArray = parentNodes.clone().toArray();
 
-    q("#result").append("<li>"+ids.join(" *** ")+"</li>");
+// Array.map() => map method which operates on arrays
+// return type is a Array
+var ids = parentNodesArray.map(function(elem) {
+  return elem.id;
+});
+
+q("#result").append("<li>"+ids.join(" *** ")+"</li>");
   },
   executable: true
 });
@@ -938,7 +973,38 @@ datepicker.render();
   },
   executable: true,
   showMarkup: true
-});;addSample("q.env.get", {
+});;addSample("q.dev.fakeServer.configure", {
+  javascript: function () {
+    /** The following example shows how to configure mock responses for two different requests: */
+    var responseData = [
+      {
+        method: "GET",
+        url: /\/api\/resource\/\d+/,
+        response: function (request) {
+          var status = 200;
+          var headers = {"Content-Type": "application/json"};
+          var responseData = {
+            description: "Mock REST response for resource " + request.url
+          };
+          var body = JSON.stringify(responseData);
+          request.respond(status, headers, body);
+        }
+      },
+      {
+        method: "GET",
+        url: "/users/{userId}",
+        response: [
+          200,
+          {"Content-Type": "application/json"},
+          JSON.stringify({userId: 'someUser'})
+        ]
+      }
+    ];
+
+    q.dev.fakeServer.configure(responseData);
+  }
+});
+;addSample("q.env.get", {
   html: ['<div id="data"></div>'],
   javascript: function() {
     var data = [
@@ -956,7 +1022,66 @@ addSample("q.env.add", {
     console.log(q.env.get("my.setting"));
   },
   executable: true
-});;addSample("q.ready", function() {
+});;addSample("Event.getTarget", {
+  javascript: function () {
+    var collection = q("div.inline");
+    collection.on("click", function (e) {
+      var clickedElement = e.getTarget();
+    });
+  }
+});
+
+addSample("Event.getRelatedTarget", {
+  javascript: function () {
+    var collection = q("div.inline");
+    collection.on("mouseout", function (e) {
+      // when using 'mouseout' events the 'relatedTarget' is pointing to the DOM element
+      //  the device exited to.
+      // Useful for scenarios you only interested if e.g. the user moved away from a
+      // section at the website
+      var exitTarget = e.getRelatedTarget();
+    });
+
+    collection.on("mouseover", function (e) {
+      // when using 'mouseover' events the 'relatedTarget' is pointing to the DOM element
+      // the device entered from.
+      var earlierElement = e.getRelatedTarget();
+    });
+  }
+});
+
+addSample("Event.getCurrentTarget", {
+  javascript: function () {
+    var collection = q("div.inline");
+    collection.on("mouseout", function (e) {
+      var current = e.getCurrentTarget();
+    });
+  }
+});
+;addSample("Event.getOrientation", {
+  javascript: function () {
+    q(window).on("orientationchange", function (e) {
+      var orientation = e.getOrientation();
+    });
+  }
+});
+
+addSample("Event.isLandscape", {
+  javascript: function () {
+    q(window).on("orientationchange", function (e) {
+      e.isLandscape();
+    });
+  }
+});
+
+addSample("Event.isPortrait", {
+  javascript: function () {
+    q(window).on("orientationchange", function (e) {
+      e.isPortrait();
+    });
+  }
+});
+;addSample("q.ready", function() {
   q.ready(function() {
     // ready to go
   });
@@ -1146,7 +1271,7 @@ addSample(".hover", {
 
     '#content {',
       '  overflow: hidden;',
-      '  height: 400px;',
+      '  height: 200px;',
     '}',
 
     '#visible {',
@@ -1155,7 +1280,7 @@ addSample(".hover", {
     '}',
 
     '#visible #box-content {',
-      '  height: 400px;',
+      '  height: 200px;',
     '}',
 
     '.trigger {',
@@ -1167,11 +1292,11 @@ addSample(".hover", {
     '#hover {',
       '  background-color: yellow;',
       '  position: relative;',
-      '  height: 400px;',
+      '  height: 200px;',
       '  top: -50px;',
     '}' ],
     javascript: function() {
-var animationEndPosition = '-400px';
+var animationEndPosition = '-200px';
 
 // animation description
 var desc = {
@@ -1361,6 +1486,21 @@ q('#website').on('keyup', function(e) {
 });
 },
 executable: true
+});;addSample("Function.bind", {
+  javascript: function () {
+    // sample code, assumes the used variables are already defined
+    // the listener method demonstrates how to pass dynamic values
+    // to a method using 'bind'
+    var changeValueListener = function (value, event) {
+      // value is passed by the 'bind' method: its value is 'myArray[i]'
+      // second argument is passed by the 'on' method: its value is a event object
+      // 'this' is pointing to 'myComponent', since the first argument of 'bind' defines the context of the function call
+    };
+    var myArray = [0, 2, 4, 6];
+    for (var i = 0, j = myArray.length; i < j; i++) {
+      myComponent.on("changeValue", changeValueListener.bind(myComponent, myArray[i]));
+    }
+  }
 });;addSample("q.io.xhr", function() {
   var getData = function(callback) {
     var xmlhttp = q.io.xhr("/resource", {
@@ -1931,7 +2071,81 @@ addSample(".rating", {
   executable: true,
   showMarkup: true
 });
-;addSample("q.rest.resource", function() {
+;addSample("Resource", function () {
+  var description = {
+    "get": {method: "GET", url: "/photo/{id}"},
+    "put": {method: "PUT", url: "/photo/{id}"},
+    "post": {method: "POST", url: "/photos/"}
+  };
+  var photo = new qx.bom.rest.Resource(description);
+// Can also be written: photo.invoke("get", {id: 1});
+  photo.get({id: 1});
+
+// Additionally sets request data (provide it as string or set the content type)
+// In a RESTful environment this creates a new resource with the given 'id'
+  photo.configureRequest(function (req) {
+    req.setRequestHeader("Content-Type", "application/json");
+  });
+  photo.put({id: 1}, {title: "Monkey"});
+
+// Additionally sets request data (provide it as string or set the content type)
+// In a RESTful environment this adds a new resource to the resource collection 'photos'
+  photo.configureRequest(function (req) {
+    req.setRequestHeader("Content-Type", "application/json");
+  });
+  photo.post(null, {title: "Monkey"});
+  // To check for existence of URL parameters or constrain them to a certain format, you can add a check property to the description. See .map() for details.
+
+  var description = {
+    "get": {method: "GET", url: "/photo/{id}", check: {id: /\d+/}}
+  };
+  var photo = new qx.bom.rest.Resource(description);
+// photo.get({id: "FAIL"});
+// -- Error: "Parameter 'id' is invalid"
+
+//  If your description happens to use the same action more than once, consider defining another resource.
+
+  var description = {
+    "get": {method: "GET", url: "/photos"}
+  };
+// Distinguish "photo" (singular) and "photos" (plural) resource
+  var photos = new qx.bom.rest.Resource(description);
+  photos.get();
+  //Basically, all routes of a resource should point to the same URL (resource in terms of HTTP). One acceptable exception of this constraint are resources where required parameters are part of the URL (/photos/1/) or filter resources. For instance:
+
+  var description = {
+    "get": {method: "GET", url: "/photos/{tag}"}
+  };
+  var photos = new qx.bom.rest.Resource(description);
+  photos.get();
+  photos.get({tag: "wildlife"})
+});
+
+addSample("resource.configureRequest", function () {
+  res.configureRequest(function (req, action, params, data) {
+    if (action === "index") {
+      req.setRequestHeader("Accept", "application/json");
+    }
+  });
+});
+
+addSample("resource.map", function () {
+  res.map("get", "GET", "/photos/{id}", {id: /\d+/});
+
+  // GET /photos/123
+  res.get({id: "123"});
+});
+
+addSample("resource.abort", function () {
+  // Abort all invocations of action
+  res.get({id: 1});
+  res.get({id: 2});
+  res.abort("get");
+
+  // Abort specific invocation of action (by id)
+  var actionId = res.get({id: 1});
+  res.abort(actionId);
+});;addSample("q.rest.resource", function() {
   // init
   // ----
   var resourceDesc = {
@@ -2072,6 +2286,102 @@ addSample("q.localStorage.getItem", {
     console.log(q.localStorage.getItem("myItem"));
   },
   executable: true
+});;addSample(".table", {
+  html: [
+    '<!-- Click on table header to sort column -->',
+    ' <div class="qx-table-toolbar">',
+    '   <label for="keyword">Filter: </label><input id="keyword" type="text" />',
+    ' </div>',
+    ' <table id="data">',
+    '   <thead>',
+    '     <tr>',
+    '       <th>Component</th>',
+    '       <th>Description</th>',
+    '       <th>Features</th>',
+    '     </tr>',
+    '   </thead>',
+    '   <tbody>',
+    '     <tr>',
+    '       <td>Website</td>',
+    '       <td>DOM, Events, Templating</td>',
+    '       <td>Browser abstraction, DOM manipulation, Events, Templating, Animation</td>',
+    '     </tr>',
+    '     <tr>',
+    '       <td>Mobile</td>',
+    '       <td>Android, iOS, WP8, HTML5</td>',
+    '       <td>Pages, Navigation, Forms, Layouting, Theming</td>',
+    '     </tr>',
+    '     <tr>',
+    '       <td>Desktop</td>',
+    '       <td>Single-page applications</td>',
+    '       <td>Windows, Tabs, Forms, Lists, Trees, Toolbars, Menus, Layouting, Theming, Data binding</td>',
+    '     </tr>',
+    '     <tr>',
+    '       <td>Server</td>',
+    '       <td>Node.js & Rhino</td>',
+    '       <td>Classes, mixins, interfaces, Properties, Events, Single Value Binding</td>',
+    '     </tr>',
+    '   </tbody>',
+    '</table>'
+  ],
+  javascript: function () {
+    var table = q('#data').table();
+    q('#keyword').on('keyup', function () {
+      table.filter(this.getValue());
+    });
+    table.render();
+  },
+  executable: true
+});
+
+addSample(".table", {
+  html: [
+    ' <div class="qx-table-toolbar">',
+    '   <label for="keyword">Filter: </label><input id="keyword" type="text" />',
+    ' </div>',
+    ' <table id="data">',
+    '   <thead>',
+    '     <tr>',
+    '       <th data-qx-table-col-type="String" data-qx-table-col-name="Name">Name</th>',
+    '       <th data-qx-table-col-type="String" data-qx-table-col-name="Position">Position</th>',
+    '       <th data-qx-table-col-type="String" data-qx-table-col-name="Office">Office</th>',
+    '       <th data-qx-table-col-type="Number" data-qx-table-col-name="Age">Age</th>',
+    '       <th data-qx-table-col-type="Numder" data-qx-table-col-name="StartDate">Start date</th>',
+    '       <th data-qx-table-col-type="Number" data-qx-table-col-name="Salary">Salary</th>',
+    '     </tr>',
+    '   </thead>',
+    '   <tbody></tbody>',
+    '</table>'
+  ],
+  javascript: function () {
+    /*
+     * Each cell will be descriped as an object (value and cellKey)
+     * All cells are wrapped in an array
+    [[
+      {
+        "value": "Tiger Nixon",
+        "cellKey": "Tiger Nixon"
+      },
+      {
+        "value": "System Architect",
+        "cellKey": "System Architect"
+      },
+      ...
+    ]]
+     */
+    var modelPath = "data/model.json";
+    var request = new q.io.xhr(modelPath);
+    request.on("load", function (event) {
+      var model = JSON.parse(event.responseText);
+
+      var table = q("#data").table(model);
+      q("#keyword").on("keyup", function () {
+        table.filter(this.getValue());
+      });
+      table.render();
+    });
+    request.send();
+  }
 });;(function() {
   var defaultHtml = [
       '<div id="tabs-example">',
@@ -2261,8 +2571,8 @@ addSample(".transform", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var doc = q.getDocument(q("li:first")[0]);
-    q("ul").append("<li>"+doc.title+"</li>");
+var doc = q.getDocument("li:first");
+q("ul").append("<li>"+doc.lastModified+"</li>");
   },
   executable: true
 });
@@ -2273,7 +2583,7 @@ addSample("q.getNodeName", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var nodeName = q.getNodeName(q("#info")[0]);
+    var nodeName = q.getNodeName("#info");
     // (nodeName === "li")
   },
   executable: true
@@ -2285,9 +2595,9 @@ addSample("q.getNodeText", {
          '  <li id="more">text 2 <span>span</span> text 2</li>',
          '</ul>'],
   javascript: function() {
-    var nodeTextLess = q.getNodeText(q("#less")[0]);
+    var nodeTextLess = q.getNodeText("#less");
     // (nodeTextLess === "text 1")
-    var nodeTextMore = q.getNodeText(q("#more")[0]);
+    var nodeTextMore = q.getNodeText("#more");
     // (nodeTextMore === "text 2 span text 2")
   },
   executable: true
@@ -2299,7 +2609,7 @@ addSample("q.getWindow", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var wndw = q.getWindow(q("#info")[0]);
+    var wndw = q.getWindow("#info");
     q("ul").append("<li>"+wndw.location.href+"</li>");
   },
   executable: true
@@ -2311,9 +2621,9 @@ addSample("q.isBlockNode", {
          '  <li><span id="desc">item 2</span></li>',
          '</ul>'],
   javascript: function() {
-    var isBlockNode1 = q.isBlockNode(q("#info")[0]);
+    var isBlockNode1 = q.isBlockNode("#info");
     // (isBlockNode1 === true)
-    var isBlockNode2 = q.isBlockNode(q("#desc")[0]);
+    var isBlockNode2 = q.isBlockNode("#desc");
     // (isBlockNode2 === false)
 
     // note:
@@ -2329,7 +2639,7 @@ addSample("q.isDocument", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var doc = q.getDocument(q("#info")[0]);
+    var doc = q.getDocument("#info");
     var isDoc = q.isDocument(doc);
     // (isDoc === true)
 
@@ -2346,9 +2656,9 @@ addSample("q.isElement", {
          '  <li><span id="desc">item 2</span></li>',
          '</ul>'],
   javascript: function() {
-    var isElement1 = q.isElement(q("#info")[0]);
+    var isElement1 = q.isElement("#info");
     // (isElement1 === true)
-    var isElement2 = q.isElement(q("#desc")[0]);
+    var isElement2 = q.isElement("#desc");
     // (isElement2 === true)
 
     // note:
@@ -2364,7 +2674,7 @@ addSample("q.isNode", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var isNode1 = q.isNode(q("li:first"));
+    var isNode1 = q.isNode("li:first");
     // (isNode1 === true)
 
     // note:
@@ -2380,7 +2690,7 @@ addSample("q.isNodeName", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var isNodeName1 = q.isNodeName(q("li:first"), "li");
+    var isNodeName1 = q.isNodeName("li:first", "li");
     // (isNodeName1 === true)
 
     // note:
@@ -2417,7 +2727,7 @@ addSample("q.isWindow", {
          '  <li>item 2</li>',
          '</ul>'],
   javascript: function() {
-    var isWindow = q.isWindow(q.getWindow(q("#info")[0]));
+    var isWindow = q.isWindow(q.getWindow("#info"));
     // (isWindow === true)
 
     // note:
@@ -3152,24 +3462,6 @@ addSample(".widget", {
     q("#target"); // still a widget collection (autodetected)
   }
 });
-
-addSample(".$onFirstCollection", {
-  html: ['<div id="target"></div>'],
-  javascript: function() {
-    q("#target").$onFirstCollection("click", clb); // adds a click listener
-    q("#target").$onFirstCollection("click", clb); // does not add the same listener again
-
-    q("#target").$offFirstCollection("click", clb); // remove the initial added listener
-  }
-});
-
-addSample(".$offFirstCollection", {
-  html: ['<div id="target"></div>'],
-  javascript: function() {
-    q("#target").$onFirstCollection("click", clb); // adds a click listener
-    q("#target").$offFirstCollection("click", clb); // remove the initial added listener
-  }
-});
 ;addSample("q.array.removeAll", function() {
   var array = ["foo", "bar"];
   q.array.removeAll(array);
@@ -3342,9 +3634,28 @@ winCollection.on('resize', q.func.throttle(resizeHandler, 500), winCollection);
     console.log(result);
   },
   executable: true
-});;addSample("q.string.camelCase ", {
+});;addSample("q.string.camelCase", {
   javascript: function() {
-    console.log(q.string.camelCase("I-like-cookies"));
+    console.log(q.string.camelCase("I-like-cookies") === "ILikeCookies");
+  },
+  executable: true
+});
+
+addSample("q.string.hyphenate", {
+  javascript: function() {
+    console.log(q.string.hyphenate("weLikeCookies") === "we-like-cookies");
+  },
+  executable: true
+});
+
+addSample("q.string.escapeHtml", {
+  javascript: function() {
+    console.log(q.string.escapeHtml('"bread" & "butter"') === "&quot;bread&quot; &amp; &quot;butter&quot;");
+  },
+  executable: true
+});;addSample("q.type.get", {
+  javascript: function() {
+    console.log(q.type.get("abc")); // return "String" e.g.
   },
   executable: true
 });

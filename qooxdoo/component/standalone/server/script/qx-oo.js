@@ -1,4 +1,4 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){ 
 
 if (!this.window) window = this;
@@ -21,7 +21,7 @@ qx.$$packageData = {};
 qx.$$loader = {};
 })();
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{}}};
 /* ************************************************************************
 
@@ -1158,6 +1158,10 @@ qx.Bootstrap.define("qx.util.OOUtil",
  *       <td>{@link qx.bom.client.Css#getAppearance}</td>
  *     </tr>
  *     <tr>
+ *       <td>css.float</td><td><i>String</i> or <i>null</i></td><td><code>cssFloat</code></td>
+ *       <td>{@link qx.bom.client.Css#getFloat}</td>
+ *     </tr>
+ *     <tr>
  *       <td>css.userselect</td><td><i>String</i> or <i>null</i></td><td><code>WebkitUserSelect</code></td>
  *       <td>{@link qx.bom.client.Css#getUserSelect}</td>
  *     </tr>
@@ -1381,6 +1385,10 @@ qx.Bootstrap.define("qx.util.OOUtil",
  *     <tr>
  *       <td>html.classlist</td><td><i>Boolean</i></td><td><code>true</code></td>
  *       <td>{@link qx.bom.client.Html#getClassList}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>html.fullscreen</td><td><i>Boolean</i></td><td><code>true</code></td>
+ *       <td>{@link qx.bom.client.Html#getFullScreen}</td>
  *     </tr>
  *     <tr>
  *       <td>html.geolocation</td><td><i>Boolean</i></td><td><code>true</code></td>
@@ -2555,23 +2563,6 @@ qx.Bootstrap.define("qx.lang.normalize.Function", {
     /**
      * <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/bind">MDN documentation</a> |
      * <a href="http://es5.github.com/#x15.3.4.5">Annotated ES5 Spec</a>
-     *
-     * Example for the <code>bind</code> method:
-     * <pre class='javascript'>
-     * // sample code, assumes the used variables are already defined
-     *
-     * // the listener method demonstrates how to pass dynamic values
-     * // to a method using 'bind'
-     * var changeValueListener = function(value, event) {
-     *   // value is passed by the 'bind' method: its value is 'myArray[i]'
-     *   // second argument is passed by the 'on' method: its value is a event object
-     *   // 'this' is pointing to 'myComponent', since the first argument of 'bind' defines the context of the function call
-     * };
-     * var myArray = [ 0, 2, 4, 6 ];
-     * for (var i=0, j=myArray.length; i&lt;j; i++) {
-     *   myComponent.on("changeValue", changeValueListener.bind(myComponent, myArray[i]));
-     * }
-     * </pre>
      *
      * @param that {var?} Context for the bound function
      * @return {Function} The bound function
@@ -7999,7 +7990,19 @@ qx.Class.define("qx.data.SingleValueBinding",
             // push the array change event
             eventNames.push("change");
           } else {
-            eventNames.push(this.__getEventNameForProperty(source, propertyNames[i]));
+            var eventName = this.__getEventNameForProperty(source, propertyNames[i]);
+            if (!eventName) {
+              if (i == 0) { // the root property can not change --> error
+                throw new qx.core.AssertionError(
+                  "Binding property " + propertyNames[i] + " of object " + source +
+                  " not possible: No event available. "
+                );
+              }
+              // call the converter if no event could be found on binding creation
+              this.__setInitialValue(undefined, targetObject, targetPropertyChain, options, sourceObject);
+              break;
+            }
+            eventNames.push(eventName);
           }
 
           // save the current source
@@ -8214,6 +8217,10 @@ qx.Class.define("qx.data.SingleValueBinding",
               this.__setInitialValue(currentValue, context.targetObject, context.targetPropertyChain, context.options, context.sources[context.index]);
             }
             var eventName = this.__getEventNameForProperty(source, context.propertyNames[j]);
+            if (!eventName) {
+              this.__resetTargetValue(context.targetObject, context.targetPropertyChain);
+              break;
+            }
             // bind the last property to the new target
             context.listenerIds[j] = this.__bindEventToProperty(
               source, eventName, context.targetObject, context.targetPropertyChain, context.options
@@ -8231,6 +8238,11 @@ qx.Class.define("qx.data.SingleValueBinding",
             var eventName = "change";
           } else {
             var eventName = this.__getEventNameForProperty(source, context.propertyNames[j]);
+          }
+
+          if (!eventName) {
+            this.__resetTargetValue(context.targetObject, context.targetPropertyChain);
+            return;
           }
           context.listenerIds[j] = source.addListener(eventName, context.listeners[j]);
         }
@@ -8275,15 +8287,13 @@ qx.Class.define("qx.data.SingleValueBinding",
           // push the array change event
           eventNames.push("change");
         } else {
-          try {
-            eventNames.push(
-              this.__getEventNameForProperty(target, propertyNames[i])
-            );
-          } catch (e) {
+          var eventName = this.__getEventNameForProperty(target, propertyNames[i])
+          if (!eventName) {
             // if the event names could not be terminated,
             // just ignore the target chain listening
             break;
           }
+          eventNames.push(eventName);
         }
 
         // save the current source
@@ -8330,12 +8340,11 @@ qx.Class.define("qx.data.SingleValueBinding",
             if (qx.Class.implementsInterface(target, qx.data.IListData)) {
               var eventName = "change";
             } else {
-              try {
-                var eventName =
-                  qx.data.SingleValueBinding.__getEventNameForProperty(
-                    target, propertyNames[j]
-                  );
-              } catch (e) {
+              var eventName =
+                qx.data.SingleValueBinding.__getEventNameForProperty(
+                  target, propertyNames[j]
+                );
+              if (!eventName) {
                 // if the event name could not be terminated,
                 // ignore the rest
                 break;
@@ -8430,7 +8439,7 @@ qx.Class.define("qx.data.SingleValueBinding",
      *
      * @param source {qx.core.Object} The source where the property is stored.
      * @param propertyname {String} The name of the property.
-     * @return {String} The name of the corresponding property.
+     * @return {String|null} The name of the corresponding event or null.
      */
     __getEventNameForProperty : function(source, propertyname)
     {
@@ -8447,10 +8456,7 @@ qx.Class.define("qx.data.SingleValueBinding",
         ) {
           eventName = "change" + qx.lang.String.firstUp(propertyname);
         } else {
-          throw new qx.core.AssertionError(
-            "Binding property " + propertyname + " of object " + source +
-            " not possible: No event available. "
-          );
+          return null;
         }
       }
       return eventName;
@@ -11484,7 +11490,29 @@ qx.Bootstrap.define("qx.bom.client.Engine",
       var agent = window.navigator.userAgent;
 
       var version = "";
-      if (qx.bom.client.Engine.__isOpera()) {
+      if (qx.bom.client.Engine.__isMshtml()) {
+        var isTrident = /Trident\/([^\);]+)(\)|;)/.test(agent);
+        if (/MSIE\s+([^\);]+)(\)|;)/.test(agent)) {
+          version = RegExp.$1;
+
+          // If the IE8 or IE9 is running in the compatibility mode, the MSIE value
+          // is set to an older version, but we need the correct version. The only
+          // way is to compare the trident version.
+          if (version < 8 && isTrident) {
+            if (RegExp.$1 == "4.0") {
+              version = "8.0";
+            } else if (RegExp.$1 == "5.0") {
+              version = "9.0";
+            }
+          }
+        } else if (isTrident) {
+          // IE 11 dropped the "MSIE" string
+          var match = /\brv\:(\d+?\.\d+?)\b/.exec(agent);
+          if (match) {
+            version = match[1];
+          }
+        }
+      } else if (qx.bom.client.Engine.__isOpera()) {
         // Opera has a special versioning scheme, where the second part is combined
         // e.g. 8.54 which should be handled like 8.5.4 to be compatible to the
         // common versioning system used by other browsers
@@ -11524,28 +11552,6 @@ qx.Bootstrap.define("qx.bom.client.Engine",
         if (/rv\:([^\);]+)(\)|;)/.test(agent)) {
           version = RegExp.$1;
         }
-      } else if (qx.bom.client.Engine.__isMshtml()) {
-        var isTrident = /Trident\/([^\);]+)(\)|;)/.test(agent);
-        if (/MSIE\s+([^\);]+)(\)|;)/.test(agent)) {
-          version = RegExp.$1;
-
-          // If the IE8 or IE9 is running in the compatibility mode, the MSIE value
-          // is set to an older version, but we need the correct version. The only
-          // way is to compare the trident version.
-          if (version < 8 && isTrident) {
-            if (RegExp.$1 == "4.0") {
-              version = "8.0";
-            } else if (RegExp.$1 == "5.0") {
-              version = "9.0";
-            }
-          }
-        } else if (isTrident) {
-          // IE 11 dropped the "MSIE" string
-          var match = /\brv\:(\d+?\.\d+?)\b/.exec(agent);
-          if (match) {
-            version = match[1];
-          }
-        }
       } else {
         var failFunction = window.qxFail;
         if (failFunction && typeof failFunction === "function") {
@@ -11569,14 +11575,14 @@ qx.Bootstrap.define("qx.bom.client.Engine",
      */
     getName : function() {
       var name;
-      if (qx.bom.client.Engine.__isOpera()) {
+      if (qx.bom.client.Engine.__isMshtml()) {
+        name = "mshtml";
+      } else if (qx.bom.client.Engine.__isOpera()) {
         name = "opera";
       } else if (qx.bom.client.Engine.__isWebkit()) {
         name = "webkit";
       } else if (qx.bom.client.Engine.__isGecko() || qx.bom.client.Engine.__isMaple()) {
         name = "gecko";
-      } else if (qx.bom.client.Engine.__isMshtml()) {
-        name = "mshtml";
       } else {
         // check for the fallback
         var failFunction = window.qxFail;
@@ -11653,10 +11659,26 @@ qx.Bootstrap.define("qx.bom.client.Engine",
      * Internal helper to check for MSHTML.
      * @return {Boolean} true, if its MSHTML.
      */
-    __isMshtml : function() {
-      return window.navigator.cpuClass &&
+    __isMshtml : function () {
+      if (window.navigator.cpuClass &&
         (/MSIE\s+([^\);]+)(\)|;)/.test(window.navigator.userAgent) ||
-         /Trident\/\d+?\.\d+?/.test(window.navigator.userAgent));
+          /Trident\/\d+?\.\d+?/.test(window.navigator.userAgent))) {
+        return true;
+      }
+      if (qx.bom.client.Engine.__isWindowsPhone()) {
+        return true;
+      }
+      return false;
+    },
+
+
+
+    /**
+     * Internal helper to check for Windows phone.
+     * @return {Boolean} true, if its Windows phone.
+     */
+    __isWindowsPhone: function () {
+      return window.navigator.userAgent.indexOf("Windows Phone") > -1;
     }
   },
 
@@ -13959,13 +13981,14 @@ qx.Interface.define("qx.data.IListData",
   events :
   {
     /**
-     * The change event which will be fired if there is a change in the data
-     * structure.The data should contain a map with three key value pairs:
+     * The change event which will be fired if there is a change in the data structure.
+     * The data contains a map with three key value pairs:
      * <li>start: The start index of the change.</li>
      * <li>end: The end index of the change.</li>
      * <li>type: The type of the change as a String. This can be 'add',
-     * 'remove' or 'order'</li>
-     * <li>item: The item which has been changed.</li>
+     * 'remove', 'order' or 'add/remove'</li>
+     * <li>added: The items which has been added (as a JavaScript array)</li>
+     * <li>removed: The items which has been removed (as a JavaScript array)</li>
      */
     "change" : "qx.event.type.Data",
 
@@ -16064,7 +16087,8 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem",
       if (
         input.indexOf("Windows") != -1 ||
         input.indexOf("Win32") != -1 ||
-        input.indexOf("Win64") != -1
+        input.indexOf("Win64") != -1 ||
+        agent.indexOf("Windows Phone") != -1
       ) {
         return "win";
 
@@ -16127,6 +16151,7 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem",
     /** Maps user agent names to system IDs */
     __ids : {
       // Windows
+      "Windows NT 10.0" : "10",
       "Windows NT 6.3" : "8.1",
       "Windows NT 6.2" : "8",
       "Windows NT 6.1" : "7",
@@ -16145,6 +16170,8 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem",
       "Win95" : "95",
 
       // OS X
+      "Mac OS X 10_10" : "10.10",
+      "Mac OS X 10.10" : "10.10",
       "Mac OS X 10_9" : "10.9",
       "Mac OS X 10.9" : "10.9",
       "Mac OS X 10_8" : "10.8",
@@ -16218,10 +16245,18 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem",
      * @return {String} version number as string or null.
      */
     __getVersionForMobileOs : function(userAgent) {
+      var windows = userAgent.indexOf("Windows Phone") != -1;
       var android = userAgent.indexOf("Android") != -1;
       var iOs = userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false ;
 
-      if (android) {
+      if (windows) {
+        var windowsVersionRegExp = new RegExp(/Windows Phone (\d+(?:\.\d+)+)/i);
+        var windowsMatch = windowsVersionRegExp.exec(userAgent);
+
+        if (windowsMatch && windowsMatch[1]) {
+          return windowsMatch[1];
+        }
+      } else if (android) {
         var androidVersionRegExp = new RegExp(/ Android (\d+(?:\.\d+)+)/i);
         var androidMatch = androidVersionRegExp.exec(userAgent);
 
@@ -16330,7 +16365,10 @@ qx.Bootstrap.define("qx.bom.client.Browser",
       var engine = qx.bom.client.Engine.getName();
       if (engine === "webkit")
       {
-        if (name === "android")
+        if (agent.match(/Edge\/\d+\.\d+/)) {
+          name = "edge";
+        }
+        else if (name === "android")
         {
           // Fix Chrome name (for instance wrongly defined in user agent on Android 1.6)
           name = "mobile chrome";
@@ -16431,6 +16469,9 @@ qx.Bootstrap.define("qx.bom.client.Browser",
       {
         if (agent.match(/OPR(\/| )([0-9]+\.[0-9])/)) {
           version = RegExp.$2;
+        }
+        if (agent.match(/Edge\/([\d+\.*]+)/)) {
+          version = RegExp.$1;
         }
       }
 
@@ -16633,11 +16674,15 @@ qx.Class.define("qx.event.Manager",
     if (win.qx !== qx)
     {
       var self = this;
-      qx.bom.Event.addNativeListener(win, "unload", qx.event.GlobalError.observeMethod(function()
-      {
+      var method = function () {
         qx.bom.Event.removeNativeListener(win, "unload", arguments.callee);
         self.dispose();
-      }));
+      };
+      if (qx.core.Environment.get("qx.globalErrorHandling")) {
+        qx.bom.Event.addNativeListener(win, "unload", qx.event.GlobalError.observeMethod(method));
+      } else {
+        qx.bom.Event.addNativeListener(win, "unload", method);
+      }
     }
 
     // Registry for event listeners
@@ -20808,6 +20853,8 @@ qx.Interface.define("qx.data.marshal.IMarshaler",
 /**
  * This class is responsible for converting json data to class instances
  * including the creation of the classes.
+ * To retrieve the native data of created models use the methods
+ *   described in {@link qx.util.Serializer}.
  */
 qx.Class.define("qx.data.marshal.Json",
 {
@@ -21241,7 +21288,7 @@ qx.Mixin.define("qx.data.marshal.MEventBubbling",
      * desired. It is already taken care of that properties created with the
      * {@link qx.data.marshal.Json} marshaler call this method.
      *
-     * The data will contain a map with the following three keys
+     * The data will contain a map with the following four keys
      *   <li>value: The new value of the property</li>
      *   <li>old: The old value of the property.</li>
      *   <li>name: The name of the property changed including its parent
@@ -21714,7 +21761,7 @@ qx.Class.define("qx.data.Array",
   {
     /**
      * The change event which will be fired if there is a change in the array.
-     * The data contains a map with three key value pairs:
+     * The data contains a map with five key value pairs:
      * <li>start: The start index of the change.</li>
      * <li>end: The end index of the change.</li>
      * <li>type: The type of the change as a String. This can be 'add',
@@ -21978,8 +22025,9 @@ qx.Class.define("qx.data.Array",
           var end = this.length - 1;
         } else {
           var type = "add/remove";
-          var end = startIndex + Math.abs(addedItems.length - returnArray.length);
+          var end = startIndex + Math.max(addedItems.length, returnArray.length) - 1;
         }
+
         this.fireDataEvent("change",
           {
             start: startIndex,
@@ -22369,11 +22417,12 @@ qx.Class.define("qx.data.Array",
         qx.core.Assert.assertArray(array, "The parameter must be an array.");
       }
 
+      var oldLength = this.__array.length;
       Array.prototype.push.apply(this.__array, array);
 
       // add a listener to the new items
       for (var i = 0; i < array.length; i++) {
-        this._registerEventChaining(array[i], null, this.__array.length + i);
+        this._registerEventChaining(array[i], null, oldLength + i);
       }
 
       var oldLength = this.length;

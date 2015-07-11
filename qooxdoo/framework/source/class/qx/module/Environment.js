@@ -20,10 +20,6 @@
  * Module for querying information about the environment / runtime.
  * It adds a static key <code>env</code> to qxWeb and offers the given methods.
  *
- * <pre class="javascript">
- * q.env.get("engine.name"); // return "webkit" e.g.
- * </pre>
- *
  * The following values are predefined:
  *
  * * <code>browser.name</code> : The name of the browser
@@ -87,8 +83,6 @@ qx.Bootstrap.define("qx.module.Environment", {
     qx.core.Environment.get("event.touch");
     qx.core.Environment.get("event.mspointer");
 
-    qxWeb.$attachStatic({
-      "env" : {get: statics.get, add: statics.add}
-    });
+    qxWeb.$attachAll(this, "env");
   }
 });

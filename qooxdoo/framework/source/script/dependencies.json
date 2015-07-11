@@ -143,8 +143,6 @@
       "qx.ui.mobile.core.Root", 
       "qx.bom.client.Scroll", 
       "qx.application.Routing", 
-      "/resource/resources#qx/mobile/css/indigo.css", 
-      "/resource/resources#qx/mobile/css/flat.css", 
       "/resource/resources#qx/mobile/css/custom.css", 
       "/resource/resources#qx/mobile/css/LICENSE"
     ]
@@ -358,6 +356,16 @@
     "run": [
       "qx.theme.manager.Color", 
       "qx.lang.String"
+    ]
+  }, 
+  "qx.bom.FullScreen": {
+    "load": [
+      "qx.event.Emitter", 
+      "qx.Bootstrap"
+    ], 
+    "run": [
+      "qx.bom.Style", 
+      "qx.bom.Event"
     ]
   }, 
   "qx.bom.GeoLocation": {
@@ -776,7 +784,8 @@
       "qx.Bootstrap"
     ], 
     "run": [
-      "qx.bom.Style"
+      "qx.bom.Style", 
+      "qx.bom.Event"
     ]
   }, 
   "qx.bom.client.CssTransform": {
@@ -883,7 +892,8 @@
       "qx.Bootstrap"
     ], 
     "run": [
-      "qx.bom.client.Engine"
+      "qx.bom.client.Engine", 
+      "qx.bom.client.Browser"
     ]
   }, 
   "qx.bom.client.Runtime": {
@@ -950,6 +960,7 @@
   "qx.bom.element.AnimationCss": {
     "load": [
       "qx.core.Environment", 
+      "qx.bom.client.OperatingSystem", 
       "qx.bom.client.CssAnimation", 
       "qx.Bootstrap"
     ], 
@@ -1260,6 +1271,7 @@
   }, 
   "qx.bom.request.SimpleXhr": {
     "load": [
+      "qx.event.Emitter", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -1301,6 +1313,7 @@
       "qx.core.ObjectRegistry", 
       "qx.core.Environment", 
       "qx.core.Assert", 
+      "qx.bom.request.Xhr", 
       "qx.bom.request.SimpleXhr"
     ]
   }, 
@@ -1343,7 +1356,6 @@
       "qx.Bootstrap"
     ], 
     "run": [
-      "qx.util.Uri", 
       "qx.util.ResourceManager", 
       "qx.lang.Array", 
       "qx.event.Timer", 
@@ -1595,6 +1607,12 @@
     "run": []
   }, 
   "qx.core.WindowError": {
+    "load": [
+      "qx.Bootstrap"
+    ], 
+    "run": []
+  }, 
+  "qx.core.Wrapper": {
     "load": [
       "qx.Bootstrap"
     ], 
@@ -2709,12 +2727,10 @@
       "qx.lang.Array", 
       "qx.event.Registration", 
       "qx.event.IEventHandler", 
-      "qx.event.GlobalError", 
       "qx.dev.StackTrace", 
       "qx.core.Property", 
       "qx.core.ObjectRegistry", 
       "qx.core.Object", 
-      "qx.core.GlobalError", 
       "qx.core.Environment", 
       "qx.core.AssertionError", 
       "qx.core.Assert", 
@@ -2725,6 +2741,7 @@
       "qx.Bootstrap"
     ], 
     "run": [
+      "qx.event.GlobalError", 
       "qx.bom.client.Engine", 
       "qx.bom.client.Browser", 
       "qx.bom.Event"
@@ -3223,7 +3240,10 @@
   }, 
   "qx.event.handler.PointerCore": {
     "load": [
+      "qx.core.Environment", 
       "qx.bom.client.Event", 
+      "qx.bom.client.Engine", 
+      "qx.bom.client.Browser", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -3232,10 +3252,8 @@
       "qx.event.type.dom.Pointer", 
       "qx.event.Emitter", 
       "qx.dom.Node", 
-      "qx.core.Environment", 
-      "qx.bom.client.Engine", 
+      "qx.bom.client.OperatingSystem", 
       "qx.bom.client.Device", 
-      "qx.bom.client.Browser", 
       "qx.bom.Event"
     ]
   }, 
@@ -3367,12 +3385,10 @@
       "qx.event.Registration", 
       "qx.event.Pool", 
       "qx.event.IEventHandler", 
-      "qx.event.GlobalError", 
       "qx.dev.StackTrace", 
       "qx.core.Property", 
       "qx.core.ObjectRegistry", 
       "qx.core.Object", 
-      "qx.core.GlobalError", 
       "qx.core.Environment", 
       "qx.core.AssertionError", 
       "qx.core.Assert", 
@@ -3383,6 +3399,7 @@
       "qx.Bootstrap"
     ], 
     "run": [
+      "qx.event.GlobalError", 
       "qx.bom.Event"
     ]
   }, 
@@ -3951,22 +3968,13 @@
   }, 
   "qx.io.ImageLoader": {
     "load": [
-      "qx.util.OOUtil", 
-      "qx.type.BaseError", 
-      "qx.lang.Type", 
-      "qx.lang.Json", 
-      "qx.lang.Function", 
-      "qx.lang.Array", 
-      "qx.event.GlobalError", 
-      "qx.dev.StackTrace", 
-      "qx.core.ObjectRegistry", 
-      "qx.core.GlobalError", 
-      "qx.core.Environment", 
-      "qx.core.AssertionError", 
-      "qx.core.Assert", 
       "qx.Bootstrap"
     ], 
     "run": [
+      "qx.lang.Type", 
+      "qx.lang.Function", 
+      "qx.event.GlobalError", 
+      "qx.core.Environment", 
       "qx.bom.client.Html"
     ]
   }, 
@@ -4786,7 +4794,6 @@
       "qx.module.Event", 
       "qx.module.Environment", 
       "qx.module.Css", 
-      "qx.core.Environment", 
       "qx.bom.client.Browser", 
       "qx.Bootstrap"
     ], 
@@ -4797,7 +4804,6 @@
   "qx.module.Attribute": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -4814,7 +4820,6 @@
       "qx.module.Environment", 
       "qx.module.Css", 
       "qx.module.Attribute", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -4824,7 +4829,6 @@
   "qx.module.Cookie": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.bom.Cookie", 
       "qx.Bootstrap"
     ], 
@@ -4864,7 +4868,6 @@
   "qx.module.Dataset": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -4904,7 +4907,6 @@
   "qx.module.Io": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.bom.request.Xhr", 
       "qx.Bootstrap"
     ], 
@@ -4916,7 +4918,6 @@
   "qx.module.Manipulating": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -4932,7 +4933,6 @@
   "qx.module.MatchMedia": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -4958,7 +4958,6 @@
       "qx.module.Environment", 
       "qx.module.Css", 
       "qx.module.Attribute", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -4971,7 +4970,6 @@
       "qx.util.placement.KeepAlignAxis", 
       "qx.util.placement.DirectAxis", 
       "qx.util.placement.BestFitAxis", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": []
@@ -4991,7 +4989,6 @@
   "qx.module.Rest": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -5011,7 +5008,6 @@
   "qx.module.Template": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -5021,7 +5017,6 @@
   "qx.module.TextSelection": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -5031,7 +5026,6 @@
   "qx.module.Transform": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": [
@@ -5220,7 +5214,6 @@
     "load": [
       "qxWeb", 
       "qx.lang.Array", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": []
@@ -5229,7 +5222,6 @@
     "load": [
       "qxWeb", 
       "qx.util.Function", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": []
@@ -5238,7 +5230,6 @@
     "load": [
       "qxWeb", 
       "qx.lang.Object", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": []
@@ -5247,7 +5238,6 @@
     "load": [
       "qxWeb", 
       "qx.lang.String", 
-      "qx.core.Environment", 
       "qx.bom.String", 
       "qx.Bootstrap"
     ], 
@@ -5256,7 +5246,6 @@
   "qx.module.util.Type": {
     "load": [
       "qxWeb", 
-      "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
     "run": []
@@ -6067,6 +6056,7 @@
       "qx.html.Image", 
       "qx.html.Element", 
       "qx.bom.element.Decoration", 
+      "qx.bom.client.Device", 
       "qx.bom.client.Css", 
       "qx.bom.client.Browser", 
       "qx.bom.AnimationFrame"
@@ -6383,22 +6373,6 @@
     ], 
     "run": []
   }, 
-  "qx.ui.core.Command": {
-    "load": [
-      "qx.util.OOUtil", 
-      "qx.ui.command.Command", 
-      "qx.core.Property", 
-      "qx.core.Environment", 
-      "qx.core.Aspect", 
-      "qx.Mixin", 
-      "qx.Interface", 
-      "qx.Class", 
-      "qx.Bootstrap"
-    ], 
-    "run": [
-      "qx.log.Logger"
-    ]
-  }, 
   "qx.ui.core.DragDropCursor": {
     "load": [
       "qx.util.OOUtil", 
@@ -6570,8 +6544,6 @@
     ], 
     "run": [
       "qx.util.PropertyUtil", 
-      "qx.ui.core.Command", 
-      "qx.ui.command.Command", 
       "qx.Class"
     ]
   }, 
@@ -9211,32 +9183,6 @@
       "qx.bom.element.Style"
     ]
   }, 
-  "qx.ui.mobile.dialog.Picker": {
-    "load": [
-      "qx.util.OOUtil", 
-      "qx.ui.mobile.dialog.Popup", 
-      "qx.core.Property", 
-      "qx.core.Environment", 
-      "qx.core.Aspect", 
-      "qx.Mixin", 
-      "qx.Interface", 
-      "qx.Class", 
-      "qx.Bootstrap"
-    ], 
-    "run": [
-      "qx.ui.mobile.layout.VBox", 
-      "qx.ui.mobile.layout.HBox", 
-      "qx.ui.mobile.form.Button", 
-      "qx.ui.mobile.container.Composite", 
-      "qx.ui.mobile.basic.Label", 
-      "qx.log.Logger", 
-      "qx.data.Array", 
-      "qx.bom.element.Style", 
-      "qx.bom.element.Location", 
-      "qx.bom.client.OperatingSystem", 
-      "qx.bom.client.Css"
-    ]
-  }, 
   "qx.ui.mobile.dialog.Popup": {
     "load": [
       "qx.util.OOUtil", 
@@ -9611,7 +9557,9 @@
       "qx.Class", 
       "qx.Bootstrap"
     ], 
-    "run": []
+    "run": [
+      "qx.bom.client.OperatingSystem"
+    ]
   }, 
   "qx.ui.mobile.form.Title": {
     "load": [
@@ -9759,14 +9707,11 @@
     "run": [
       "qx.ui.mobile.layout.CardAnimation", 
       "qx.ui.mobile.core.MResize", 
-      "qx.lang.Function", 
       "qx.event.handler.Transition", 
       "qx.event.Registration", 
       "qx.bom.element.Class", 
       "qx.bom.element.Animation", 
       "qx.bom.client.CssTransform", 
-      "qx.bom.client.Browser", 
-      "qx.bom.Event", 
       "qx.bom.AnimationFrame"
     ]
   }, 
@@ -11572,7 +11517,8 @@
       "qx.ui.container.Composite", 
       "qx.lang.Number", 
       "qx.event.Timer", 
-      "qx.bom.client.Scroll"
+      "qx.bom.client.Scroll", 
+      "qx.bom.client.Device"
     ]
   }, 
   "qx.ui.table.rowrenderer.Default": {
@@ -12069,8 +12015,10 @@
       "qx.Bootstrap"
     ], 
     "run": [
+      "qx.util.OOUtil", 
       "qx.util.Delegate", 
-      "qx.lang.Array"
+      "qx.lang.Array", 
+      "qx.data.SingleValueBinding"
     ]
   }, 
   "qx.ui.tree.core.Util": {
@@ -12468,11 +12416,13 @@
       "qx.util.format.NumberFormat", 
       "qx.util.OOUtil", 
       "qx.ui.virtual.cell.Cell", 
+      "qx.locale.Manager", 
       "qx.lang.Type", 
       "qx.core.Property", 
       "qx.core.Object", 
       "qx.core.Environment", 
       "qx.core.Aspect", 
+      "qx.bom.client.Locale", 
       "qx.Mixin", 
       "qx.Interface", 
       "qx.Class", 
@@ -12903,6 +12853,21 @@
     ], 
     "run": []
   }, 
+  "qx.ui.website.Carousel": {
+    "load": [
+      "qxWeb", 
+      "qx.ui.website.Widget", 
+      "qx.module.event.Track", 
+      "qx.module.event.Swipe", 
+      "qx.module.event.GestureHandler", 
+      "qx.module.Transform", 
+      "qx.core.Environment", 
+      "qx.Bootstrap"
+    ], 
+    "run": [
+      "qx.bom.client.Browser"
+    ]
+  }, 
   "qx.ui.website.DatePicker": {
     "load": [
       "qxWeb", 
@@ -12969,7 +12934,9 @@
       "qx.core.Environment", 
       "qx.Bootstrap"
     ], 
-    "run": []
+    "run": [
+      "qx.core.Wrapper"
+    ]
   }, 
   "qx.ui.window.Desktop": {
     "load": [
@@ -13487,6 +13454,7 @@
     ], 
     "run": [
       "qx.locale.Number", 
+      "qx.locale.Manager", 
       "qx.lang.Type", 
       "qx.lang.String"
     ]

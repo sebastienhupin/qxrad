@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -68,52 +68,6 @@ qx.Bootstrap.define("qx.module.Placeholder", {
 
         qxWeb("input[placeholder], textarea[placeholder]").updatePlaceholder();
       };
-    },
-    /**
-     * Updates the placeholders for input's and textarea's in the collection.
-     * This includes positioning, styles and DOM positioning.
-     * In case the browser supports native placeholders, this methods simply
-     * does nothing.
-     *
-     * @attach {qxWeb}
-     * @return {qxWeb} The collection for chaining
-     */
-    updatePlaceholder : function(){
-
-      // ignore everything if native placeholder are supported
-      if(!qxWeb.env.get("css.placeholder")){
-
-        for(var i = 0;i < this.length;i++){
-
-          var item = qxWeb(this[i]);
-          // ignore all not fitting items in the collection
-          var placeholder = item.getAttribute("placeholder");
-          var tagName = item.getProperty("tagName");
-          if(!placeholder || (tagName != "TEXTAREA" && tagName != "INPUT")){
-
-            continue;
-          };
-          // create the element if necessary
-          var placeholderEl = item.getProperty(qx.module.Placeholder.PLACEHOLDER_NAME);
-          if(!placeholderEl){
-
-            placeholderEl = qx.module.Placeholder.__createPlaceholderElement(item);
-          };
-          // remove and add handling
-          var itemInBody = item.isRendered();
-          var placeholderElInBody = placeholderEl.isRendered();
-          if(itemInBody && !placeholderElInBody){
-
-            item.before(placeholderEl);
-          } else if(!itemInBody && placeholderElInBody){
-
-            placeholderEl.remove();
-            return this;
-          };
-          qx.module.Placeholder.__syncStyles(item);
-        };
-      };
-      return this;
     },
     /**
      * Internal helper method to update the styles for a given input element.
@@ -178,16 +132,57 @@ qx.Bootstrap.define("qx.module.Placeholder", {
       return placeholderEl;
     }
   },
+  members : {
+    /**
+     * Updates the placeholders for input's and textarea's in the collection.
+     * This includes positioning, styles and DOM positioning.
+     * In case the browser supports native placeholders, this methods simply
+     * does nothing.
+     *
+     * @attach {qxWeb}
+     * @return {qxWeb} The collection for chaining
+     */
+    updatePlaceholder : function(){
+
+      // ignore everything if native placeholder are supported
+      if(!qxWeb.env.get("css.placeholder")){
+
+        for(var i = 0;i < this.length;i++){
+
+          var item = qxWeb(this[i]);
+          // ignore all not fitting items in the collection
+          var placeholder = item.getAttribute("placeholder");
+          var tagName = item.getProperty("tagName");
+          if(!placeholder || (tagName != "TEXTAREA" && tagName != "INPUT")){
+
+            continue;
+          };
+          // create the element if necessary
+          var placeholderEl = item.getProperty(qx.module.Placeholder.PLACEHOLDER_NAME);
+          if(!placeholderEl){
+
+            placeholderEl = qx.module.Placeholder.__createPlaceholderElement(item);
+          };
+          // remove and add handling
+          var itemInBody = item.isRendered();
+          var placeholderElInBody = placeholderEl.isRendered();
+          if(itemInBody && !placeholderElInBody){
+
+            item.before(placeholderEl);
+          } else if(!itemInBody && placeholderElInBody){
+
+            placeholderEl.remove();
+            return this;
+          };
+          qx.module.Placeholder.__syncStyles(item);
+        };
+      };
+      return this;
+    }
+  },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "placeholder" : {
-        update : statics.update
-      }
-    });
-    qxWeb.$attach({
-      "updatePlaceholder" : statics.updatePlaceholder
-    });
+    qxWeb.$attachAll(this, "placeholder");
   }
 });
 

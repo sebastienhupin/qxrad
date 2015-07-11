@@ -115,7 +115,13 @@
       "extend" : ["build"],
       "let" : {
         "Q_INCLUDES" : [
-          "qx.module.Core",
+          "qx.module.Attribute",
+          "qx.module.Css",
+          "qx.module.Environment",
+          "qx.module.Event",
+          "qx.module.Manipulating",
+          "qx.module.Polyfill",
+          "qx.module.Traversing",
           "qx.module.event.*",
           "qx.bom.Event",
           "qx.bom.Stylesheet",
@@ -622,24 +628,32 @@
     "build-module-ui" :
     {
       "extend" : ["build-module"],
+      "config-warnings" : {
+        "exclude" : ["=qx.module.Template"]
+      },
       "let" : {
         "Q_INCLUDES" : [
-          "qx.ui.website.*",
+          "qx.ui.website.*"
         ],
         "MODULE_FILENAME" : "ui"
-      }
+      },
+      "exclude": [ "=qx.module.Template" ]
     },
 
     "build-module-ui-min" :
     {
       "extend" : ["build-module-min"],
+      "config-warnings" : {
+        "exclude" : ["=qx.module.Template"]
+      },
       "let" : {
         "Q_INCLUDES" : [
-          "qx.ui.website.*",
+          "qx.ui.website.*"
         ],
         "MODULE_FILENAME" : "ui"
-      }
-    },
+      },
+      "exclude": [ "=qx.module.Template" ]
+    }
 
   }
 }

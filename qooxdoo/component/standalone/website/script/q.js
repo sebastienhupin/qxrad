@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = {};
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -1038,6 +1038,10 @@ qx.Bootstrap.define("qx.util.OOUtil", {
  *       <td>{@link qx.bom.client.Css#getAppearance}</td>
  *     </tr>
  *     <tr>
+ *       <td>css.float</td><td><i>String</i> or <i>null</i></td><td><code>cssFloat</code></td>
+ *       <td>{@link qx.bom.client.Css#getFloat}</td>
+ *     </tr>
+ *     <tr>
  *       <td>css.userselect</td><td><i>String</i> or <i>null</i></td><td><code>WebkitUserSelect</code></td>
  *       <td>{@link qx.bom.client.Css#getUserSelect}</td>
  *     </tr>
@@ -1261,6 +1265,10 @@ qx.Bootstrap.define("qx.util.OOUtil", {
  *     <tr>
  *       <td>html.classlist</td><td><i>Boolean</i></td><td><code>true</code></td>
  *       <td>{@link qx.bom.client.Html#getClassList}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>html.fullscreen</td><td><i>Boolean</i></td><td><code>true</code></td>
+ *       <td>{@link qx.bom.client.Html#getFullScreen}</td>
  *     </tr>
  *     <tr>
  *       <td>html.geolocation</td><td><i>Boolean</i></td><td><code>true</code></td>
@@ -2186,7 +2194,35 @@ qx.Bootstrap.define("qx.bom.client.Engine", {
 
       var agent = window.navigator.userAgent;
       var version = "";
-      if(qx.bom.client.Engine.__isOpera()){
+      if(qx.bom.client.Engine.__isMshtml()){
+
+        var isTrident = /Trident\/([^\);]+)(\)|;)/.test(agent);
+        if(/MSIE\s+([^\);]+)(\)|;)/.test(agent)){
+
+          version = RegExp.$1;
+          // If the IE8 or IE9 is running in the compatibility mode, the MSIE value
+          // is set to an older version, but we need the correct version. The only
+          // way is to compare the trident version.
+          if(version < 8 && isTrident){
+
+            if(RegExp.$1 == "4.0"){
+
+              version = "8.0";
+            } else if(RegExp.$1 == "5.0"){
+
+              version = "9.0";
+            };
+          };
+        } else if(isTrident){
+
+          // IE 11 dropped the "MSIE" string
+          var match = /\brv\:(\d+?\.\d+?)\b/.exec(agent);
+          if(match){
+
+            version = match[1];
+          };
+        };
+      } else if(qx.bom.client.Engine.__isOpera()){
 
         // Opera has a special versioning scheme, where the second part is combined
         // e.g. 8.54 which should be handled like 8.5.4 to be compatible to the
@@ -2229,34 +2265,6 @@ qx.Bootstrap.define("qx.bom.client.Engine", {
 
           version = RegExp.$1;
         };
-      } else if(qx.bom.client.Engine.__isMshtml()){
-
-        var isTrident = /Trident\/([^\);]+)(\)|;)/.test(agent);
-        if(/MSIE\s+([^\);]+)(\)|;)/.test(agent)){
-
-          version = RegExp.$1;
-          // If the IE8 or IE9 is running in the compatibility mode, the MSIE value
-          // is set to an older version, but we need the correct version. The only
-          // way is to compare the trident version.
-          if(version < 8 && isTrident){
-
-            if(RegExp.$1 == "4.0"){
-
-              version = "8.0";
-            } else if(RegExp.$1 == "5.0"){
-
-              version = "9.0";
-            };
-          };
-        } else if(isTrident){
-
-          // IE 11 dropped the "MSIE" string
-          var match = /\brv\:(\d+?\.\d+?)\b/.exec(agent);
-          if(match){
-
-            version = match[1];
-          };
-        };
       } else {
 
         var failFunction = window.qxFail;
@@ -2280,7 +2288,10 @@ qx.Bootstrap.define("qx.bom.client.Engine", {
     getName : function(){
 
       var name;
-      if(qx.bom.client.Engine.__isOpera()){
+      if(qx.bom.client.Engine.__isMshtml()){
+
+        name = "mshtml";
+      } else if(qx.bom.client.Engine.__isOpera()){
 
         name = "opera";
       } else if(qx.bom.client.Engine.__isWebkit()){
@@ -2289,9 +2300,6 @@ qx.Bootstrap.define("qx.bom.client.Engine", {
       } else if(qx.bom.client.Engine.__isGecko() || qx.bom.client.Engine.__isMaple()){
 
         name = "gecko";
-      } else if(qx.bom.client.Engine.__isMshtml()){
-
-        name = "mshtml";
       } else {
 
         // check for the fallback
@@ -2362,7 +2370,23 @@ qx.Bootstrap.define("qx.bom.client.Engine", {
      */
     __isMshtml : function(){
 
-      return window.navigator.cpuClass && (/MSIE\s+([^\);]+)(\)|;)/.test(window.navigator.userAgent) || /Trident\/\d+?\.\d+?/.test(window.navigator.userAgent));
+      if(window.navigator.cpuClass && (/MSIE\s+([^\);]+)(\)|;)/.test(window.navigator.userAgent) || /Trident\/\d+?\.\d+?/.test(window.navigator.userAgent))){
+
+        return true;
+      };
+      if(qx.bom.client.Engine.__isWindowsPhone()){
+
+        return true;
+      };
+      return false;
+    },
+    /**
+     * Internal helper to check for Windows phone.
+     * @return {Boolean} true, if its Windows phone.
+     */
+    __isWindowsPhone : function(){
+
+      return window.navigator.userAgent.indexOf("Windows Phone") > -1;
     }
   },
   defer : function(statics){
@@ -3529,6 +3553,11 @@ qx.Bootstrap.define("qxWeb", {
      */
     $init : function(arg, clazz){
 
+      // restore widget instance
+      if(arg.length && arg.length == 1 && arg[0] && arg[0].$widget instanceof qxWeb){
+
+        return arg[0].$widget;
+      };
       var clean = [];
       for(var i = 0;i < arg.length;i++){
 
@@ -3545,7 +3574,7 @@ qx.Bootstrap.define("qxWeb", {
           clean.push(arg[i]);
         };
       };
-      if(arg[0] && arg[0].getAttribute && arg[0].getAttribute("data-qx-class")){
+      if(arg[0] && arg[0].getAttribute && arg[0].getAttribute("data-qx-class") && clean.length < 2){
 
         clazz = qx.Bootstrap.getByName(arg[0].getAttribute("data-qx-class")) || clazz;
       };
@@ -3598,6 +3627,47 @@ qx.Bootstrap.define("qxWeb", {
           };
         };
         qxWeb[name] = module[name];
+      };
+    },
+    /**
+     * This is an API for module development and can be used to attach new methods
+     * to {@link q} during runtime according to the following conventions:
+     *
+     * Public members of the module are attached to the collection similar to
+     * <code>qxWeb.$attach</code>. Members beginning with '$' or '_' are ignored.
+     *
+     * Statics of the module are attached to {@link q} similar to
+     * <code>qxWeb.$attachStatic</code>. Statics beginning with '$' or '_', as well as constants
+     * (all upper case) and some qooxdoo-internal statics of the module are ignored.
+     *
+     *
+     * If more fine-grained control outside if these conventions is needed,
+     * simply use <code>qxWeb.$attach</code> or <code>qxWeb$attachStatic</code>.
+     *
+     * @param clazz {Object} the qooxdoo class definition calling this method.
+     * @param staticsNamespace {String?undefined} Specifies the namespace under which statics are attached to {@link q}.
+     */
+    $attachAll : function(clazz, staticsNamespace){
+
+      // members
+      for(var name in clazz.members){
+
+        if(name.indexOf("$") !== 0 && name.indexOf("_") !== 0)qxWeb.prototype[name] = clazz.members[name];
+      };
+      // statics
+      var destination;
+      if(staticsNamespace != null){
+
+        qxWeb[staticsNamespace] = qxWeb[staticsNamespace] || {
+        };
+        destination = qxWeb[staticsNamespace];
+      } else {
+
+        destination = qxWeb;
+      };
+      for(var name in clazz.statics){
+
+        if(name.indexOf("$") !== 0 && name.indexOf("_") !== 0 && name !== "name" && name !== "basename" && name !== "classname" && name !== "toString" && name !== name.toUpperCase())destination[name] = clazz.statics[name];
       };
     },
     /**
@@ -3670,11 +3740,17 @@ qx.Bootstrap.define("qxWeb", {
       selector = [];
     } else if(qx.Bootstrap.isString(selector)){
 
-      if(context instanceof qxWeb){
+      if(context instanceof qxWeb && context.length != 0){
 
         context = context[0];
       };
-      selector = qx.bom.Selector.query(selector, context);
+      if(context instanceof qxWeb){
+
+        selector = [];
+      } else {
+
+        selector = qx.bom.Selector.query(selector, context);
+      };
     } else if((selector.nodeType === 1 || selector.nodeType === 9 || selector.nodeType === 11) || (selector.history && selector.location && selector.document)){
 
       selector = [selector];
@@ -3776,19 +3852,36 @@ qx.Bootstrap.define("qxWeb", {
      * Returns the index of the given element within the current
      * collection or -1 if the element is not in the collection
      * @param elem {Element|Element[]|qxWeb} Element or collection of elements
+     * @param fromIndex {Integer} The index to start the search at
      * @return {Number} The element's index
      */
-    indexOf : function(elem){
+    indexOf : function(elem, fromIndex){
 
       if(!elem){
 
         return -1;
       };
-      if(qx.Bootstrap.isArray(elem)){
+      if(!fromIndex){
+
+        fromIndex = 0;
+      };
+      if(typeof fromIndex !== "number"){
+
+        return -1;
+      };
+      if(fromIndex < 0){
+
+        fromIndex = this.length + fromIndex;
+        if(fromIndex < 0){
+
+          fromIndex = 0;
+        };
+      };
+      if(qx.lang.Type.isArray(elem)){
 
         elem = elem[0];
       };
-      for(var i = 0,l = this.length;i < l;i++){
+      for(var i = fromIndex,l = this.length;i < l;i++){
 
         if(this[i] === elem){
 
@@ -6348,9 +6441,9 @@ qx.Bootstrap.define("qx.event.GlobalError", {
     /**
      * Set the global fallback error handler
      *
-     * @param callback {Function} The error handler. The first argument is the
+     * @param callback {Function?null} The error handler. The first argument is the
      *    exception, which caused the error
-     * @param context {Object} The "this" context of the callback function
+     * @param context {Object?window} The "this" context of the callback function
      */
     setErrorHandler : function(callback, context){
 
@@ -11617,7 +11710,6 @@ qx.Bootstrap.define("qx.util.StringEscape", {
      * @param str {String} string to escape
      * @param charCodeToEntities {Map} entity to charcode map
      * @return {String} escaped string
-     * @signature function(str, charCodeToEntities)
      */
     escape : function(str, charCodeToEntities){
 
@@ -11719,9 +11811,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     /**
      * Converts a hyphenated string (separated by '-') to camel case.
      *
-     * Example:
-     * <pre class='javascript'>q.string.camelCase("I-like-cookies"); //returns "ILikeCookies"</pre>
-     *
      * @attachStatic {qxWeb, string.camelCase}
      * @param str {String} hyphenated string
      * @return {String} camelcase string
@@ -11732,9 +11821,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     },
     /**
      * Converts a camelcased string to a hyphenated (separated by '-') string.
-     *
-     * Example:
-     * <pre class='javascript'>q.string.hyphenate("weLikeCookies"); //returns "we-like-cookies"</pre>
      *
      * @attachStatic {qxWeb, string.hyphenate}
      * @param str {String} camelcased string
@@ -11793,8 +11879,6 @@ qx.Bootstrap.define("qx.module.util.String", {
     escapeRegexpChars : qx.lang.String.escapeRegexpChars,
     /**
      * Escapes the characters in a <code>String</code> using HTML entities.
-     *
-     * For example: <tt>"bread" & "butter"</tt> => <tt>&amp;quot;bread&amp;quot; &amp;amp; &amp;quot;butter&amp;quot;</tt>.
      * Supports all known HTML 4.0 entities, including funky accents.
      *
      * @attachStatic {qxWeb, string.escapeHtml}
@@ -11806,18 +11890,7 @@ qx.Bootstrap.define("qx.module.util.String", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      string : {
-        camelCase : statics.camelCase,
-        hyphenate : statics.hyphenate,
-        firstUp : statics.firstUp,
-        firstLow : statics.firstLow,
-        startsWith : statics.startsWith,
-        endsWith : statics.endsWith,
-        escapeRegexpChars : statics.escapeRegexpChars,
-        escapeHtml : statics.escapeHtml
-      }
-    });
+    qxWeb.$attachAll(this, "string");
   }
 });
 
@@ -11843,7 +11916,7 @@ qx.Bootstrap.define("qx.module.util.String", {
  * Module for handling of HTML5 data-* attributes
  */
 qx.Bootstrap.define("qx.module.Dataset", {
-  statics : {
+  members : {
     /**
      * Sets an HTML "data-*" attribute on each item in the collection
      *
@@ -11901,7 +11974,7 @@ qx.Bootstrap.define("qx.module.Dataset", {
       return qx.bom.element.Dataset.hasData(this[0]);
     },
     /**
-     * Remove an HTML "data-*" attribute from the given DOM element
+     * Remove an HTML "data-*" attribute on each item in the collection
      *
      * @attach {qxWeb}
      * @param name {String} Name of the attribute
@@ -11909,22 +11982,16 @@ qx.Bootstrap.define("qx.module.Dataset", {
      */
     removeData : function(name){
 
-      if(this[0] && this[0].nodeType === 1){
+      this._forEachElement(function(item){
 
-        qx.bom.element.Dataset.remove(this[0], name);
-      };
+        qx.bom.element.Dataset.remove(item, name);
+      });
       return this;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "getData" : statics.getData,
-      "setData" : statics.setData,
-      "removeData" : statics.removeData,
-      "getAllData" : statics.getAllData,
-      "hasData" : statics.hasData
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -11982,11 +12049,13 @@ qx.Bootstrap.define("qx.bom.element.Dataset", {
         };
       } else {
 
-        if(value === undefined){
+        if((value === null) || (value == undefined)){
 
-          value = null;
+          qx.bom.element.Attribute.reset(element, "data-" + qx.lang.String.hyphenate(name));
+        } else {
+
+          qx.bom.element.Attribute.set(element, "data-" + qx.lang.String.hyphenate(name), value);
         };
-        qx.bom.element.Attribute.set(element, "data-" + qx.lang.String.hyphenate(name), value);
       };
     },
     /**
@@ -12459,6 +12528,16 @@ qx.Bootstrap.define("qx.bom.client.Html", {
       return (typeof el.textContent !== "undefined");
     },
     /**
+     * Whether the client supports the fullscreen API.
+     *
+     * @internal
+     * @return {Boolean} <code>true</code> if fullscreen is supported
+     */
+    getFullScreen : function(){
+
+      return document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled || false;
+    },
+    /**
      * Check for a console object.
      *
      * @internal
@@ -12555,6 +12634,7 @@ qx.Bootstrap.define("qx.bom.client.Html", {
     qx.core.Environment.add("html.history.state", statics.getHistoryState);
     qx.core.Environment.add("html.selection", statics.getSelection);
     qx.core.Environment.add("html.node.isequalnode", statics.getIsEqualNode);
+    qx.core.Environment.add("html.fullscreen", statics.getFullScreen);
   }
 });
 
@@ -12836,12 +12916,15 @@ qx.Bootstrap.define("qx.bom.element.Attribute", {
         element[name] = value;
       } else {
 
-        if(value === true){
+        if((hints.bools[name] || value === null) && name.indexOf("data-") !== 0){
 
-          element.setAttribute(name, name);
-        } else if(value === false || value === null){
+          if(value === true){
 
-          element.removeAttribute(name);
+            element.setAttribute(name, name);
+          } else if(value === false || value === null){
+
+            element.removeAttribute(name);
+          };
         } else {
 
           element.setAttribute(name, value);
@@ -12856,7 +12939,13 @@ qx.Bootstrap.define("qx.bom.element.Attribute", {
      */
     reset : function(element, name){
 
-      this.set(element, name, null);
+      if(name.indexOf("data-") === 0){
+
+        element.removeAttribute(name);
+      } else {
+
+        this.set(element, name, null);
+      };
     }
   }
 });
@@ -12903,7 +12992,7 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem", {
       };
       var input = navigator.platform || "";
       var agent = navigator.userAgent || "";
-      if(input.indexOf("Windows") != -1 || input.indexOf("Win32") != -1 || input.indexOf("Win64") != -1){
+      if(input.indexOf("Windows") != -1 || input.indexOf("Win32") != -1 || input.indexOf("Win64") != -1 || agent.indexOf("Windows Phone") != -1){
 
         return "win";
       } else if(input.indexOf("Macintosh") != -1 || input.indexOf("MacPPC") != -1 || input.indexOf("MacIntel") != -1 || input.indexOf("Mac OS X") != -1){
@@ -12940,6 +13029,7 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem", {
     /** Maps user agent names to system IDs */
     __ids : {
       // Windows
+      "Windows NT 10.0" : "10",
       "Windows NT 6.3" : "8.1",
       "Windows NT 6.2" : "8",
       "Windows NT 6.1" : "7",
@@ -12956,6 +13046,8 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem", {
       "Windows 95" : "95",
       "Win95" : "95",
       // OS X
+      "Mac OS X 10_10" : "10.10",
+      "Mac OS X 10.10" : "10.10",
       "Mac OS X 10_9" : "10.9",
       "Mac OS X 10.9" : "10.9",
       "Mac OS X 10_8" : "10.8",
@@ -13026,9 +13118,18 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem", {
      */
     __getVersionForMobileOs : function(userAgent){
 
+      var windows = userAgent.indexOf("Windows Phone") != -1;
       var android = userAgent.indexOf("Android") != -1;
       var iOs = userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false;
-      if(android){
+      if(windows){
+
+        var windowsVersionRegExp = new RegExp(/Windows Phone (\d+(?:\.\d+)+)/i);
+        var windowsMatch = windowsVersionRegExp.exec(userAgent);
+        if(windowsMatch && windowsMatch[1]){
+
+          return windowsMatch[1];
+        };
+      } else if(android){
 
         var androidVersionRegExp = new RegExp(/ Android (\d+(?:\.\d+)+)/i);
         var androidMatch = androidVersionRegExp.exec(userAgent);
@@ -13050,7 +13151,7 @@ qx.Bootstrap.define("qx.bom.client.OperatingSystem", {
             return iOsMatch[2] + "." + iOsMatch[3];
           };
         };
-      };
+      };;
       return null;
     }
   },
@@ -13138,7 +13239,10 @@ qx.Bootstrap.define("qx.bom.client.Browser", {
       var engine = qx.bom.client.Engine.getName();
       if(engine === "webkit"){
 
-        if(name === "android"){
+        if(agent.match(/Edge\/\d+\.\d+/)){
+
+          name = "edge";
+        } else if(name === "android"){
 
           // Fix Chrome name (for instance wrongly defined in user agent on Android 1.6)
           name = "mobile chrome";
@@ -13149,7 +13253,7 @@ qx.Bootstrap.define("qx.bom.client.Browser", {
         } else if(agent.indexOf(" OPR/") != -1){
 
           name = "opera";
-        };;
+        };;;
       } else if(engine === "mshtml"){
 
         // IE 11's ua string no longer contains "MSIE" or even "IE"
@@ -13233,6 +13337,10 @@ qx.Bootstrap.define("qx.bom.client.Browser", {
         if(agent.match(/OPR(\/| )([0-9]+\.[0-9])/)){
 
           version = RegExp.$2;
+        };
+        if(agent.match(/Edge\/([\d+\.*]+)/)){
+
+          version = RegExp.$1;
         };
       };
       return version;
@@ -15039,6 +15147,7 @@ qx.Bootstrap.define("qx.bom.client.Device", {
   statics : {
     /** Maps user agent names to device IDs */
     __ids : {
+      "Windows Phone" : "iemobile",
       "iPod" : "ipod",
       "iPad" : "ipad",
       "iPhone" : "iphone",
@@ -15354,10 +15463,6 @@ qx.Bootstrap.define("qx.bom.client.Event", {
  * Module for querying information about the environment / runtime.
  * It adds a static key <code>env</code> to qxWeb and offers the given methods.
  *
- * <pre class="javascript">
- * q.env.get("engine.name"); // return "webkit" e.g.
- * </pre>
- *
  * The following values are predefined:
  *
  * * <code>browser.name</code> : The name of the browser
@@ -15416,12 +15521,7 @@ qx.Bootstrap.define("qx.module.Environment", {
     qx.core.Environment.get("device.type");
     qx.core.Environment.get("event.touch");
     qx.core.Environment.get("event.mspointer");
-    qxWeb.$attachStatic({
-      "env" : {
-        get : statics.get,
-        add : statics.add
-      }
-    });
+    qxWeb.$attachAll(this, "env");
   }
 });
 
@@ -15498,23 +15598,6 @@ qx.Bootstrap.define("qx.lang.normalize.Function", {
     /**
      * <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/bind">MDN documentation</a> |
      * <a href="http://es5.github.com/#x15.3.4.5">Annotated ES5 Spec</a>
-     *
-     * Example for the <code>bind</code> method:
-     * <pre class='javascript'>
-     * // sample code, assumes the used variables are already defined
-     *
-     * // the listener method demonstrates how to pass dynamic values
-     * // to a method using 'bind'
-     * var changeValueListener = function(value, event) {
-     *   // value is passed by the 'bind' method: its value is 'myArray[i]'
-     *   // second argument is passed by the 'on' method: its value is a event object
-     *   // 'this' is pointing to 'myComponent', since the first argument of 'bind' defines the context of the function call
-     * };
-     * var myArray = [ 0, 2, 4, 6 ];
-     * for (var i=0, j=myArray.length; i&lt;j; i++) {
-     *   myComponent.on("changeValue", changeValueListener.bind(myComponent, myArray[i]));
-     * }
-     * </pre>
      *
      * @param that {var?} Context for the bound function
      * @return {Function} The bound function
@@ -15778,6 +15861,228 @@ qx.Bootstrap.define("qx.module.Event", {
       off : {
       }
     },
+    __isReady : false,
+    /**
+     * Executes the given function once the document is ready.
+     *
+     * @attachStatic {qxWeb}
+     * @param callback {Function} callback function
+     */
+    ready : function(callback){
+
+      // DOM is already ready
+      if(document.readyState === "complete"){
+
+        window.setTimeout(callback, 1);
+        return;
+      };
+      // listen for the load event so the callback is executed no matter what
+      var onWindowLoad = function(){
+
+        qx.module.Event.__isReady = true;
+        callback();
+      };
+      qxWeb(window).on("load", onWindowLoad);
+      var wrappedCallback = function(){
+
+        qxWeb(window).off("load", onWindowLoad);
+        callback();
+      };
+      // Listen for DOMContentLoaded event if available (no way to reliably detect
+      // support)
+      if(qxWeb.env.get("engine.name") !== "mshtml" || qxWeb.env.get("browser.documentmode") > 8){
+
+        qx.bom.Event.addNativeListener(document, "DOMContentLoaded", wrappedCallback);
+      } else {
+
+        // Continually check to see if the document is ready
+        var timer = function(){
+
+          // onWindowLoad already executed
+          if(qx.module.Event.__isReady){
+
+            return;
+          };
+          try{
+
+            // If DOMContentLoaded is unavailable, use the trick by Diego Perini
+            // http://javascript.nwbox.com/IEContentLoaded/
+            document.documentElement.doScroll("left");
+            if(document.body){
+
+              wrappedCallback();
+            };
+          } catch(error) {
+
+            window.setTimeout(timer, 100);
+          };
+        };
+        timer();
+      };
+    },
+    /**
+     * Registers a normalization function for the given event types. Listener
+     * callbacks for these types will be called with the return value of the
+     * normalization function instead of the regular event object.
+     *
+     * The normalizer will be called with two arguments: The original event
+     * object and the element on which the event was triggered
+     *
+     * @attachStatic {qxWeb, $registerEventNormalization}
+     * @param types {String[]} List of event types to be normalized. Use an
+     * asterisk (<code>*</code>) to normalize all event types
+     * @param normalizer {Function} Normalizer function
+     */
+    $registerEventNormalization : function(types, normalizer){
+
+      if(!qx.lang.Type.isArray(types)){
+
+        types = [types];
+      };
+      var registry = qx.module.Event.__normalizations;
+      for(var i = 0,l = types.length;i < l;i++){
+
+        var type = types[i];
+        if(qx.lang.Type.isFunction(normalizer)){
+
+          if(!registry[type]){
+
+            registry[type] = [];
+          };
+          registry[type].push(normalizer);
+        };
+      };
+    },
+    /**
+     * Unregisters a normalization function from the given event types.
+     *
+     * @attachStatic {qxWeb, $unregisterEventNormalization}
+     * @param types {String[]} List of event types
+     * @param normalizer {Function} Normalizer function
+     */
+    $unregisterEventNormalization : function(types, normalizer){
+
+      if(!qx.lang.Type.isArray(types)){
+
+        types = [types];
+      };
+      var registry = qx.module.Event.__normalizations;
+      for(var i = 0,l = types.length;i < l;i++){
+
+        var type = types[i];
+        if(registry[type]){
+
+          qx.lang.Array.remove(registry[type], normalizer);
+        };
+      };
+    },
+    /**
+     * Returns all registered event normalizers
+     *
+     * @attachStatic {qxWeb, $getEventNormalizationRegistry}
+     * @return {Map} Map of event types/normalizer functions
+     */
+    $getEventNormalizationRegistry : function(){
+
+      return qx.module.Event.__normalizations;
+    },
+    /**
+     * Registers an event hook for the given event types.
+     *
+     * @attachStatic {qxWeb, $registerEventHook}
+     * @param types {String[]} List of event types
+     * @param registerHook {Function} Hook function to be called on event registration
+     * @param unregisterHook {Function?} Hook function to be called on event deregistration
+     * @internal
+     */
+    $registerEventHook : function(types, registerHook, unregisterHook){
+
+      if(!qx.lang.Type.isArray(types)){
+
+        types = [types];
+      };
+      var onHooks = qx.module.Event.__hooks.on;
+      for(var i = 0,l = types.length;i < l;i++){
+
+        var type = types[i];
+        if(qx.lang.Type.isFunction(registerHook)){
+
+          if(!onHooks[type]){
+
+            onHooks[type] = [];
+          };
+          onHooks[type].push(registerHook);
+        };
+      };
+      if(!unregisterHook){
+
+        return;
+      };
+      var offHooks = qx.module.Event.__hooks.off;
+      for(var i = 0,l = types.length;i < l;i++){
+
+        var type = types[i];
+        if(qx.lang.Type.isFunction(unregisterHook)){
+
+          if(!offHooks[type]){
+
+            offHooks[type] = [];
+          };
+          offHooks[type].push(unregisterHook);
+        };
+      };
+    },
+    /**
+     * Unregisters a hook from the given event types.
+     *
+     * @attachStatic {qxWeb, $unregisterEventHooks}
+     * @param types {String[]} List of event types
+     * @param registerHook {Function} Hook function to be called on event registration
+     * @param unregisterHook {Function?} Hook function to be called on event deregistration
+     * @internal
+     */
+    $unregisterEventHook : function(types, registerHook, unregisterHook){
+
+      if(!qx.lang.Type.isArray(types)){
+
+        types = [types];
+      };
+      var onHooks = qx.module.Event.__hooks.on;
+      for(var i = 0,l = types.length;i < l;i++){
+
+        var type = types[i];
+        if(onHooks[type]){
+
+          qx.lang.Array.remove(onHooks[type], registerHook);
+        };
+      };
+      if(!unregisterHook){
+
+        return;
+      };
+      var offHooks = qx.module.Event.__hooks.off;
+      for(var i = 0,l = types.length;i < l;i++){
+
+        var type = types[i];
+        if(offHooks[type]){
+
+          qx.lang.Array.remove(offHooks[type], unregisterHook);
+        };
+      };
+    },
+    /**
+     * Returns all registered event hooks
+     *
+     * @attachStatic {qxWeb, $getEventHookRegistry}
+     * @return {Map} Map of event types/registration hook functions
+     * @internal
+     */
+    $getEventHookRegistry : function(){
+
+      return qx.module.Event.__hooks;
+    }
+  },
+  members : {
     /**
      * Registers a listener for the given event type on each item in the
      * collection. This can be either native or custom events.
@@ -15830,10 +16135,7 @@ qx.Bootstrap.define("qx.module.Event", {
         }.bind(ctx, el);
         bound.original = listener;
         // add native listener
-        if(qx.bom.Event.supportsEvent(el, type)){
-
-          qx.bom.Event.addNativeListener(el, type, bound, useCapture);
-        };
+        qx.bom.Event.addNativeListener(el, type, bound, useCapture);
         // create an emitter if necessary
         if(!el.$$emitter){
 
@@ -16018,7 +16320,6 @@ qx.Bootstrap.define("qx.module.Event", {
      *
      * *Important:* Make sure you are handing in the *identical* context object to get
      * the correct result. Especially when using a collection instance this is a common pitfall.
-     * Check out the corresponding code sample below to get it right.
      *
      * @attach {qxWeb}
      * @param type {String} Event type, e.g. <code>mousedown</code>
@@ -16122,65 +16423,6 @@ qx.Bootstrap.define("qx.module.Event", {
         };
       };
     },
-    __isReady : false,
-    /**
-     * Executes the given function once the document is ready.
-     *
-     * @attachStatic {qxWeb}
-     * @param callback {Function} callback function
-     */
-    ready : function(callback){
-
-      // DOM is already ready
-      if(document.readyState === "complete"){
-
-        window.setTimeout(callback, 1);
-        return;
-      };
-      // listen for the load event so the callback is executed no matter what
-      var onWindowLoad = function(){
-
-        qx.module.Event.__isReady = true;
-        callback();
-      };
-      qxWeb(window).on("load", onWindowLoad);
-      var wrappedCallback = function(){
-
-        qxWeb(window).off("load", onWindowLoad);
-        callback();
-      };
-      // Listen for DOMContentLoaded event if available (no way to reliably detect
-      // support)
-      if(qxWeb.env.get("engine.name") !== "mshtml" || qxWeb.env.get("browser.documentmode") > 8){
-
-        qx.bom.Event.addNativeListener(document, "DOMContentLoaded", wrappedCallback);
-      } else {
-
-        // Continually check to see if the document is ready
-        var timer = function(){
-
-          // onWindowLoad already executed
-          if(qx.module.Event.__isReady){
-
-            return;
-          };
-          try{
-
-            // If DOMContentLoaded is unavailable, use the trick by Diego Perini
-            // http://javascript.nwbox.com/IEContentLoaded/
-            document.documentElement.doScroll("left");
-            if(document.body){
-
-              wrappedCallback();
-            };
-          } catch(error) {
-
-            window.setTimeout(timer, 100);
-          };
-        };
-        timer();
-      };
-    },
     /**
      * Bind one or two callbacks to the collection.
      * If only the first callback is defined the collection
@@ -16281,192 +16523,19 @@ qx.Bootstrap.define("qx.module.Event", {
         };
       }, this);
       return this;
-    },
-    /**
-     * Registers a normalization function for the given event types. Listener
-     * callbacks for these types will be called with the return value of the
-     * normalization function instead of the regular event object.
-     *
-     * The normalizer will be called with two arguments: The original event
-     * object and the element on which the event was triggered
-     *
-     * @attachStatic {qxWeb, $registerEventNormalization}
-     * @param types {String[]} List of event types to be normalized. Use an
-     * asterisk (<code>*</code>) to normalize all event types
-     * @param normalizer {Function} Normalizer function
-     */
-    $registerNormalization : function(types, normalizer){
-
-      if(!qx.lang.Type.isArray(types)){
-
-        types = [types];
-      };
-      var registry = qx.module.Event.__normalizations;
-      for(var i = 0,l = types.length;i < l;i++){
-
-        var type = types[i];
-        if(qx.lang.Type.isFunction(normalizer)){
-
-          if(!registry[type]){
-
-            registry[type] = [];
-          };
-          registry[type].push(normalizer);
-        };
-      };
-    },
-    /**
-     * Unregisters a normalization function from the given event types.
-     *
-     * @attachStatic {qxWeb, $unregisterEventNormalization}
-     * @param types {String[]} List of event types
-     * @param normalizer {Function} Normalizer function
-     */
-    $unregisterNormalization : function(types, normalizer){
-
-      if(!qx.lang.Type.isArray(types)){
-
-        types = [types];
-      };
-      var registry = qx.module.Event.__normalizations;
-      for(var i = 0,l = types.length;i < l;i++){
-
-        var type = types[i];
-        if(registry[type]){
-
-          qx.lang.Array.remove(registry[type], normalizer);
-        };
-      };
-    },
-    /**
-     * Returns all registered event normalizers
-     *
-     * @attachStatic {qxWeb, $getEventNormalizationRegistry}
-     * @return {Map} Map of event types/normalizer functions
-     */
-    $getRegistry : function(){
-
-      return qx.module.Event.__normalizations;
-    },
-    /**
-     * Registers an event hook for the given event types.
-     *
-     * @attachStatic {qxWeb, $registerEventHook}
-     * @param types {String[]} List of event types
-     * @param registerHook {Function} Hook function to be called on event registration
-     * @param unregisterHook {Function?} Hook function to be called on event deregistration
-     * @internal
-     */
-    $registerEventHook : function(types, registerHook, unregisterHook){
-
-      if(!qx.lang.Type.isArray(types)){
-
-        types = [types];
-      };
-      var onHooks = qx.module.Event.__hooks.on;
-      for(var i = 0,l = types.length;i < l;i++){
-
-        var type = types[i];
-        if(qx.lang.Type.isFunction(registerHook)){
-
-          if(!onHooks[type]){
-
-            onHooks[type] = [];
-          };
-          onHooks[type].push(registerHook);
-        };
-      };
-      if(!unregisterHook){
-
-        return;
-      };
-      var offHooks = qx.module.Event.__hooks.off;
-      for(var i = 0,l = types.length;i < l;i++){
-
-        var type = types[i];
-        if(qx.lang.Type.isFunction(unregisterHook)){
-
-          if(!offHooks[type]){
-
-            offHooks[type] = [];
-          };
-          offHooks[type].push(unregisterHook);
-        };
-      };
-    },
-    /**
-     * Unregisters a hook from the given event types.
-     *
-     * @attachStatic {qxWeb, $unregisterEventHooks}
-     * @param types {String[]} List of event types
-     * @param registerHook {Function} Hook function to be called on event registration
-     * @param unregisterHook {Function?} Hook function to be called on event deregistration
-     * @internal
-     */
-    $unregisterEventHook : function(types, registerHook, unregisterHook){
-
-      if(!qx.lang.Type.isArray(types)){
-
-        types = [types];
-      };
-      var onHooks = qx.module.Event.__hooks.on;
-      for(var i = 0,l = types.length;i < l;i++){
-
-        var type = types[i];
-        if(onHooks[type]){
-
-          qx.lang.Array.remove(onHooks[type], registerHook);
-        };
-      };
-      if(!unregisterHook){
-
-        return;
-      };
-      var offHooks = qx.module.Event.__hooks.off;
-      for(var i = 0,l = types.length;i < l;i++){
-
-        var type = types[i];
-        if(offHooks[type]){
-
-          qx.lang.Array.remove(offHooks[type], unregisterHook);
-        };
-      };
-    },
-    /**
-     * Returns all registered event hooks
-     *
-     * @attachStatic {qxWeb, $getEventHookRegistry}
-     * @return {Map} Map of event types/registration hook functions
-     * @internal
-     */
-    $getHookRegistry : function(){
-
-      return qx.module.Event.__hooks;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "on" : statics.on,
-      "off" : statics.off,
-      "allOff" : statics.allOff,
-      "offById" : statics.offById,
-      "once" : statics.once,
-      "emit" : statics.emit,
-      "hasListener" : statics.hasListener,
-      "copyEventsTo" : statics.copyEventsTo,
-      "hover" : statics.hover,
-      "onMatchTarget" : statics.onMatchTarget,
-      "offMatchTarget" : statics.offMatchTarget
-    });
+    qxWeb.$attachAll(this);
+    // manually attach internal $-methods as they are ignored by the previous method-call
     qxWeb.$attachStatic({
-      "ready" : statics.ready,
-      "$registerEventNormalization" : statics.$registerNormalization,
-      "$unregisterEventNormalization" : statics.$unregisterNormalization,
-      "$getEventNormalizationRegistry" : statics.$getRegistry,
+      "$registerEventNormalization" : statics.$registerEventNormalization,
+      "$unregisterEventNormalization" : statics.$unregisterEventNormalization,
+      "$getEventNormalizationRegistry" : statics.$getEventNormalizationRegistry,
       "$registerEventHook" : statics.$registerEventHook,
       "$unregisterEventHook" : statics.$unregisterEventHook,
-      "$getEventHookRegistry" : statics.$getHookRegistry
+      "$getEventHookRegistry" : statics.$getEventHookRegistry
     });
   }
 });
@@ -16511,13 +16580,6 @@ qx.Bootstrap.define("qx.module.event.PointerHandler", {
      */
     register : function(element, type){
 
-      // force qx.bom.Event.supportsEvent to return true for this type so we
-      // can use the native addEventListener (synthetic gesture events use the
-      // native dispatchEvent).
-      if(!element["on" + type]){
-
-        element["on" + type] = true;
-      };
       if(!element.$$pointerHandler){
 
         if(!qx.core.Environment.get("event.dispatchevent")){
@@ -16879,6 +16941,7 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
       pointercancel : "gesturecancel",
       pointermove : "gesturemove"
     },
+    LEFT_BUTTON : (qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") <= 8) ? 1 : 0,
     SIM_MOUSE_DISTANCE : 25,
     SIM_MOUSE_DELAY : 2500,
     /**
@@ -16904,11 +16967,13 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
     this.__eventNames = [];
     this.__buttonStates = [];
     this.__activeTouches = [];
+    this._processedFlag = "$$qx" + this.classname.substr(this.classname.lastIndexOf(".") + 1) + "Processed";
     var engineName = qx.core.Environment.get("engine.name");
     var docMode = parseInt(qx.core.Environment.get("browser.documentmode"), 10);
     if(engineName == "mshtml" && docMode == 10){
 
-      this.__eventNames = ["MSPointerDown", "MSPointerMove", "MSPointerUp", "MSPointerCancel", "MSPointerOver", "MSPointerOut"];
+      // listen to native prefixed events and custom unprefixed (see bug #8921)
+      this.__eventNames = ["MSPointerDown", "MSPointerMove", "MSPointerUp", "MSPointerCancel", "MSPointerOver", "MSPointerOut", "pointerdown", "pointermove", "pointerup", "pointercancel", "pointerover", "pointerout"];
       this._initPointerObserver();
     } else {
 
@@ -16940,6 +17005,7 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
     __buttonStates : null,
     __primaryIdentifier : null,
     __activeTouches : null,
+    _processedFlag : null,
     /**
      * Adds listeners to native pointer events if supported
      */
@@ -16997,11 +17063,11 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
      */
     _onTouchEvent : function(domEvent){
 
-      if(domEvent.$$qxProcessed){
+      if(domEvent[this._processedFlag]){
 
         return;
       };
-      domEvent.$$qxProcessed = true;
+      domEvent[this._processedFlag] = true;
       var type = qx.event.handler.PointerCore.TOUCH_TO_POINTER_MAPPING[domEvent.type];
       var changedTouches = domEvent.changedTouches;
       this._determineActiveTouches(domEvent.type, changedTouches);
@@ -17085,11 +17151,11 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
     */
     _onMouseEvent : function(domEvent){
 
-      if(domEvent.$$qxProcessed){
+      if(domEvent[this._processedFlag]){
 
         return;
       };
-      domEvent.$$qxProcessed = true;
+      domEvent[this._processedFlag] = true;
       if(this._isSimulatedMouseEvent(domEvent.clientX, domEvent.clientY)){
 
         /*
@@ -17103,6 +17169,13 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
         this.__buttonStates[domEvent.which] = 1;
       } else if(domEvent.type == "mouseup"){
 
+        if(qx.core.Environment.get("os.name") == "osx" && qx.core.Environment.get("engine.name") == "gecko"){
+
+          if(this.__buttonStates[domEvent.which] != 1 && domEvent.ctrlKey){
+
+            this.__buttonStates[1] = 0;
+          };
+        };
         this.__buttonStates[domEvent.which] = 0;
       };
       var type = qx.event.handler.PointerCore.MOUSE_TO_POINTER_MAPPING[domEvent.type];
@@ -17220,7 +17293,7 @@ qx.Bootstrap.define("qx.event.handler.PointerCore", {
       target = target || domEvent.target;
       type = type || domEvent.type;
       var gestureEvent;
-      if(type == "pointerdown" || type == "pointerup" || type == "pointermove"){
+      if((domEvent.pointerType !== "mouse" || domEvent.button <= qx.event.handler.PointerCore.LEFT_BUTTON) && (type == "pointerdown" || type == "pointerup" || type == "pointermove")){
 
         gestureEvent = new qx.event.type.dom.Pointer(qx.event.handler.PointerCore.POINTER_TO_GESTURE_MAPPING[type], domEvent);
         qx.event.type.dom.Pointer.normalize(gestureEvent);
@@ -18202,13 +18275,6 @@ qx.Bootstrap.define("qx.module.event.Native", {
     },
     /**
      * Returns the target of the event.
-     * Example:
-     * <pre class="javascript">
-     *   var collection = q("div.inline");
-     *   collection.on("click", function(e) {
-     *     var clickedElement = e.getTarget();
-     *   });
-     * </pre>
      *
      * @signature function ()
      * @return {Object} Any valid native event target
@@ -18218,24 +18284,6 @@ qx.Bootstrap.define("qx.module.event.Native", {
     /**
      * Computes the related target from the native DOM event
      *
-     * Example:
-     * <pre class="javascript">
-     *   var collection = q("div.inline");
-     *   collection.on("mouseout", function(e) {
-     *     // when using 'mouseout' events the 'relatedTarget' is pointing to the DOM element
-     *     //  the device exited to.
-     *     // Useful for scenarios you only interested if e.g. the user moved away from a
-     *     // section at the website
-     *     var exitTarget = e.getRelatedTarget();
-     *   });
-     *
-     *   collection.on("mouseover", function(e){
-     *      // when using 'mouseover' events the 'relatedTarget' is pointing to the DOM element
-     *      // the device entered from.
-     *      var earlierElement = e.getRelatedTarget();
-     *   });
-     * </pre>
-     *
      * @signature function ()
      * @return {Element} The related target
      */
@@ -18244,14 +18292,6 @@ qx.Bootstrap.define("qx.module.event.Native", {
     /**
      * Computes the current target from the native DOM event. Emulates the current target
      * for all browsers without native support (like older IEs).
-     *
-     * Example:
-     * <pre class="javascript">
-     *   var collection = q("div.inline");
-     *   collection.on("mouseout", function(e) {
-     *     var current = e.getCurrentTarget();
-     *   });
-     * </pre>
      *
      * @signature function ()
      * @return {Element} The current target
@@ -18336,15 +18376,15 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
      * Factory method for the widget which converts a standard
      * collection into a collection of widgets.
      *
-     * @return {qx.ui.website.Widget} A collection of widgets.
+     * @return {qx.ui.website.Widget} A widget.
      *
      * @attach {qxWeb}
      */
     widget : function(){
 
-      var widgets = new qx.ui.website.Widget(this);
-      widgets.init();
-      return widgets;
+      var widget = new qx.ui.website.Widget(this);
+      widget.init();
+      return widget;
     },
     /**
      * Creates a new collection from the given argument. This can either be an
@@ -18356,66 +18396,6 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
     create : function(html){
 
       return new qx.ui.website.Widget(qxWeb.create(html));
-    },
-    /**
-     * Special 'on' method for qx.Website widgets that prevents memory
-     * leaks and duplicate listeners.
-     *
-     * During the lifetime of a widget, multiple collection instances can
-     * be created for the same DOM element. In the initialization of each
-     * of these widget collections, listeners can be attached using this method
-     * to prevent memory leaks and duplicate listeners.
-     *
-     * This is done by storing a reference to the collection the first time a
-     * listener is attached. For subsequent listeners, this stored collection
-     * is used as the context. If the context object already has the new listener,
-     * it is not attached again. This means that new collections don't create
-     * references to DOM elements and don't need to be disposed manually.
-     *
-     * @attach {qxWeb}
-     * @param type {String} Type of the event to listen for
-     * @param listener {Function} Listener callback
-     * @param ctx {Object?} Context the callback function will be executed in.
-     * Default: The element on which the listener was registered
-     * @param useCapture {Boolean?} Attach the listener to the capturing
-     * phase if true.
-     * @return {qxWeb} The collection for chaining
-     */
-    $onFirstCollection : function(type, listener, ctx, useCapture){
-
-      var propertyName = this.classname.replace(/\./g, "-") + "-context";
-      if(!this.getProperty(propertyName)){
-
-        this.setProperty(propertyName, ctx);
-      };
-      var originalCtx = this.getProperty(propertyName);
-      if(!this.hasListener(type, listener, originalCtx)){
-
-        this.on(type, listener, originalCtx, useCapture);
-      };
-      return this;
-    },
-    /**
-     * Removes a listener added with {@link #$onFirstCollection}.
-     *
-     * @attach {qxWeb}
-     * @param type {String} Type of the event to listen for
-     * @param listener {Function} Listener callback
-     * @param ctx {Object?} Context the callback function will be executed in.
-     * Default: The element on which the listener was registered
-     * @param useCapture {Boolean?} Attach the listener to the capturing
-     * phase if true. Default: false
-     * @return {qxWeb} The collection for chaining
-     */
-    $offFirstCollection : function(type, listener, ctx, useCapture){
-
-      var propertyName = this.classname.replace(/\./g, "-") + "-context";
-      this._forEachElementWrapped(function(item){
-
-        var originalCtx = item.getProperty(propertyName);
-        item.off(type, listener, originalCtx, useCapture);
-      });
-      return this;
     },
     /**
      * Fetches elements with a data attribute named <code>data-qx-class</code>
@@ -18437,11 +18417,35 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
 
         widget.init();
       });
+    },
+    /**
+     * Returns a wrapper Array that maps the widget API available on
+     * the first item in the current collection to all items in the
+     * collection.
+     *
+     * @attach {qxWeb}
+     * @return {qxWeb[]} Collection of widgets
+     */
+    toWidgetCollection : function(){
+
+      var args = this.toArray().map(function(el){
+
+        return qxWeb(el);
+      });
+      // Set the context for the 'bind' call (will be replaced by new)
+      Array.prototype.unshift.call(args, null);
+      // Create temporary constructor with bound arguments
+      var Temp = qx.core.Wrapper.bind.apply(qx.core.Wrapper, args);
+      return new Temp();
     }
   },
   construct : function(selector, context){
 
     var col = this.base(arguments, selector, context);
+    if(col.length > 1){
+
+      throw new Error("The collection must not contain more than one element.");
+    };
     Array.prototype.push.apply(this, Array.prototype.slice.call(col, 0, col.length));
   },
   members : {
@@ -18461,6 +18465,7 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
       this.addClass("qx-widget");
       this.addClass(this.getCssPrefix());
       this.setProperty("$$qx-widget-initialized", true);
+      this[0].$widget = this;
       return true;
     },
     /**
@@ -18546,15 +18551,12 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
      */
     _setData : function(type, name, data){
 
-      this.forEach(function(item){
+      if(!this["$$storage_" + type]){
 
-        if(!item[type]){
-
-          item[type] = {
-          };
+        this["$$storage_" + type] = {
         };
-        item[type][name] = data;
-      });
+      };
+      this["$$storage_" + type][name] = data;
       return this;
     },
     /**
@@ -18592,7 +18594,7 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
      */
     _getData : function(type, name){
 
-      var storage = this.getProperty(type);
+      var storage = this["$$storage_" + type];
       var item;
       if(storage){
 
@@ -18651,19 +18653,96 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
 
         this.allOff(name);
       };
+      this[0].$widget = null;
       return qxWeb.$init(this, qxWeb);
     }
   },
   defer : function(statics){
 
     qxWeb.$attach({
-      $onFirstCollection : statics.$onFirstCollection,
-      $offFirstCollection : statics.$offFirstCollection,
-      widget : statics.widget
+      widget : statics.widget,
+      toWidgetCollection : statics.toWidgetCollection
     });
     qxWeb.$attachStatic({
       initWidgets : statics.initWidgets
     });
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014-2015 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+************************************************************************ */
+/**
+ * Generic wrapper instance which wrapps a set of objects and forwards the API of
+ * the first object to all objects in the array.
+ */
+qx.Bootstrap.define("qx.core.Wrapper", {
+  extend : Array,
+  construct : function(){
+
+    for(var i = 0,l = arguments.length;i < l;i++){
+
+      this.push(arguments[i]);
+    };
+    var firstItem = arguments[0];
+    for(var name in firstItem){
+
+      if(this[name] !== undefined){
+
+        continue;
+      };
+      if(firstItem[name] instanceof Function){
+
+        this[name] = function(name){
+
+          var firstReturnValue;
+          var args = Array.prototype.slice.call(arguments, 0);
+          args.shift();
+          this.forEach(function(item){
+
+            var returnValue = item[name].apply(item, args);
+            if(firstReturnValue === undefined){
+
+              firstReturnValue = returnValue;
+            };
+          });
+          // return the collection if the return value was the collection
+          if(firstReturnValue === this[0]){
+
+            return this;
+          };
+          return firstReturnValue;
+        }.bind(this, name);
+      } else {
+
+        Object.defineProperty(this, name, {
+          enumerable : true,
+          get : function(name){
+
+            return this[name];
+          }.bind(firstItem, name),
+          set : function(name, value){
+
+            this.forEach(function(item){
+
+              item[name] = value;
+            });
+          }.bind(this, name)
+        });
+      };
+    };
   }
 });
 
@@ -18688,14 +18767,6 @@ qx.Bootstrap.define("qx.ui.website.Widget", {
 /**
  * HTML templating module. This is a wrapper for mustache.js which is a
  * "framework-agnostic way to render logic-free views".
- *
- * Here is a basic example how to use it:
- * <pre class="javascript">
- * var template = "Hi, my name is {{name}}!";
- * var view = {name: "qooxdoo"};
- * q.template.render(template, view);
- *   // return "Hi, my name is qooxdoo!"
- * </pre>
  *
  * For further details, please visit the mustache.js documentation here:
  *   https://github.com/janl/mustache.js/blob/master/README.md
@@ -18778,13 +18849,7 @@ qx.Bootstrap.define("qx.module.Template", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "template" : {
-        get : statics.get,
-        render : statics.render,
-        renderToNode : statics.renderToNode
-      }
-    });
+    qxWeb.$attachAll(this, "template");
   }
 });
 
@@ -20084,6 +20149,7 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
     "changeSelected" : "Number"
   },
   members : {
+    __mediaQueryListener : null,
     init : function(){
 
       if(!this.base(arguments)){
@@ -20096,99 +20162,96 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
         this.setConfig("orientation", this._initMediaQueryListener(mediaQuery));
       };
       var orientation = this.getConfig("orientation");
-      this._forEachElementWrapped(function(tabs){
+      this.addClasses([this.getCssPrefix(), this.getCssPrefix() + "-" + orientation, "qx-flex-ready"]);
+      if(this.getChildren("ul").length === 0){
 
-        tabs.addClasses([this.getCssPrefix(), this.getCssPrefix() + "-" + orientation]);
-        if(tabs.getChildren("ul").length === 0){
+        var list = qxWeb.create("<ul/>");
+        var content = this.getChildren();
+        if(content.length > 0){
 
-          var list = qxWeb.create("<ul/>");
-          var content = tabs.getChildren();
-          if(content.length > 0){
+          list.insertBefore(content.eq(0));
+        } else {
 
-            list.insertBefore(content.eq(0));
-          } else {
-
-            tabs.append(list);
-          };
+          this.append(list);
         };
-        var container = tabs.find("> ." + this.getCssPrefix() + "-container");
-        var buttons = tabs.getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page");
-        buttons._forEachElementWrapped(function(button){
+      };
+      var container = this.find("> ." + this.getCssPrefix() + "-container");
+      var buttons = this.getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page");
+      buttons._forEachElementWrapped(function(button){
 
-          button.addClass(this.getCssPrefix() + "-button");
-          var pageSelector = button.getData(this.getCssPrefix() + "-page");
-          if(!pageSelector){
+        button.addClass(this.getCssPrefix() + "-button");
+        var pageSelector = button.getData(this.getCssPrefix() + "-page");
+        if(!pageSelector){
 
-            return;
-          };
-          button.addClass(this.getCssPrefix() + "-button").$onFirstCollection("tap", this._onTap, tabs);
-          var page = tabs._getPage(button);
-          if(page.length > 0){
+          return;
+        };
+        button.addClass(this.getCssPrefix() + "-button").on("tap", this._onTap, this);
+        var page = this._getPage(button);
+        if(page.length > 0){
 
-            page.addClass(this.getCssPrefix() + "-page");
-            if(orientation == "vertical"){
+          page.addClass(this.getCssPrefix() + "-page");
+          if(orientation == "vertical"){
 
-              this.__deactivateTransition(page);
-              if(q.getNodeName(page[0]) == "div"){
+            this.__deactivateTransition(page);
+            if(q.getNodeName(page[0]) == "div"){
 
-                var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id")).insertAfter(button[0]);
-                page.remove().getChildren().appendTo(li);
-                page = li;
-              };
-              this._storePageHeight(page);
-            } else if(orientation == "horizontal"){
-
-              if(q.getNodeName(page[0]) == "li"){
-
-                var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
-                page.remove().getChildren().appendTo(div);
-                page = div;
-              };
+              var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id")).insertAfter(button[0]);
+              page.remove().getChildren().appendTo(li);
+              page = li;
             };
-            if(orientation == "horizontal"){
+            this._storePageHeight(page);
+          } else if(orientation == "horizontal"){
 
-              if(container.length === 0){
+            if(q.getNodeName(page[0]) == "li"){
 
-                container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(tabs.find("> ul")[0]);
-              };
-              page.appendTo(container[0]);
+              var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
+              page.remove().getChildren().appendTo(div);
+              page = div;
             };
           };
-          this._showPage(null, button);
-          this.__activateTransition(page);
-        }.bind(this));
-        if(orientation == "vertical" && container.length == 1 && container.getChildren().length === 0){
+          if(orientation == "horizontal"){
 
-          container.remove();
-        };
-        if(orientation == "horizontal" && this.getConfig("align") == "right" && q.env.get("engine.name") == "mshtml" && q.env.get("browser.documentmode") < 10){
+            if(container.length === 0){
 
-          buttons.remove();
-          for(var i = buttons.length - 1;i >= 0;i--){
-
-            tabs.find("> ul").append(buttons[i]);
+              container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(this.find("> ul")[0]);
+            };
+            page.appendTo(container[0]);
           };
         };
-        var active = buttons.filter("." + this.getCssPrefix() + "-button-active");
-        var preselected = this.getConfig("preselected");
-        if(active.length === 0 && typeof preselected == "number"){
-
-          active = buttons.eq(preselected).addClass(this.getCssPrefix() + "-button-active");
-        };
-        if(active.length > 0){
-
-          var activePage = this._getPage(active);
-          this.__deactivateTransition(activePage);
-          this._showPage(active, null);
-          this.__activateTransition(activePage);
-        };
-        tabs.getChildren("ul").getFirst().$onFirstCollection("keydown", this._onKeyDown, this);
-        if(orientation === "horizontal"){
-
-          this._applyAlignment(tabs);
-        };
-        qxWeb(window).on("resize", tabs._onResize, tabs);
+        this._showPage(null, button);
+        this.__activateTransition(page);
       }.bind(this));
+      if(orientation == "vertical" && container.length == 1 && container.getChildren().length === 0){
+
+        container.remove();
+      };
+      if(orientation == "horizontal" && this.getConfig("align") == "right" && q.env.get("engine.name") == "mshtml" && q.env.get("browser.documentmode") < 10){
+
+        buttons.remove();
+        for(var i = buttons.length - 1;i >= 0;i--){
+
+          this.find("> ul").append(buttons[i]);
+        };
+      };
+      var active = buttons.filter("." + this.getCssPrefix() + "-button-active");
+      var preselected = this.getConfig("preselected");
+      if(active.length === 0 && typeof preselected == "number"){
+
+        active = buttons.eq(preselected).addClass(this.getCssPrefix() + "-button-active");
+      };
+      if(active.length > 0){
+
+        var activePage = this._getPage(active);
+        this.__deactivateTransition(activePage);
+        this._showPage(active, null);
+        this.__activateTransition(activePage);
+      };
+      this.getChildren("ul").getFirst().on("keydown", this._onKeyDown, this);
+      if(orientation === "horizontal"){
+
+        this._applyAlignment(this);
+      };
+      qxWeb(window).on("resize", this._onResize, this);
       return true;
     },
     render : function(){
@@ -20215,11 +20278,11 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     _initMediaQueryListener : function(mediaQuery){
 
-      var mql = this.getProperty("mediaQueryListener");
+      var mql = this.__mediaQueryListener;
       if(!mql){
 
         mql = q.matchMedia(mediaQuery);
-        this.setProperty("mediaQueryListener", mql);
+        this.__mediaQueryListener = mql;
         mql.on("change", function(query){
 
           this.render();
@@ -20239,39 +20302,36 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     _renderHorizontal : function(){
 
-      this._forEachElementWrapped(function(tabs){
+      this.removeClass(this.getCssPrefix() + "-vertical").addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-horizontal"]).find("> ul").addClass("qx-hbox");
+      var container = this.find("> ." + this.getCssPrefix() + "-container");
+      if(container.length == 0){
 
-        tabs.removeClass(this.getCssPrefix() + "-vertical").addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-horizontal", "qx-flex-ready"]).find("> ul").addClass("qx-hbox");
-        var container = tabs.find("> ." + this.getCssPrefix() + "-container");
-        if(container.length == 0){
+        container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(this.find("> ul")[0]);
+      };
+      var selectedPage;
+      this.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(li){
 
-          container = qxWeb.create("<div class='" + this.getCssPrefix() + "-container'>").insertAfter(tabs.find("> ul")[0]);
+        var page = this.find(li.getData(this.getCssPrefix() + "-page"));
+        if(q.getNodeName(page[0]) == "li"){
+
+          var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
+          page.remove().getChildren().appendTo(div);
+          page = div;
         };
-        var selectedPage;
-        tabs.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(li){
+        page.appendTo(container[0]);
+        this._switchPages(page, null);
+        if(li.hasClass(this.getCssPrefix() + "-button-active")){
 
-          var page = qxWeb(li.getData(this.getCssPrefix() + "-page"));
-          if(q.getNodeName(page[0]) == "li"){
-
-            var div = q.create("<div>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
-            page.remove().getChildren().appendTo(div);
-            page = div;
-          };
-          page.appendTo(container[0]);
-          tabs._switchPages(page, null);
-          if(li.hasClass(this.getCssPrefix() + "-button-active")){
-
-            selectedPage = page;
-          };
-        }.bind(this));
-        if(!selectedPage){
-
-          var firstButton = tabs.find("> ul > ." + this.getCssPrefix() + "-button").eq(0).addClass(this.getCssPrefix() + "-button-active");
-          selectedPage = this._getPage(firstButton);
+          selectedPage = page;
         };
-        tabs._switchPages(null, selectedPage);
-        this._applyAlignment(tabs);
-      });
+      }.bind(this));
+      if(!selectedPage){
+
+        var firstButton = this.find("> ul > ." + this.getCssPrefix() + "-button").eq(0).addClass(this.getCssPrefix() + "-button-active");
+        selectedPage = this._getPage(firstButton);
+      };
+      this._switchPages(null, selectedPage);
+      this._applyAlignment(this);
       this.setEnabled(this.getEnabled());
       return this;
     },
@@ -20281,36 +20341,33 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     _renderVertical : function(){
 
-      this._forEachElementWrapped(function(tabs){
+      this.find("> ul.qx-hbox").removeClass("qx-hbox");
+      this.removeClasses([this.getCssPrefix() + "-horizontal"]).addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-vertical"]).getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page")._forEachElementWrapped(function(button){
 
-        tabs.find("> ul.qx-hbox").removeClass("qx-hbox");
-        tabs.removeClasses([this.getCssPrefix() + "-horizontal", "qx-flex-ready"]).addClasses([this.getCssPrefix() + "", this.getCssPrefix() + "-vertical"]).getChildren("ul").getFirst().getChildren("li").not("." + this.getCssPrefix() + "-page")._forEachElementWrapped(function(button){
+        button.addClass(this.getCssPrefix() + "-button");
+        var page = this._getPage(button);
+        if(page.length === 0){
 
-          button.addClass(this.getCssPrefix() + "-button");
-          var page = this._getPage(button);
-          if(page.length === 0){
+          return;
+        };
+        this.__deactivateTransition(page);
+        if(q.getNodeName(page[0]) == "div"){
 
-            return;
-          };
-          this.__deactivateTransition(page);
-          if(q.getNodeName(page[0]) == "div"){
+          var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
+          page.getChildren().appendTo(li);
+          li.insertAfter(button[0]);
+          page.remove();
+          page = li;
+        };
+        this._storePageHeight(page);
+        if(button.hasClass(this.getCssPrefix() + "-button-active")){
 
-            var li = q.create("<li>").addClass(this.getCssPrefix() + "-page").setAttribute("id", page.getAttribute("id"));
-            page.getChildren().appendTo(li);
-            li.insertAfter(button[0]);
-            page.remove();
-            page = li;
-          };
-          this._storePageHeight(page);
-          if(button.hasClass(this.getCssPrefix() + "-button-active")){
+          this._switchPages(null, page);
+        } else {
 
-            this._switchPages(null, page);
-          } else {
-
-            this._switchPages(page, null);
-          };
-          this.__activateTransition(page);
-        }.bind(this));
+          this._switchPages(page, null);
+        };
+        this.__activateTransition(page);
       }.bind(this));
       this.setEnabled(this.getEnabled());
       return this;
@@ -20340,39 +20397,36 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     addButton : function(label, pageSelector){
 
-      this._forEachElementWrapped(function(item){
+      var link = qxWeb.create(qxWeb.template.render(this.getTemplate("button"), {
+        content : label
+      })).addClass(this.getCssPrefix() + "-button");
+      var list = this.find("> ul");
+      var links = list.getChildren("li");
+      if(list.hasClass(this.getCssPrefix() + "-right") && links.length > 0){
 
-        var link = qxWeb.create(qxWeb.template.render(item.getTemplate("button"), {
-          content : label
-        })).addClass(this.getCssPrefix() + "-button");
-        var list = item.find("> ul");
-        var links = list.getChildren("li");
-        if(list.hasClass(this.getCssPrefix() + "-right") && links.length > 0){
+        link.insertBefore(links.getFirst());
+      } else {
 
-          link.insertBefore(links.getFirst());
+        link.appendTo(list);
+      };
+      link.on("tap", this._onTap, this).addClass(this.getCssPrefix() + "-button");
+      if(this.find("> ul ." + this.getCssPrefix() + "-button").length === 1){
+
+        link.addClass(this.getCssPrefix() + "-button-active");
+      };
+      if(pageSelector){
+
+        link.setData(this.getCssPrefix() + "-page", pageSelector);
+        var page = this._getPage(link);
+        page.addClass(this.getCssPrefix() + "-page");
+        if(link.hasClass(this.getCssPrefix() + "-button-active")){
+
+          this._switchPages(null, page);
         } else {
 
-          link.appendTo(list);
+          this._switchPages(page, null);
         };
-        link.$onFirstCollection("tap", this._onTap, item).addClass(this.getCssPrefix() + "-button");
-        if(item.find("> ul ." + this.getCssPrefix() + "-button").length === 1){
-
-          link.addClass(this.getCssPrefix() + "-button-active");
-        };
-        if(pageSelector){
-
-          link.setData(this.getCssPrefix() + "-page", pageSelector);
-          var page = this._getPage(link);
-          page.addClass(this.getCssPrefix() + "-page");
-          if(link.hasClass(this.getCssPrefix() + "-button-active")){
-
-            this._switchPages(null, page);
-          } else {
-
-            this._switchPages(page, null);
-          };
-        };
-      }, this);
+      };
       return this;
     },
     /**
@@ -20383,18 +20437,15 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
      */
     select : function(index){
 
-      this._forEachElementWrapped(function(tabs){
+      var buttons = this.find("> ul > ." + this.getCssPrefix() + "-button");
+      var oldButton = this.find("> ul > ." + this.getCssPrefix() + "-button-active").removeClass(this.getCssPrefix() + "-button-active");
+      if(this.getConfig("align") == "right"){
 
-        var buttons = tabs.find("> ul > ." + this.getCssPrefix() + "-button");
-        var oldButton = tabs.find("> ul > ." + this.getCssPrefix() + "-button-active").removeClass(this.getCssPrefix() + "-button-active");
-        if(this.getConfig("align") == "right"){
-
-          index = buttons.length - 1 - index;
-        };
-        var newButton = buttons.eq(index).addClass(this.getCssPrefix() + "-button-active");
-        tabs._showPage(newButton, oldButton);
-        tabs.emit("changeSelected", index);
-      });
+        index = buttons.length - 1 - index;
+      };
+      var newButton = buttons.eq(index).addClass(this.getCssPrefix() + "-button-active");
+      this._showPage(newButton, oldButton);
+      this.emit("changeSelected", index);
       return this;
     },
     /**
@@ -20410,39 +20461,36 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
       };
       var orientation = this.getConfig("orientation");
       var tappedButton = e.getCurrentTarget();
-      this._forEachElementWrapped(function(tabs){
+      var oldButton = this.find("> ul > ." + this.getCssPrefix() + "-button-active");
+      if(oldButton[0] == tappedButton && orientation == "horizontal"){
 
-        var oldButton = tabs.find("> ul > ." + this.getCssPrefix() + "-button-active");
-        if(oldButton[0] == tappedButton && orientation == "horizontal"){
+        return;
+      };
+      oldButton.removeClass(this.getCssPrefix() + "-button-active");
+      if(orientation == "vertical"){
+
+        this._showPage(null, oldButton);
+        if(oldButton[0] == tappedButton && orientation == "vertical"){
 
           return;
         };
-        oldButton.removeClass(this.getCssPrefix() + "-button-active");
-        if(orientation == "vertical"){
+      };
+      var newButton;
+      var buttons = this.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(button){
 
-          this._showPage(null, oldButton);
-          if(oldButton[0] == tappedButton && orientation == "vertical"){
+        if(tappedButton === button[0]){
 
-            return;
-          };
+          newButton = button;
         };
-        var newButton;
-        var buttons = tabs.find("> ul > ." + this.getCssPrefix() + "-button")._forEachElementWrapped(function(button){
-
-          if(tappedButton === button[0]){
-
-            newButton = button;
-          };
-        });
-        tabs._showPage(newButton, oldButton);
-        newButton.addClass(this.getCssPrefix() + "-button-active");
-        var index = buttons.indexOf(newButton[0]);
-        if(this.getConfig("align") == "right"){
-
-          index = buttons.length - 1 - index;
-        };
-        tabs.emit("changeSelected", index);
       });
+      this._showPage(newButton, oldButton);
+      newButton.addClass(this.getCssPrefix() + "-button-active");
+      var index = buttons.indexOf(newButton[0]);
+      if(this.getConfig("align") == "right"){
+
+        index = buttons.length - 1 - index;
+      };
+      this.emit("changeSelected", index);
     },
     /**
      * Allows tab selection using the left and right arrow keys
@@ -20568,7 +20616,7 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
 
         pageSelector = button.getData(this.getCssPrefix() + "-page");
       };
-      return qxWeb(pageSelector);
+      return this.find(pageSelector);
     },
     /**
      * Apply the CSS classes for the alignment
@@ -20604,7 +20652,7 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
         };
       } else {
 
-        tabs.addClass("qx-flex-ready").find("> ul").addClass("qx-hbox");
+        tabs.find("> ul").addClass("qx-hbox");
         if(align == "justify"){
 
           buttons.addClass("qx-flex1");
@@ -20677,13 +20725,11 @@ qx.Bootstrap.define("qx.ui.website.Tabs", {
     },
     dispose : function(){
 
+      this.__mediaQueryListener = undefined;
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(tabs){
-
-        qxWeb(window).off("resize", tabs._onResize, tabs);
-        tabs.find("> ul > ." + this.getCssPrefix() + "-button").$offFirstCollection("tap", tabs._onTap, tabs);
-        tabs.getChildren("ul").getFirst().$offFirstCollection("keydown", tabs._onKeyDown, tabs).setHtml("");
-      });
+      qxWeb(window).off("resize", this._onResize, this);
+      this.find("> ul > ." + this.getCssPrefix() + "-button").off("tap", this._onTap, this);
+      this.getChildren("ul").getFirst().off("keydown", this._onKeyDown, this).setHtml("");
       this.setHtml("").removeClasses([cssPrefix, "qx-flex-ready"]);
       return this.base(arguments);
     }
@@ -20816,15 +20862,7 @@ qx.Bootstrap.define("qx.module.util.Object", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "object" : {
-        "clone" : statics.clone,
-        "getValues" : statics.getValues,
-        "invert" : statics.invert,
-        "contains" : statics.contains,
-        "merge" : statics.merge
-      }
-    });
+    qxWeb.$attachAll(this, "object");
   }
 });
 
@@ -20905,6 +20943,16 @@ qx.Bootstrap.define("qx.ui.website.Accordion", {
   extend : qx.ui.website.Tabs,
   statics : {
     /**
+     * *button*
+     *
+     * Template used by {@link qx.ui.website.Tabs#addButton} to create a new button.
+     *
+     * Default value: <pre><li><button>{{{content}}}</button></li></pre>
+     */
+    _templates : {
+      button : "<li><button>{{{content}}}</button></li>"
+    },
+    /**
      * Factory method which converts the current collection into a collection of
      * accordion widgets.
      *
@@ -20959,10 +21007,6 @@ qx.Bootstrap.define("qx.ui.website.Accordion", {
  * Utility for checking the type of a variable.
  * It adds a <code>type</code> key static to q and offers the given method.
  *
- * <pre class="javascript">
- * q.type.get("abc"); // return "String" e.g.
- * </pre>
- *
  * @group (Utilities)
  */
 qx.Bootstrap.define("qx.module.util.Type", {
@@ -20989,11 +21033,7 @@ qx.Bootstrap.define("qx.module.util.Type", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      type : {
-        get : statics.get
-      }
-    });
+    qxWeb.$attachAll(this, "type");
   }
 });
 
@@ -21024,7 +21064,7 @@ qx.Bootstrap.define("qx.module.util.Type", {
  * http://www.w3.org/TR/css3-3d-transforms/
  */
 qx.Bootstrap.define("qx.module.Transform", {
-  statics : {
+  members : {
     /**
      * Method to apply multiple transforms at once to the given element. It
      * takes a map containing the transforms you want to apply plus the values
@@ -21277,23 +21317,7 @@ qx.Bootstrap.define("qx.module.Transform", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "transform" : statics.transform,
-      "translate" : statics.translate,
-      "rotate" : statics.rotate,
-      "skew" : statics.skew,
-      "scale" : statics.scale,
-      "setTransformStyle" : statics.setTransformStyle,
-      "getTransformStyle" : statics.getTransformStyle,
-      "setTransformOrigin" : statics.setTransformOrigin,
-      "getTransformOrigin" : statics.getTransformOrigin,
-      "setTransformPerspective" : statics.setTransformPerspective,
-      "getTransformPerspective" : statics.getTransformPerspective,
-      "setTransformPerspectiveOrigin" : statics.setTransformPerspectiveOrigin,
-      "getTransformPerspectiveOrigin" : statics.getTransformPerspectiveOrigin,
-      "setTransformBackfaceVisibility" : statics.setTransformBackfaceVisibility,
-      "getTransformBackfaceVisibility" : statics.getTransformBackfaceVisibility
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -22107,6 +22131,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
   },
   members : {
     __dragMode : null,
+    _value : 0,
     init : function(){
 
       if(!this.base(arguments)){
@@ -22118,23 +22143,20 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
 
         var step = this.getConfig("step");
         var defaultVal = qxWeb.type.get(step) == "Array" ? step[0] : this.getConfig("minimum");
-        this.setProperty("value", defaultVal);
+        this._value = defaultVal;
       };
-      this._forEachElementWrapped(function(slider){
+      this.on("pointerup", this._onSliderPointerUp, this).on("focus", this._onSliderFocus, this).setStyle("touch-action", "pan-y");
+      qxWeb(document).on("pointerup", this._onDocPointerUp, this);
+      qxWeb(window).on("resize", this._onWindowResize, this);
+      if(this.getChildren("." + cssPrefix + "-knob").length === 0){
 
-        slider.$onFirstCollection("pointerup", slider._onSliderPointerUp, slider).$onFirstCollection("focus", slider._onSliderFocus, slider).setStyle("touch-action", "pan-y");
-        qxWeb(document).on("pointerup", slider._onDocPointerUp, slider);
-        qxWeb(window).$onFirstCollection("resize", slider._onWindowResize, slider);
-        if(slider.getChildren("." + cssPrefix + "-knob").length === 0){
-
-          slider.append(qx.ui.website.Widget.create("<button>").addClass(cssPrefix + "-knob"));
-        };
-        slider.getChildren("." + cssPrefix + "-knob").setAttributes({
-          "draggable" : "false",
-          "unselectable" : "true"
-        }).setHtml(slider._getKnobContent()).$onFirstCollection("pointerdown", slider._onPointerDown, slider).$onFirstCollection("dragstart", slider._onDragStart, slider).$onFirstCollection("focus", slider._onKnobFocus, slider).$onFirstCollection("blur", slider._onKnobBlur, slider);
-        slider.render();
-      });
+        this.append(qx.ui.website.Widget.create("<button>").addClass(cssPrefix + "-knob"));
+      };
+      this.getChildren("." + cssPrefix + "-knob").setAttributes({
+        "draggable" : "false",
+        "unselectable" : "true"
+      }).setHtml(this._getKnobContent()).on("pointerdown", this._onPointerDown, this).on("dragstart", this._onDragStart, this).on("focus", this._onKnobFocus, this).on("blur", this._onKnobBlur, this);
+      this.render();
       return true;
     },
     /**
@@ -22144,7 +22166,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     getValue : function(){
 
-      return this.getProperty("value");
+      return this._value;
     },
     /**
      * Sets the current value of the slider.
@@ -22177,7 +22199,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
           value = Math.round(value / step) * step;
         };
       };
-      this.setProperty("value", value);
+      this._value = value;
       if(qxWeb.type.get(step) != "Array" || step.indexOf(value) != -1){
 
         this.__valueToPosition(value);
@@ -22420,7 +22442,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     _onKnobFocus : function(e){
 
-      this.getChildren("." + this.getCssPrefix() + "-knob").$onFirstCollection("keydown", this._onKeyDown, this);
+      this.getChildren("." + this.getCssPrefix() + "-knob").on("keydown", this._onKeyDown, this);
     },
     /**
      * Removes the event listener for keyboard support from the knob on blur
@@ -22428,7 +22450,7 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     _onKnobBlur : function(e){
 
-      this.getChildren("." + this.getCssPrefix() + "-knob").$offFirstCollection("keydown", this._onKeyDown, this);
+      this.getChildren("." + this.getCssPrefix() + "-knob").off("keydown", this._onKeyDown, this);
     },
     /**
      * Moves the knob if the left or right arrow key is pressed
@@ -22501,12 +22523,11 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
      */
     _onWindowResize : function(){
 
-      var value = this.getProperty("value");
       if(qxWeb.type.get(this.getConfig("step")) == "Array"){
 
         this._getPixels();
       };
-      this.__valueToPosition(value);
+      this.__valueToPosition(this._value);
     },
     /**
      * Positions the slider knob to the given value and fires the "changePosition"
@@ -22538,13 +22559,10 @@ qx.Bootstrap.define("qx.ui.website.Slider", {
     },
     dispose : function(){
 
-      this._forEachElementWrapped(function(slider){
-
-        qxWeb(document).off("pointerup", slider._onDocPointerUp, slider);
-        qxWeb(window).$offFirstCollection("resize", slider._onWindowResize, slider);
-        slider.$offFirstCollection("pointerup", slider._onSliderPointerUp, slider).$offFirstCollection("focus", slider._onSliderFocus, slider);
-        slider.getChildren("." + this.getCssPrefix() + "-knob").$offFirstCollection("pointerdown", slider._onPointerDown, slider).$offFirstCollection("dragstart", slider._onDragStart, slider).$offFirstCollection("focus", slider._onKnobFocus, slider).$offFirstCollection("blur", slider._onKnobBlur, slider).$offFirstCollection("keydown", slider._onKeyDown, slider);
-      });
+      qxWeb(document).off("pointerup", this._onDocPointerUp, this);
+      qxWeb(window).off("resize", this._onWindowResize, this);
+      this.off("pointerup", this._onSliderPointerUp, this).off("focus", this._onSliderFocus, this);
+      this.getChildren("." + this.getCssPrefix() + "-knob").off("pointerdown", this._onPointerDown, this).off("dragstart", this._onDragStart, this).off("focus", this._onKnobFocus, this).off("blur", this._onKnobBlur, this).off("keydown", this._onKeyDown, this);
       this.setHtml("");
       return this.base(arguments);
     }
@@ -22647,17 +22665,14 @@ qx.Bootstrap.define("qx.ui.website.Button", {
 
         return false;
       };
-      this._forEachElementWrapped(function(button){
+      if(this.getChildren("span") == 0){
 
-        if(button.getChildren("span") == 0){
+        qxWeb.create("<span>").appendTo(this);
+      };
+      if(this.getChildren("img") == 0){
 
-          qxWeb.create("<span>").appendTo(button);
-        };
-        if(button.getChildren("img") == 0){
-
-          qxWeb.create("<img>").appendTo(button).setStyle("display", "none");
-        };
-      });
+        qxWeb.create("<img>").appendTo(this).setStyle("display", "none");
+      };
       return true;
     },
     /**
@@ -22891,7 +22906,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     table : function(model){
 
       var table = new qx.ui.website.Table(this);
-      table.setProperty("__model", model);
+      table.__model = model;
       table.init();
       return table;
     },
@@ -22971,6 +22986,15 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     __descSortingClass : "qqx-table-sort-desc"
   },
   members : {
+    __model : null,
+    __columnMeta : null,
+    __sortingFunction : null,
+    __filterFunction : null,
+    __filterFunc : null,
+    __filters : null,
+    __inputName : null,
+    __hovered : null,
+    __sortingData : null,
     // overridden
     init : function(){
 
@@ -22978,25 +23002,22 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         return false;
       };
-      var model = this.getProperty("__model");
-      this._forEachElementWrapped(function(table){
+      var model = this.__model;
+      if(qxWeb.getNodeName(this).toUpperCase() !== "TABLE"){
 
-        if(qxWeb.getNodeName(table).toUpperCase() !== "TABLE"){
+        throw new Error("collection should contains only table elements !!");
+      };
+      if(!this[0].tHead){
 
-          throw new Error("collection should contains only table elements !!");
-        };
-        if(!table[0].tHead){
-
-          throw new Error("A Table header element is required for this widget.");
-        };
-        table.find("tbody td").addClass("qx-table-cell");
-        table.setProperty("__inputName", "input" + qx.ui.website.Table.__getUID());
-        table.__getColumnMetaData(model);
-        table.setModel(model);
-        table.setSortingFunction(table.__defaultColumnSort);
-        table.__registerEvents();
-        this.setProperty("__hovered", null);
-      }.bind(this));
+        throw new Error("A Table header element is required for this widget.");
+      };
+      this.find("tbody td").addClass("qx-table-cell");
+      this.__inputName = "input" + qx.ui.website.Table.__getUID();
+      this.__getColumnMetaData(model);
+      this.setModel(model);
+      this.setSortingFunction(this.__defaultColumnSort);
+      this.__registerEvents();
+      this.__hovered = null;
       return true;
     },
     /**
@@ -23007,20 +23028,17 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     setModel : function(model){
 
-      this._forEachElementWrapped(function(table){
+      if(typeof model != "undefined"){
 
-        if(typeof model != "undefined"){
+        if(qx.lang.Type.isArray(model)){
 
-          if(qx.lang.Type.isArray(model)){
+          this.__model = model;
+          this.emit("modelChange", model);
+        } else {
 
-            table.setProperty("__model", model);
-            table.emit("modelChange", model);
-          } else {
-
-            throw new Error("model must be an Array !!");
-          };
+          throw new Error("model must be an Array !!");
         };
-      });
+      };
       return this;
     },
     /**
@@ -23031,11 +23049,8 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     setColumnType : function(columnName, type){
 
-      this._forEachElementWrapped(function(table){
-
-        table.__checkColumnExistance(columnName);
-        table.getProperty("__columnMeta")[columnName].type = type;
-      }.bind(this));
+      this.__checkColumnExistance(columnName);
+      this.__columnMeta[columnName].type = type;
       return this;
     },
     /**
@@ -23046,7 +23061,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     getColumnType : function(columnName){
 
       this.eq(0).__checkColumnExistance(columnName);
-      return this.eq(0).getProperty("__columnMeta")[columnName].type;
+      return this.eq(0).__columnMeta[columnName].type;
     },
     /**
      * Returns the cell at the given position for the first widget in the collection
@@ -23075,10 +23090,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     setCompareFunction : function(type, compareFunc){
 
       type = qxWeb.string.firstUp(type);
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("_compare" + type, compareFunc);
-      }.bind(this));
+      this.setProperty(["_compare" + type], compareFunc);
       return this;
     },
     /**
@@ -23091,10 +23103,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       type = qxWeb.string.firstUp(type);
       var compareFunc = this["_compare" + type] || this._compareString;
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("_compare" + type, compareFunc);
-      }.bind(this));
+      this.setProperty(["_compare" + type], compareFunc);
       return this;
     },
     /**
@@ -23105,7 +23114,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     getCompareFunction : function(type){
 
       type = qxWeb.string.firstUp(type);
-      return this.eq(0).getProperty("_compare" + type) || this["_compare" + type];
+      return this.getProperty("_compare" + type) || this["_compare" + type];
     },
     /**
      * Set the function that control the sorting process
@@ -23116,10 +23125,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       func = func || function(){
       };
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__sortingFunction", func);
-      }.bind(this));
+      this.__sortingFunction = func;
       return this;
     },
     /**
@@ -23128,10 +23134,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     unsetSortingFunction : function(){
 
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__sortingFunction", this.__defaultColumnSort);
-      }.bind(this));
+      this.__sortingFunction = this.__defaultColumnSort;
       return this;
     },
     /**
@@ -23141,10 +23144,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     setFilterFunction : function(func){
 
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__filterFunction", func);
-      }.bind(this));
+      this.__filterFunction = func;
       return this;
     },
     /**
@@ -23153,10 +23153,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     unsetFilterFunction : function(){
 
-      this._forEachElementWrapped(function(table){
-
-        table.setProperty("__filterFunction", this.__defaultColumnFilter);
-      }.bind(this));
+      this.__filterFunction = this.__defaultColumnFilter;
       return this;
     },
     /**
@@ -23168,16 +23165,13 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     setColumnFilter : function(columnName, func){
 
-      this._forEachElementWrapped(function(table){
+      this.__checkColumnExistance(columnName);
+      if(!this.__filterFunc){
 
-        table.__checkColumnExistance(columnName);
-        if(!table.getProperty("__filterFunc")){
-
-          table.setProperty("__filterFunc", {
-          });
+        this.__filterFunc = {
         };
-        table.getProperty("__filterFunc")[columnName] = func;
-      }.bind(this));
+      };
+      this.__filterFunc[columnName] = func;
       return this;
     },
     /**
@@ -23189,9 +23183,9 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     getColumnFilter : function(columnName){
 
-      if(this.eq(0).getProperty("__filterFunc")){
+      if(this.__filterFunc){
 
-        return this.eq(0).getProperty("__filterFunc")[columnName];
+        return this.__filterFunc[columnName];
       };
       return null;
     },
@@ -23202,15 +23196,12 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     setRowFilter : function(func){
 
-      this._forEachElementWrapped(function(table){
+      if(!this.__filterFunc){
 
-        if(!table.getProperty("__filterFunc")){
-
-          table.setProperty("__filterFunc", {
-          });
+        this.__filterFunc = {
         };
-        table.getProperty("__filterFunc").row = func;
-      }.bind(this));
+      };
+      this.__filterFunc.row = func;
       return this;
     },
     /**
@@ -23220,9 +23211,9 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     getRowFilter : function(){
 
-      if(this.eq(0).getProperty("__filterFunc")){
+      if(this.__filterFunc){
 
-        return this.eq(0).getProperty("__filterFunc").row;
+        return this.__filterFunc.row;
       };
       return null;
     },
@@ -23235,11 +23226,8 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     sort : function(columnName, dir){
 
       this.__checkColumnExistance(columnName);
-      this._forEachElementWrapped(function(table){
-
-        table.setSortingClass(columnName, dir);
-        table.__sortDOM(table.__sort(columnName, dir));
-      }.bind(this));
+      this.setSortingClass(columnName, dir);
+      this.__sortDOM(this.__sort(columnName, dir));
       this.emit("sort", {
         columName : columnName,
         direction : dir
@@ -23265,26 +23253,23 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         columnName = qx.ui.website.Table.__allColumnSelector;
       };
-      this._forEachElementWrapped(function(table){
+      if(!this.__filters){
 
-        if(!table.getProperty("__filters")){
-
-          table.setProperty("__filters", {
-          });
+        this.__filters = {
         };
-        if(table.getProperty("__filters")[columnName]){
+      };
+      if(this.__filters[columnName]){
 
-          table.getProperty("__filters")[columnName].keyword = keyword;
-          table.__getRoot().appendChild(table.getProperty("__filters")[columnName].rows);
-        } else {
+        this.__filters[columnName].keyword = keyword;
+        this.__getRoot().appendChild(this.__filters[columnName].rows);
+      } else {
 
-          table.getProperty("__filters")[columnName] = {
-            keyword : keyword,
-            rows : document.createDocumentFragment()
-          };
+        this.__filters[columnName] = {
+          keyword : keyword,
+          rows : document.createDocumentFragment()
         };
-        table.__filterDom(keyword, columnName);
-      }.bind(this));
+      };
+      this.__filterDom(keyword, columnName);
       this.emit("filter", {
         columName : columnName,
         keyword : keyword
@@ -23299,23 +23284,20 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     resetFilter : function(columnName){
 
       var filters = null;
-      this._forEachElementWrapped(function(table){
+      filters = this.__filters;
+      if(filters){
 
-        filters = table.getProperty("__filters");
-        if(filters){
+        if(columnName){
 
-          if(columnName){
+          this.__getRoot().appendChild(filters[columnName].rows);
+        } else {
 
-            table.__getRoot().appendChild(filters[columnName].rows);
-          } else {
+          for(var col in filters){
 
-            for(var col in filters){
-
-              table.__getRoot().appendChild(filters[col].rows);
-            };
+            this.__getRoot().appendChild(filters[col].rows);
           };
         };
-      });
+      };
       return this;
     },
     /**
@@ -23394,13 +23376,13 @@ qx.Bootstrap.define("qx.ui.website.Table", {
         data = {
           columnName : columnName,
           columnIndex : colIndex,
-          cell : colIndex ? qxWeb(rows[i].cells.item(colIndex)) : null,
+          cell : colIndex > -1 ? qxWeb(rows[i].cells.item(colIndex)) : null,
           row : qxWeb(rows[i]),
           keyword : keyword
         };
         if(!filterFunc.bind(this)(data)){
 
-          this.getProperty("__filters")[columnName].rows.appendChild(rows[i]);
+          this.__filters[columnName].rows.appendChild(rows[i]);
         };
       };
       return this;
@@ -23411,25 +23393,22 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     getSortingData : function(){
 
-      return this.eq(0).getProperty("__sortingData");
+      return this.__sortingData;
     },
     //overriden
     render : function(){
 
-      this._forEachElementWrapped(function(table){
+      var sortingData = this.getSortingData();
+      var rowSelection = this.getConfig("rowSelection");
+      this.__applyTemplate(this.__model);
+      if(qx.ui.website.Table.__selectionTypes.indexOf(rowSelection) != -1){
 
-        var sortingData = table.getSortingData();
-        var rowSelection = table.getConfig("rowSelection");
-        table.__applyTemplate(table.getProperty("__model"));
-        if(qx.ui.website.Table.__selectionTypes.indexOf(rowSelection) != -1){
+        this.__processSelectionInputs(rowSelection);
+      };
+      if(sortingData){
 
-          table.__processSelectionInputs(rowSelection);
-        };
-        if(sortingData){
-
-          table.__sortDOM(table.__sort(sortingData.columnName, sortingData.direction));
-        };
-      });
+        this.__sortDOM(this.__sort(sortingData.columnName, sortingData.direction));
+      };
       return this;
     },
     //Private API
@@ -23485,7 +23464,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         nodeName = qxWeb.getNodeName(qxWeb(row.cells.item(0)));
       };
-      var clazz = qx.ui.website.Table,inputName = this.getProperty("__inputName");
+      var inputName = this.__inputName;
       var className = (nodeName == "th") ? clazz.__internalSelectionClass + " " + clazz.__internalHeaderClass : clazz.__internalSelectionClass;
       var currentInput = qxWeb(row).find("." + clazz.__internalSelectionClass);
       if(currentInput.length > 0){
@@ -23513,7 +23492,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     __checkColumnExistance : function(columnName){
 
-      var data = this.getProperty("__columnMeta");
+      var data = this.__columnMeta;
       if(data && !data[columnName]){
 
         throw new Error("Column " + columnName + " does not exists !");
@@ -23570,7 +23549,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
           name : colName
         };
       };
-      this.setProperty("__columnMeta", data);
+      this.__columnMeta = data;
       return this;
     },
     /**
@@ -23610,7 +23589,6 @@ qx.Bootstrap.define("qx.ui.website.Table", {
           qxWeb(dataRows[i]).insertBefore(qxWeb(this.__getRoot().rows.item(0)));
         };
       };
-      this.setProperty("__dataRows", dataRows);
       return this;
     },
     /**
@@ -23624,7 +23602,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         if(data.cell && data.cell.hasClass(qx.ui.website.Table.__internalHeaderClass)){
 
-          this.getProperty("__sortingFunction").bind(this)(data);
+          this.__sortingFunction.bind(this)(data);
         };
       }, this);
       this.on("pointerover", this.__cellHover, this);
@@ -23768,7 +23746,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       var target = e.getTarget();
       var cell = qxWeb(target);
-      var hovered = this.getProperty("__hovered");
+      var hovered = this.__hovered;
       if(!cell.hasClass("qx-table-cell") && !cell.hasClass("qx-table-header")){
 
         cell = cell.getClosest(".qx-table-cell, .qx-table-header");
@@ -23777,9 +23755,9 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
         if(hovered){
 
-          this.emit("cellOut", this.getProperty("__hovered"));
+          this.emit("cellOut", hovered);
         };
-        this.setProperty("__hovered", this.__fireEvent("cellHover", cell, target));
+        this.__hovered = this.__fireEvent("cellHover", cell, target);
       };
     },
     /**
@@ -23791,12 +23769,12 @@ qx.Bootstrap.define("qx.ui.website.Table", {
 
       var relatedTarget = e.getRelatedTarget();
       var cell = qxWeb(relatedTarget);
-      if(this.getProperty("__hovered")){
+      if(this.__hovered){
 
         if(!cell.isChildOf(this)){
 
-          this.emit("cellOut", this.getProperty("__hovered"));
-          this.setProperty("__hovered", null);
+          this.emit("cellOut", this.__hovered);
+          this.__hovered = null;
         } else {
 
           if(!cell.hasClass("qx-table-cell") && !cell.hasClass("qx-table-header")){
@@ -23804,8 +23782,8 @@ qx.Bootstrap.define("qx.ui.website.Table", {
             cell = cell.getClosest(".qx-table-cell, .qx-table-header");
             if(cell.hasClass("qx-table-row-selection")){
 
-              this.emit("cellOut", this.getProperty("__hovered"));
-              this.setProperty("__hovered", null);
+              this.emit("cellOut", this.__hovered);
+              this.__hovered = null;
             };
           };
         };
@@ -23903,7 +23881,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
     */
     __getDataForColumn : function(columName){
 
-      return this.getProperty("__columnMeta")[columName];
+      return this.__columnMeta[columName];
     },
     /**
      * Gets the Root element contening the data rows
@@ -23955,7 +23933,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
         columnName : columnName,
         direction : dir
       };
-      this.setProperty("__sortingData", data);
+      this.__sortingData = data;
       this.__addSortingClassToCol(this[0].tHead, columnName, dir);
     },
     /**
@@ -24086,7 +24064,7 @@ qx.Bootstrap.define("qx.ui.website.Table", {
      */
     __getCellValue : function(cell){
 
-      return cell.getTextContent() || "";
+      return cell[0].textContent || cell[0].innerText || "";
     },
     /**
      * Gets the table's data rows from the DOM
@@ -24247,9 +24225,14 @@ qx.Bootstrap.define("qx.ui.website.Table", {
  *       <td>Identifies and styles the "next month" container</td>
  *     </tr>
  *     <tr>
- *       <td><code>qx-calendar-othermonth</code></td>
+ *       <td><code>qx-calendar-previous-month</code></td>
  *       <td>Day cell (<code>td</code>)</td>
- *       <td>Identifies and styles calendar cells for days from the previous or following month</td>
+ *       <td>Identifies and styles calendar cells for days from the previous month</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-calendar-next-month</code></td>
+ *       <td>Day cell (<code>td</code>)</td>
+ *       <td>Identifies and styles calendar cells for days from the next month</td>
  *     </tr>
  *     <tr>
  *       <td><code>qx-calendar-dayname</code></td>
@@ -24275,6 +24258,23 @@ qx.Bootstrap.define("qx.ui.website.Table", {
  *       <td><code>qx-calendar-selected</code></td>
  *       <td>Day cell (<code>td</code>)</td>
  *       <td>Identifies and styles the cell containing the selected day's button</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-calendar-today</code></td>
+ *       <td>Day cell (<code>td</code>)</td>
+ *       <td>Identifies and styles the cell containing the current day button</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-calendar-past</code></td>
+ *       <td>Day cell (<code>td</code>)</td>
+ *       <td>Identifies and styles all cells containing day buttons in the past</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-hidden</code></td>
+ *       <td>Day (<code>button</code>)</td>
+ *       <td>Added to days of previous / next month if the configuration <code>hideDaysOtherMonth</code>
+             is set to <code>true</code> <br /> The default style property used is <code>visibility: hidden</code>
+         </td>
  *     </tr>
  *   </tbody>
  * </table>
@@ -24320,7 +24320,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      * Default value:
      * <pre><tr>
      *   {{#row}}<td class='{{cssClass}}'>
-     *     <button class='{{cssPrefix}}-day' value='{{date}}'>{{day}}</button>
+     *     <button class='{{cssPrefix}}-day {{hidden}}' value='{{date}}'>{{day}}</button>
      *   </td>{{/row}}
      * </tr></pre>
      *
@@ -24335,7 +24335,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
     _templates : {
       controls : "<tr>" + "<td colspan='1' class='{{cssPrefix}}-prev-container'><button class='{{cssPrefix}}-prev' {{prevDisabled}} title='Previous Month'>&lt;</button></td>" + "<td colspan='5' class='{{cssPrefix}}-month'>{{month}} {{year}}</td>" + "<td colspan='1' class='{{cssPrefix}}-next-container'><button class='{{cssPrefix}}-next' {{nextDisabled}} title='Next Month'>&gt;</button></td>" + "</tr>",
       dayRow : "<tr>" + "{{#row}}<td class='{{cssPrefix}}-dayname'>{{.}}</td>{{/row}}" + "</tr>",
-      row : "<tr>" + "{{#row}}<td class='{{cssClass}}'><button class='{{cssPrefix}}-day' {{disabled}} value='{{date}}'>{{day}}</button></td>{{/row}}" + "</tr>",
+      row : "<tr>" + "{{#row}}<td class='{{cssClass}}'><button class='{{cssPrefix}}-day {{hidden}}' {{disabled}} value='{{date}}'>{{day}}</button></td>{{/row}}" + "</tr>",
       table : "<table class='{{cssPrefix}}-container'><thead>{{{thead}}}</thead><tbody>{{{tbody}}}</tbody></table>"
     },
     /**
@@ -24370,6 +24370,20 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      * *selectionMode*
      *
      * The Selection mode the calendar will use. Possible values are 'single' and 'range' . Default: <code>single</code>
+     *
+     * *hideDaysOtherMonth*
+     *
+     * Hide all days of the previous/next month. If the entire last row of the calandar are days of
+     * the next month the whole row is not rendered. Default: <code>false</code> <br /> <br />
+     * <strong>Important: </strong>If you like to have a <em>mixed</em> mode like displaying the days
+     * of the previous month and hiding the days of the next month you should work with the
+     * <code>rendered</code> event to manipulate the DOM nodes after the rendering. Take a look at
+     * the samples to get a idea of it.
+     *
+     * *disableDaysOtherMonth*
+     *
+     * Disable all days of the previous/next month. The days are visible, but are not responding to
+     * user input. Default: <code>false</code>
      */
     _config : {
       monthNames : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -24377,7 +24391,9 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       minDate : null,
       maxDate : null,
       selectableWeekDays : [0, 1, 2, 3, 4, 5, 6],
-      selectionMode : "single"
+      selectionMode : "single",
+      hideDaysOtherMonth : false,
+      disableDaysOtherMonth : false
     },
     /**
      * Factory method which converts the current collection into a collection of
@@ -24405,9 +24421,15 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
   },
   events : {
     /** Fired at each value change */
-    "changeValue" : "Date"
+    "changeValue" : "Date",
+    /** Fired whenvever a render process finished. This event can be used as hook to add
+        custom markup and/or manipulate existing. */
+    "rendered" : ""
   },
   members : {
+    __range : null,
+    _value : null,
+    _shownValue : null,
     // overridden
     init : function(){
 
@@ -24415,12 +24437,10 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
         return false;
       };
+      this.__range = [];
       var today = new Date();
-      this._normalizeDate(today);
-      this._forEachElementWrapped(function(calendar){
-
-        calendar.showValue(today);
-      });
+      today = this._getNormalizedDate(today);
+      this.showValue(today);
       return true;
     },
     // overridden
@@ -24429,41 +24449,28 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var minDate = this.getConfig("minDate");
       if(minDate){
 
-        this._normalizeDate(minDate);
+        minDate = this._getNormalizedDate(minDate);
       };
       var maxDate = this.getConfig("maxDate");
       if(maxDate){
 
-        this._normalizeDate(maxDate);
+        maxDate = this._getNormalizedDate(maxDate);
       };
-      this.showValue(this.getProperty("shownValue"));
-      this.setEnabled(this.getEnabled());
+      this.showValue(this._shownValue);
       return this;
     },
     // overridden
     setEnabled : function(value){
 
-      var minDate = this.getConfig("minDate");
-      var maxDate = this.getConfig("maxDate");
-      var currentDate = null;
-      this.base(arguments, value);
-      if(value && (minDate || maxDate)){
+      this.setAttribute("disabled", !value);
+      if(value === true){
 
-        this.find("button.qx-calendar-day").map(function(button){
+        // let the render process decide which state to set for the different DOM elements
+        // this highly depends on the configuration (e.g. 'minDate', 'maxDate' or 'disableDaysOtherMonth')
+        this.render();
+      } else {
 
-          currentDate = new Date(button.getAttribute("value"));
-          button = qxWeb(button);
-          // Disables a day when the current date is smaller than minDate
-          if(minDate && currentDate < minDate){
-
-            button.setAttribute("disabled", true);
-          };
-          // Disables a day when it current date is greater than maxDate
-          if(maxDate && currentDate > maxDate){
-
-            button.setAttribute("disabled", true);
-          };
-        });
+        this.find("*").setAttribute("disabled", !value);
       };
       return this;
     },
@@ -24479,14 +24486,14 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var maxDate = this.getConfig("maxDate");
       if(this.getConfig("selectionMode") == "single"){
 
-        this._normalizeDate(value);
+        value = this._getNormalizedDate(value);
         if(this.getConfig("selectableWeekDays").indexOf(value.getDay()) == -1){
 
           throw new Error("The given date's week day is not selectable.");
         };
         if(minDate){
 
-          this._normalizeDate(minDate);
+          minDate = this._getNormalizedDate(minDate);
           if(value < minDate){
 
             throw new Error("Given date " + value.toDateString() + " is earlier than configured minDate " + minDate.toDateString());
@@ -24494,7 +24501,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
         };
         if(maxDate){
 
-          this._normalizeDate(maxDate);
+          maxDate = this._getNormalizedDate(maxDate);
           if(value > maxDate){
 
             throw new Error("Given date " + value.toDateString() + " is later than configured maxDate " + maxDate.toDateString());
@@ -24502,12 +24509,12 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
         };
       } else if(this.getConfig("selectionMode") == "range"){
 
-        if(!this.getProperty("__range")){
+        if(!this.__range){
 
-          this.setProperty("__range", value.map(function(val){
+          this.__range = value.map(function(val){
 
             return val.toDateString();
-          }));
+          });
         };
         if(value.length == 2){
 
@@ -24518,10 +24525,10 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
           value = this._generateRange(value);
         } else {
 
-          this._normalizeDate(value[0]);
+          value[0] = this._getNormalizedDate(value[0]);
         };
       };
-      this.setProperty("value", value);
+      this._value = value;
       this.showValue(value);
       if((this.getConfig("selectionMode") == "single") || ((this.getConfig("selectionMode") == "range") && (value.length >= 1))){
 
@@ -24537,7 +24544,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     getValue : function(){
 
-      var value = this.getProperty("value");
+      var value = this._value;
       return value ? (qx.Bootstrap.isArray(value) ? value : new Date(value)) : null;
     },
     /**
@@ -24550,27 +24557,24 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
       // If value is an array, show the last selected date
       value = qx.Bootstrap.isArray(value) ? value[value.length - 1] : value;
-      this.setProperty("shownValue", value);
+      this._shownValue = value;
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(item){
+      if(this.getAttribute("tabindex") < 0){
 
-        if(item.getAttribute("tabindex") < 0){
-
-          item.setAttribute("tabindex", 0);
-        };
-        item.find("." + cssPrefix + "-prev").$offFirstCollection("tap", this._prevMonth, item);
-        item.find("." + cssPrefix + "-next").$offFirstCollection("tap", this._nextMonth, item);
-        item.find("." + cssPrefix + "-day").$offFirstCollection("tap", this._selectDay, item);
-        item.$offFirstCollection("focus", this._onFocus, item, true).$offFirstCollection("blur", this._onBlur, item, true);
-      }, this);
+        this.setAttribute("tabindex", 0);
+      };
+      this.find("." + cssPrefix + "-prev").off("tap", this._prevMonth, this);
+      this.find("." + cssPrefix + "-next").off("tap", this._nextMonth, this);
+      this.find("." + cssPrefix + "-day").off("tap", this._selectDay, this);
+      this.off("focus", this._onFocus, this, true).off("blur", this._onBlur, this, true);
       this.setHtml(this._getTable(value));
-      this._forEachElementWrapped(function(item){
-
-        item.find("." + cssPrefix + "-prev").$onFirstCollection("tap", this._prevMonth, item);
-        item.find("." + cssPrefix + "-next").$onFirstCollection("tap", this._nextMonth, item);
-        item.find("td").not(".qx-calendar-invalid").find("." + cssPrefix + "-day").$onFirstCollection("tap", this._selectDay, item);
-        item.$onFirstCollection("focus", this._onFocus, item, true).$onFirstCollection("blur", this._onBlur, item, true);
-      }, this);
+      this.find("." + cssPrefix + "-prev").on("tap", this._prevMonth, this);
+      this.find("." + cssPrefix + "-next").on("tap", this._nextMonth, this);
+      this.find("td").not(".qx-calendar-invalid").find("." + cssPrefix + "-day").on("tap", this._selectDay, this);
+      this.on("focus", this._onFocus, this, true).on("blur", this._onBlur, this, true);
+      // signal the rendering process is done - this is useful for application developers if they
+      // want to hook into and change / adapt the DOM elements of the calendar
+      this.emit('rendered');
       return this;
     },
     /**
@@ -24578,7 +24582,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     _prevMonth : function(){
 
-      var shownValue = this.getProperty("shownValue");
+      var shownValue = this._shownValue;
       this.showValue(new Date(shownValue.getFullYear(), shownValue.getMonth() - 1));
     },
     /**
@@ -24586,7 +24590,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     _nextMonth : function(){
 
-      var shownValue = this.getProperty("shownValue");
+      var shownValue = this._shownValue;
       this.showValue(new Date(shownValue.getFullYear(), shownValue.getMonth() + 1));
     },
     /**
@@ -24600,17 +24604,13 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var newValue = new Date(newStr);
       if(this.getConfig("selectionMode") == "range"){
 
-        if(!this.getProperty("__range")){
-
-          this.setProperty("__range", []);
-        };
-        var range = this.getProperty("__range").slice(0);
+        var range = this.__range.slice(0);
         if(range.length == 2){
 
           range = [];
         };
         range.push(newStr);
-        this.setProperty("__range", range);
+        this.__range = range;
         range = range.map(function(item){
 
           return new Date(item);
@@ -24656,7 +24656,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var minDate = this.getConfig("minDate");
       if(minDate){
 
-        this._normalizeDate(minDate);
+        minDate = this._getNormalizedDate(minDate);
         if(date.getMonth() <= minDate.getMonth()){
 
           prevDisabled = "disabled";
@@ -24666,7 +24666,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var maxDate = this.getConfig("maxDate");
       if(maxDate){
 
-        this._normalizeDate(maxDate);
+        maxDate = this._getNormalizedDate(maxDate);
         if(date.getMonth() >= maxDate.getMonth()){
 
           nextDisabled = "disabled";
@@ -24709,16 +24709,18 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var minDate = this.getConfig("minDate");
       if(minDate){
 
-        this._normalizeDate(minDate);
+        minDate = this._getNormalizedDate(minDate);
       };
       var maxDate = this.getConfig("maxDate");
       if(maxDate){
 
-        this._normalizeDate(maxDate);
+        this._getNormalizedDate(maxDate);
       };
-      if(qx.Bootstrap.isArray(this.getProperty("value"))){
+      var hideDaysOtherMonth = this.getConfig("hideDaysOtherMonth");
+      var disableDaysOtherMonth = this.getConfig("disableDaysOtherMonth");
+      if(qx.Bootstrap.isArray(this._value)){
 
-        valueString = this.getProperty("value").map(function(currentDate){
+        valueString = this._value.map(function(currentDate){
 
           return currentDate.toDateString();
         });
@@ -24730,8 +24732,29 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
         };
         for(var i = 0;i < 7;i++){
 
-          var cssClasses = helpDate.getMonth() !== date.getMonth() ? cssPrefix + "-othermonth" : "";
-          if((this.getConfig("selectionMode") == "range") && qx.Bootstrap.isArray(this.getProperty("value"))){
+          var cssClasses = "";
+          var hidden = "";
+          var disabled = "";
+          if(helpDate.getMonth() !== date.getMonth()){
+
+            // first day of the last displayed week is already in the next month
+            if(hideDaysOtherMonth === true && week === 5 && i === 0){
+
+              break;
+            };
+            // set 'previous-month' and 'next-month' to make it easier for the developer to select
+            // the days after the render process
+            if((helpDate.getMonth() < date.getMonth() && helpDate.getFullYear() == date.getFullYear()) || (helpDate.getMonth() > date.getMonth() && helpDate.getFullYear() < date.getFullYear())){
+
+              cssClasses += cssPrefix + "-previous-month";
+            } else {
+
+              cssClasses += cssPrefix + "-next-month";
+            };
+            hidden += hideDaysOtherMonth ? "qx-hidden" : "";
+            disabled += disableDaysOtherMonth ? "disabled=disabled" : "";
+          };
+          if((this.getConfig("selectionMode") == "range") && qx.Bootstrap.isArray(this._value)){
 
             if(valueString.indexOf(helpDate.toDateString()) != -1){
 
@@ -24739,18 +24762,25 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
             };
           } else {
 
-            var range = this.getProperty("__range");
-            if(this.getProperty("value")){
+            var range = this.__range;
+            if(this._value){
 
-              value = this.getConfig("selectionMode") == "range" ? new Date(range[range.length - 1]) : this.getProperty("value");
+              value = this.getConfig("selectionMode") == "range" ? new Date(range[range.length - 1]) : this._value;
               cssClasses += helpDate.toDateString() === value.toDateString() ? " " + cssPrefix + "-selected" : "";
             };
           };
+          // extra check for today date necessary - otherwise 'today' would be marked as past day
+          var isPast = Date.parse(today) > Date.parse(helpDate) && today.toDateString() !== helpDate.toDateString();
+          cssClasses += isPast ? " " + cssPrefix + "-past" : "";
           cssClasses += today.toDateString() === helpDate.toDateString() ? " " + cssPrefix + "-today" : "";
-          var disabled = this.getEnabled() ? "" : "disabled";
-          if((minDate && helpDate < minDate) || (maxDate && helpDate > maxDate) || this.getConfig("selectableWeekDays").indexOf(helpDate.getDay()) == -1){
+          // if 'disableDaysOtherMonth' config is set - 'disabled' might already be set
+          if(disabled === ""){
 
-            disabled = "disabled";
+            disabled = this.getEnabled() ? "" : "disabled=disabled";
+            if((minDate && helpDate < minDate) || (maxDate && helpDate > maxDate) || this.getConfig("selectableWeekDays").indexOf(helpDate.getDay()) == -1){
+
+              disabled = "disabled=disabled";
+            };
           };
           cssClasses += (helpDate.getDay() === 0 || helpDate.getDay() === 6) ? " " + cssPrefix + "-weekend" : " " + cssPrefix + "-weekday";
           data.row.push({
@@ -24758,7 +24788,8 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
             date : helpDate.toDateString(),
             cssPrefix : cssPrefix,
             cssClass : cssClasses,
-            disabled : disabled
+            disabled : disabled,
+            hidden : hidden
           });
           helpDate.setDate(helpDate.getDate() + 1);
         };
@@ -24784,17 +24815,20 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       return helpDate;
     },
     /**
-     * Sets the hours, minutes and seconds of a date object to 0
+     * Returns a Date object with hours, minutes and seconds set to 0
      * to facilitate date comparisons.
      *
-     * @param date {Date} Date to normalize
+     * @param dateIn {Date} Date to normalize
+     * @return {Date} normalized
      */
-    _normalizeDate : function(date){
+    _getNormalizedDate : function(dateIn){
 
+      var date = new Date(dateIn.getTime());
       date.setHours(0);
       date.setMinutes(0);
       date.setSeconds(0);
       date.setMilliseconds(0);
+      return date;
     },
     /**
      * Attaches the keydown listener.
@@ -24803,7 +24837,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      */
     _onFocus : function(e){
 
-      this.$onFirstCollection("keydown", this._onKeyDown, this);
+      this.on("keydown", this._onKeyDown, this);
     },
     /**
      * Removes the keydown listener if the focus moves outside of the calendar.
@@ -24814,7 +24848,7 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
 
       if(this.contains(e.getRelatedTarget()).length === 0){
 
-        this.$offFirstCollection("keydown", this._onKeyDown, this);
+        this.off("keydown", this._onKeyDown, this);
       };
     },
     /**
@@ -24940,11 +24974,11 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
       var list = [],current = range[0];
       var minDate = this.getConfig("minDate") ? this.getConfig("minDate") : new Date(range[0].toDateString());
       var maxDate = this.getConfig("maxDate") ? this.getConfig("maxDate") : new Date(range[1].toDateString());
-      this._normalizeDate(minDate);
-      this._normalizeDate(maxDate);
+      minDate = this._getNormalizedDate(minDate);
+      maxDate = this._getNormalizedDate(maxDate);
       while(current <= range[1]){
 
-        this._normalizeDate(current);
+        current = this._getNormalizedDate(current);
         list.push(new Date(current.toDateString()));
         current.setDate(current.getDate() + 1);
       };
@@ -24971,13 +25005,10 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
     dispose : function(){
 
       var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(item){
-
-        item.find("." + cssPrefix + "-prev").$offFirstCollection("tap", this._prevMonth, item);
-        item.find("." + cssPrefix + "-next").$offFirstCollection("tap", this._nextMonth, item);
-        item.find("." + cssPrefix + "-day").$offFirstCollection("tap", this._selectDay, item);
-        item.$offFirstCollection("focus", this._onFocus, item, true).$offFirstCollection("blur", this._onBlur, item, true).$offFirstCollection("keydown", this._onKeyDown, item);
-      }, this);
+      this.find("." + cssPrefix + "-prev").off("tap", this._prevMonth, this);
+      this.find("." + cssPrefix + "-next").off("tap", this._nextMonth, this);
+      this.find("." + cssPrefix + "-day").off("tap", this._selectDay, this);
+      this.off("focus", this._onFocus, this, true).off("blur", this._onBlur, this, true).off("keydown", this._onKeyDown, this);
       this.setHtml("");
       return this.base(arguments);
     }
@@ -25005,629 +25036,66 @@ qx.Bootstrap.define("qx.ui.website.Calendar", {
      See the LICENSE file in the project's top-level directory for details.
 
    Authors:
-     * Alexander Steitz (aback)
-
-************************************************************************ */
-/**
- * This is a date picker widget used to combine an input element with a calendar widget
- * to select a date. The calendar itself is opened as popup to save visual space.
- *
- * <h2>Markup</h2>
- * Each Date Picker widget is connected to an existing input element.
- *
- * <h2>CSS Classes</h2>
- * <table>
- *   <thead>
- *     <tr>
- *       <td>Class Name</td>
- *       <td>Applied to</td>
- *       <td>Description</td>
- *     </tr>
- *   </thead>
- *   <tbody>
- *     <tr>
- *       <td><code>qx-datepicker</code></td>
- *       <td>Input element</td>
- *       <td>Identifies the date picker widget</td>
- *     </tr>
- *     <tr>
- *       <td><code>qx-datepicker-icon</code></td>
- *       <td>Icon element</td>
- *       <td>Identifies the (if configured) image element to open the date picker</td>
- *     </tr>
- *   </tbody>
- * </table>
- *
- * @require(qx.module.Template)
- *
- * @group (Widget)
- */
-qx.Bootstrap.define("qx.ui.website.DatePicker", {
-  extend : qx.ui.website.Widget,
-  statics : {
-    /**
-     * *format*
-     *
-     * Function which is provided with a JavaScript Date object instance. You can provide
-     * an own format function to manipulate the value which is set to the associated input element.
-     *
-     * Default value:
-     * <pre>function(date) {
-        return date.toLocaleDateString();
-      }</pre>
-     *
-     * *readonly*
-     *
-     * Boolean value to control if the connected input element is read-only.
-     *
-     * Default value:
-     * <pre>true</pre>
-     *
-     * *icon*
-     *
-     * Path to an icon which will be placed next to the input element as additional opener. If configured
-     * a necessary <code>img</code> element is created and equipped with the <code>qx-datepicker-icon</code>
-     * CSS class to style it.
-     *
-     * Default value:
-     * <pre>null</pre>
-     *
-     * *mode*
-     *
-     * Which control should trigger showing the date picker.
-     * Possible values are <code>input</code>, <code>icon</code>, <code>both</code>.
-     *
-     * Default value:
-     * <pre>input</pre>
-     */
-    _config : {
-      format : function(date){
-
-        return date.toLocaleDateString();
-      },
-      readonly : true,
-      icon : null,
-      mode : 'input'
-    },
-    /**
-     * Factory method which converts the current collection into a collection of
-     * Date Picker widgets. Therefore, an initialization process needs to be done which
-     * can be configured with some parameter.
-     *
-     * @param date {Date?null} The initial Date of the calendar.
-     * @return {qx.ui.website.DatePicker} A new date picker collection.
-     * @attach {qxWeb}
-     */
-    datepicker : function(date){
-
-      var datepicker = new qx.ui.website.DatePicker(this);
-      datepicker.init(date);
-      return datepicker;
-    }
-  },
-  construct : function(selector, context){
-
-    this.base(arguments, selector, context);
-  },
-  members : {
-    /**
-     * Get the associated calendar widget
-     * @return {qx.ui.website.Calendar} calendar widget instance
-     */
-    getCalendar : function(){
-
-      var calendarCollection = qxWeb();
-      this._forEachElementWrapped(function(datepicker){
-
-        calendarCollection = calendarCollection.concat(qxWeb('div#' + datepicker.getProperty('calendarId')));
-      });
-      return calendarCollection;
-    },
-    // overridden
-    /**
-     * Initializes the date picker widget
-     *
-     * @param date {Date} A JavaScript Date object to set the current date
-     * @return {Boolean} <code>true</code> if the widget has been initialized
-     */
-    init : function(date){
-
-      if(!this.base(arguments)){
-
-        return false;
-      };
-      this._forEachElementWrapped(function(datepicker){
-
-        var uniqueId = Math.round(Math.random() * 10000);
-        datepicker.setProperty('uniqueId', uniqueId);
-        this.__setReadOnly(datepicker);
-        this.__setIcon(datepicker);
-        this.__addInputListener(datepicker);
-        var calendarId = 'datepicker-calendar-' + uniqueId;
-        var calendar = qxWeb.create('<div id="' + calendarId + '"></div>').calendar();
-        calendar.on('tap', this._onCalendarTap);
-        calendar.appendTo(document.body).hide();
-        // create the connection between the date picker and the corresponding calendar widget
-        datepicker.setProperty('calendarId', calendarId);
-        // grab tap events at the body element to be able to hide the calender popup
-        // if the user taps outside
-        var bodyElement = qxWeb.getDocument(datepicker).body;
-        qxWeb(bodyElement).on('tap', datepicker._onBodyTap, datepicker);
-        // react on date selection
-        calendar.on('changeValue', datepicker._calendarChangeValue, datepicker);
-        if(date !== undefined){
-
-          calendar.setValue(date);
-        };
-      });
-      return true;
-    },
-    // overridden
-    render : function(){
-
-      this.getCalendar().render();
-      this._forEachElementWrapped(function(datepicker){
-
-        this.__setReadOnly(datepicker);
-        this.__setIcon(datepicker);
-        this.__addInputListener(datepicker);
-      });
-      this.setEnabled(this.getEnabled());
-      return this;
-    },
-    /**
-     * Listener which handles clicks/taps on the associated input element and
-     * opens / hides the calendar.
-     *
-     * @param e {Event} tap event
-     */
-    _onTap : function(e){
-
-      if(!this.getEnabled()){
-
-        return;
-      };
-      var calendar = qxWeb('div#' + this.getProperty('calendarId'));
-      if(calendar.getStyle("display") == "none"){
-
-        this.getCalendar().show().placeTo(this, 'bottom-left');
-      } else {
-
-        this.getCalendar().hide();
-      };
-    },
-    /**
-     * Stop tap events from reaching the body so the calendar won't close
-     * @param e {Event} Tap event
-     */
-    _onCalendarTap : function(e){
-
-      e.stopPropagation();
-    },
-    /**
-     * Listener to the body element to be able to hide the calendar if the user clicks
-     * or taps outside the calendar.
-     *
-     * @param e {Event} tap event
-     */
-    _onBodyTap : function(e){
-
-      var target = qxWeb(e.getTarget());
-      // fast check for tap on the connected input field
-      if(this.length > 0 && target.length > 0 && this[0] == target[0]){
-
-        return;
-      };
-      // fast check for tap on the configured icon
-      if(this.getConfig('icon') !== null){
-
-        var icon = qxWeb('#' + this.getProperty('iconId'));
-        if(icon.length > 0 && target.length > 0 && icon[0] == target[0]){
-
-          return;
-        };
-      };
-      // otherwise check if the target is a child of the (rendered) calendar
-      if(this.getCalendar().isRendered()){
-
-        var tappedCol = qxWeb(e.getTarget());
-        if(tappedCol.isChildOf(this.getCalendar()) === false){
-
-          this.getCalendar().hide();
-        };
-      };
-    },
-    /**
-     * Listens to value selection of the calendar, Whenever the user selected a day
-     * we write it back to the input element and hide the calendar.
-     *
-     * The format of the date can be controlled with the 'format' config function
-     *
-     * @param e {Event} selected date value
-     */
-    _calendarChangeValue : function(e){
-
-      var formattedValue = this.getConfig('format').call(this, e);
-      this.setValue(formattedValue);
-      this.getCalendar().hide();
-    },
-    /**
-     * Helper method to set the readonly status on the input element
-     *
-     * @param collection {qxWeb} collection to work on
-     */
-    __setReadOnly : function(collection){
-
-      if(collection.getConfig('readonly')){
-
-        collection.setAttribute('readonly', 'readonly');
-      } else {
-
-        collection.removeAttribute('readonly');
-      };
-    },
-    /**
-     * Helper method to add / remove an icon next to the input element
-     *
-     * @param collection {qxWeb} collection to work on
-     */
-    __setIcon : function(collection){
-
-      var icon;
-      if(collection.getConfig('icon') === null){
-
-        icon = collection.getNext('img#' + collection.getProperty('iconId'));
-        if(icon.length === 1){
-
-          icon.off('tap', this._onTap, collection);
-          icon.remove();
-        };
-      } else {
-
-        var iconId = 'datepicker-icon-' + collection.getProperty('uniqueId');
-        // check if there is already an icon
-        if(collection.getProperty('iconId') === undefined){
-
-          collection.setProperty('iconId', iconId);
-          icon = qxWeb.create('<img>');
-          icon.setAttributes({
-            id : iconId,
-            src : collection.getConfig('icon')
-          });
-          icon.addClass(this.getCssPrefix() + '-icon');
-          var openingMode = collection.getConfig('mode');
-          if(openingMode === 'icon' || openingMode === 'both'){
-
-            icon.on('tap', this._onTap, collection);
-          };
-          icon.insertAfter(collection);
-        };
-      };
-    },
-    /**
-     * Helper method to add a listener to the connected input element
-     * if the configured mode is set.
-     *
-     * @param collection {qxWeb} collection to work on
-     */
-    __addInputListener : function(collection){
-
-      if(collection.getConfig('mode') === 'icon'){
-
-        collection.$offFirstCollection('tap', collection._onTap);
-      } else {
-
-        collection.$onFirstCollection('tap', collection._onTap);
-      };
-    },
-    // overridden
-    dispose : function(){
-
-      this._forEachElementWrapped(function(datepicker){
-
-        datepicker.removeAttribute('readonly');
-        datepicker.getNext('img#' + datepicker.getProperty('iconId')).remove();
-        datepicker.$offFirstCollection('tap', datepicker._onTap);
-        var bodyElement = qxWeb.getDocument(datepicker).body;
-        qxWeb(bodyElement).off('tap', datepicker._onBodyTap, datepicker);
-        datepicker.getCalendar().off('changeValue', this._calendarChangeValue, datepicker).off('tap', this._onCalendarTap);
-        var calendar = qxWeb('div#' + datepicker.getProperty('calendarId'));
-        calendar.remove();
-        calendar.dispose();
-      });
-      return this.base(arguments);
-    }
-  },
-  defer : function(statics){
-
-    qxWeb.$attach({
-      datepicker : statics.datepicker
-    });
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2013 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Martin Wittemann (wittemann)
      * Daniel Wagner (danielwagner)
 
 ************************************************************************ */
 /**
- * This is a simple rating widget which can be used to display a predefined
- * number of symbols which the user can click or tap to give a rating e.g.
- * 3 out of 5 stars.
+ * Normalization for the track gesture. This gesture is based on <a href="#Pointer">Pointer events</a>,
+ * meaning that it's available on all devices, no matter which input device type is used (e.g. mouse or
+ * touchscreen).
  *
- * <h2>Markup</h2>
- * Each rating item is a span element. Span elements already existing within
- * the Rating's container will be used, otherwise new elements will be added or
- * removed according to the <code>length</code> config option.
+ * @require(qx.module.Event)
  *
- * <h2>CSS Classes</h2>
- * <table>
- *   <thead>
- *     <tr>
- *       <td>Class Name</td>
- *       <td>Applied to</td>
- *       <td>Description</td>
- *     </tr>
- *   </thead>
- *   <tbody>
- *     <tr>
- *       <td><code>qx-rating</code></td>
- *       <td>Container element</td>
- *       <td>Identifies the Rating widget</td>
- *     </tr>
- *     <tr>
- *       <td><code>qx-rating-item</code></td>
- *       <td>Rating item (span)</td>
- *       <td>Identifies and styles an active Rating item</td>
- *     </tr>
- *     <tr>
- *       <td><code>qx-rating-item-off</code></td>
- *       <td>Rating item (span)</td>
- *       <td>Identifies and styles an inactive Rating item. Applied in addition to <code>qx-rating-item</code></td>
- *     </tr>
- *   </tbody>
- * </table>
- *
- * <h2 class="widget-markup">Generated DOM Structure</h2>
- *
- * @group (Widget)
+ * @group (Event_Normalization)
  */
-qx.Bootstrap.define("qx.ui.website.Rating", {
-  extend : qx.ui.website.Widget,
+qx.Bootstrap.define("qx.module.event.Track", {
   statics : {
     /**
-     * *length*
-     *
-     * The length of the rating widget.
-     *
-     * Default value: <pre>5</pre>
-     *
-     *
-     * *symbol*
-     *
-     * The symbol used to render the rating items. This can be any
-     * String e.g. a UTF-8 character.
-     *
-     * Default value: <pre>★</pre>
+     * List of event types to be normalized
      */
-    _config : {
-      length : 5,
-      symbol : "★"
+    TYPES : ["track"],
+    BIND_METHODS : ["getDelta"],
+    /**
+     * Returns a map with the calculated delta coordinates and axis,
+     * relative to the position on <code>trackstart</code> event.
+     *
+     * @return {Map} a map with contains the delta as <code>x</code> and
+     * <code>y</code> and the movement axis as <code>axis</code>.
+     */
+    getDelta : function(){
+
+      return this._original.delta;
     },
     /**
-     * Factory method which converts the current collection into a collection of
-     * rating widgets. Therefore, an initialization process needs to be done which
-     * can be configured with some parameter.
+     * Manipulates the native event object, adding methods if they're not
+     * already present
      *
-     * @param initValue {Number?0} The initial value of the rating.
-     * @param symbol {String?"★"} The symbol which should be used for each rating item.
-     * @param length {Number?5} The length of the rating widget.
-     * @return {qx.ui.website.Rating} A new rating collection.
-     * @attach {qxWeb}
+     * @param event {Event} Native event object
+     * @param element {Element} DOM element the listener was attached to
+     * @return {Event} Normalized event object
+     * @internal
      */
-    rating : function(initValue, symbol, length){
+    normalize : function(event, element){
 
-      var rating = new qx.ui.website.Rating(this);
-      rating.init();
-      var modified = false;
-      if(length != undefined && length != rating.getConfig("length")){
+      if(!event){
 
-        rating.setConfig("length", length);
-        modified = true;
+        return event;
       };
-      if(symbol != undefined){
+      // apply mouse event normalizations
+      var bindMethods = qx.module.event.Track.BIND_METHODS;
+      for(var i = 0,l = bindMethods.length;i < l;i++){
 
-        rating.setConfig("symbol", symbol);
-        modified = true;
-      };
-      if(modified){
+        if(typeof event[bindMethods[i]] != "function"){
 
-        rating.render();
-      };
-      if(initValue != undefined){
-
-        rating.setValue(initValue);
-      };
-      return rating;
-    }
-  },
-  construct : function(selector, context){
-
-    this.base(arguments, selector, context);
-  },
-  events : {
-    /** Fired at each value change */
-    "changeValue" : "Number"
-  },
-  members : {
-    // overridden
-    init : function(){
-
-      if(!this.base(arguments)){
-
-        return false;
-      };
-      this._updateSymbolLength();
-      var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(rating){
-
-        if(rating.getAttribute("tabindex") < 0){
-
-          rating.setAttribute("tabindex", 0);
+          event[bindMethods[i]] = qx.module.event.Track[bindMethods[i]].bind(event);
         };
-        rating.$onFirstCollection("focus", this._onFocus, rating).$onFirstCollection("blur", this._onBlur, rating).getChildren("span").addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).$onFirstCollection("tap", this._onTap, rating);
-      }.bind(this));
-      return true;
-    },
-    /**
-     * Sets the given value of the raining widget's in the collection. The value will be
-     * converted to the maximum or minimum if our of range.
-     *
-     * @param value {Number} The value of the rating.
-     * @return {qx.ui.website.Rating} <code>this</code> reference for chaining.
-     */
-    setValue : function(value){
-
-      if(this.getValue() == value){
-
-        return this;
       };
-      if(value < 0){
-
-        value = 0;
-      };
-      var cssPrefix = this.getCssPrefix();
-      this._forEachElementWrapped(function(rating){
-
-        var children = rating.getChildren("span");
-        children.removeClass(cssPrefix + "-item-off");
-        children.slice(value, children.length).addClass(cssPrefix + "-item-off");
-        rating.emit("changeValue", rating.getValue());
-      });
-      return this;
-    },
-    /**
-     * Reads the current value of the first rating widget in the collection
-     * from the DOM and returns it.
-     *
-     * @return {Number} The current value.
-     */
-    getValue : function(){
-
-      var cssPrefix = this.getCssPrefix();
-      return this.eq(0).getChildren("span").not("." + cssPrefix + "-item-off").length;
-    },
-    // overridden
-    render : function(){
-
-      this._updateSymbolLength();
-    },
-    /**
-     * Checks the set length and adds / removes spans containing the rating symbol.
-     *
-     * @return {qx.ui.website.Rating} <code>this</code> reference for chaining.
-     */
-    _updateSymbolLength : function(){
-
-      var cssPrefix = this.getCssPrefix();
-      var length = this.getConfig("length");
-      this._forEachElementWrapped(function(el){
-
-        var children = el.getChildren();
-        children.setHtml(this.getConfig("symbol"));
-        var diff = length - children.length;
-        if(diff > 0){
-
-          for(var i = 0;i < diff;i++){
-
-            qxWeb.create("<span>" + this.getConfig("symbol") + "</span>").$onFirstCollection("tap", el._onTap, el).addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).appendTo(el);
-          };
-        } else {
-
-          for(var i = 0;i < Math.abs(diff);i++){
-
-            el.getChildren().getLast().$offFirstCollection("tap", el._onTap, el).remove();
-          };
-        };
-      }.bind(this));
-      return this;
-    },
-    /**
-     * Tap handler which updates the value depending on the selected element.
-     *
-     * @param e {Event} tap event
-     */
-    _onTap : function(e){
-
-      var parents = qxWeb(e.getTarget()).getParents();
-      this.setValue(parents.getChildren().indexOf(e.getTarget()) + 1);
-    },
-    /**
-     * Attaches the keydown listener.
-     * @param e {Event} The native focus event.
-     */
-    _onFocus : function(e){
-
-      qxWeb(document.documentElement).on("keydown", this._onKeyDown, this);
-    },
-    /**
-     * Removes the keydown listener if the widget loses focus.
-     *
-     * @param e {Event} The native blur event.
-     */
-    _onBlur : function(e){
-
-      qxWeb(document.documentElement).off("keydown", this._onKeyDown, this);
-    },
-    /**
-     * Changes the value if the left or right arrow key is pressed.
-     *
-     * @param e {Event} The native keydown event.
-     */
-    _onKeyDown : function(e){
-
-      var key = e.getKeyIdentifier();
-      if(key === "Right"){
-
-        this.setValue(this.getValue() + 1);
-      } else if(key === "Left"){
-
-        this.setValue(this.getValue() - 1);
-      };
-    },
-    // overridden
-    dispose : function(){
-
-      this._forEachElementWrapped(function(rating){
-
-        qxWeb(document.documentElement).off("keydown", this._onKeyDown, rating);
-        rating.$offFirstCollection("focus", this._onFocus, rating).$offFirstCollection("blur", this._onBlur, rating);
-        rating.getChildren("span").$offFirstCollection("tap", rating._onTap, rating);
-      });
-      this.setHtml("");
-      return this.base(arguments);
+      return event;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      rating : statics.rating
-    });
+    qxWeb.$registerEventNormalization(qx.module.event.Track.TYPES, statics.normalize);
   }
 });
 
@@ -25773,6 +25241,3255 @@ qx.Bootstrap.define("qx.module.event.Swipe", {
 
 ************************************************************************ */
 /**
+ * Creates a gesture handler that fires high-level events such as "swipe"
+ * based on low-level event sequences on the given element
+ *
+ * @require(qx.module.Event)
+ * @require(qx.module.event.PointerHandler)
+ *
+ * @group (Event_Normalization)
+ */
+qx.Bootstrap.define("qx.module.event.GestureHandler", {
+  statics : {
+    TYPES : ["tap", "longtap", "swipe", "dbltap", "track", "trackstart", "trackend", "roll", "rotate", "pinch"],
+    /**
+     * Creates a gesture handler for the given element when a gesture event listener
+     * is attached to it
+     *
+     * @param element {Element} DOM element
+     * @param type {String} event type
+     */
+    register : function(element, type){
+
+      if(!element.$$gestureHandler){
+
+        if(!qx.core.Environment.get("event.dispatchevent")){
+
+          if(!element.$$emitter){
+
+            element.$$emitter = new qx.event.Emitter();
+          };
+        };
+        element.$$gestureHandler = new qx.event.handler.GestureCore(element, element.$$emitter);
+      };
+    },
+    /**
+     * Removes the gesture event handler from the element if there are no more
+     * gesture event listeners attached to it
+     * @param element {Element} DOM element
+     */
+    unregister : function(element){
+
+      // check if there are any registered listeners left
+      if(element.$$gestureHandler){
+
+        var listeners = element.$$emitter.getListeners();
+        for(var type in listeners){
+
+          if(qx.module.event.GestureHandler.TYPES.indexOf(type) !== -1){
+
+            if(listeners[type].length > 0){
+
+              return;
+            };
+          };
+        };
+        // no more listeners, get rid of the handler
+        element.$$gestureHandler.dispose();
+        element.$$gestureHandler = undefined;
+      };
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$registerEventHook(statics.TYPES, statics.register, statics.unregister);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Christopher Zuendorf (czuendorf)
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * Listens for (native or synthetic) pointer events and fires events
+ * for gestures like "tap" or "swipe"
+ */
+qx.Bootstrap.define("qx.event.handler.GestureCore", {
+  extend : Object,
+  statics : {
+    TYPES : ["tap", "swipe", "longtap", "dbltap", "track", "trackstart", "trackend", "rotate", "pinch", "roll"],
+    GESTURE_EVENTS : ["gesturebegin", "gesturefinish", "gesturemove", "gesturecancel"],
+    /** @type {Map} Maximum distance between a pointer-down and pointer-up event, values are configurable */
+    TAP_MAX_DISTANCE : {
+      "touch" : 40,
+      "mouse" : 5,
+      "pen" : 20
+    },
+    // values are educated guesses
+    /** @type {Map} Maximum distance between two subsequent taps, values are configurable */
+    DOUBLETAP_MAX_DISTANCE : {
+      "touch" : 10,
+      "mouse" : 4,
+      "pen" : 10
+    },
+    // values are educated guesses
+    /** @type {Map} The direction of a swipe relative to the axis */
+    SWIPE_DIRECTION : {
+      x : ["left", "right"],
+      y : ["up", "down"]
+    },
+    /**
+     * @type {Integer} The time delta in milliseconds to fire a long tap event.
+     */
+    LONGTAP_TIME : 500,
+    /**
+     * @type {Integer} Maximum time between two tap events that will still trigger a
+     * dbltap event.
+     */
+    DOUBLETAP_TIME : 500,
+    /**
+     * @type {Integer} Factor which is used for adapting the delta of the mouse wheel
+     * event to the roll events,
+     */
+    ROLL_FACTOR : 18
+  },
+  /**
+   * @param target {Element} DOM Element that should fire gesture events
+   * @param emitter {qx.event.Emitter?} Event emitter (used if dispatchEvent
+   * is not supported, e.g. in IE8)
+   */
+  construct : function(target, emitter){
+
+    this.__defaultTarget = target;
+    this.__emitter = emitter;
+    this.__gesture = {
+    };
+    this.__lastTap = {
+    };
+    this.__stopMomentum = {
+    };
+    this._initObserver();
+  },
+  members : {
+    __defaultTarget : null,
+    __emitter : null,
+    __gesture : null,
+    __eventName : null,
+    __primaryTarget : null,
+    __isMultiPointerGesture : null,
+    __initialAngle : null,
+    __lastTap : null,
+    __rollImpulseId : null,
+    __stopMomentum : null,
+    __initialDistance : null,
+    /**
+     * Register pointer event listeners
+     */
+    _initObserver : function(){
+
+      qx.event.handler.GestureCore.GESTURE_EVENTS.forEach(function(gestureType){
+
+        qxWeb(this.__defaultTarget).on(gestureType, this.checkAndFireGesture, this);
+      }.bind(this));
+      if(qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") < 9){
+
+        qxWeb(this.__defaultTarget).on("dblclick", this._onDblClick, this);
+      };
+      // list to wheel events
+      var data = qx.core.Environment.get("event.mousewheel");
+      qxWeb(data.target).on(data.type, this._fireRoll, this);
+    },
+    /**
+     * Remove native pointer event listeners.
+     */
+    _stopObserver : function(){
+
+      qx.event.handler.GestureCore.GESTURE_EVENTS.forEach(function(pointerType){
+
+        qxWeb(this.__defaultTarget).off(pointerType, this.checkAndFireGesture, this);
+      }.bind(this));
+      if(qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") < 9){
+
+        qxWeb(this.__defaultTarget).off("dblclick", this._onDblClick, this);
+      };
+      var data = qx.core.Environment.get("event.mousewheel");
+      qxWeb(data.target).off(data.type, this._fireRoll, this);
+    },
+    /**
+     * Checks if a gesture was made and fires the gesture event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param type {String ? null} type of the event
+     * @param target {Element ? null} event target
+     */
+    checkAndFireGesture : function(domEvent, type, target){
+
+      if(!type){
+
+        type = domEvent.type;
+      };
+      if(!target){
+
+        target = qx.bom.Event.getTarget(domEvent);
+      };
+      if(type == "gesturebegin"){
+
+        this.gestureBegin(domEvent, target);
+      } else if(type == "gesturemove"){
+
+        this.gestureMove(domEvent, target);
+      } else if(type == "gesturefinish"){
+
+        this.gestureFinish(domEvent, target);
+      } else if(type == "gesturecancel"){
+
+        this.gestureCancel(domEvent.pointerId);
+      };;;
+    },
+    /**
+     * Helper method for gesture start.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    gestureBegin : function(domEvent, target){
+
+      if(this.__gesture[domEvent.pointerId]){
+
+        this.__stopLongTapTimer(this.__gesture[domEvent.pointerId]);
+        delete this.__gesture[domEvent.pointerId];
+      };
+      /*
+        If the dom event's target or one of its ancestors have
+        a gesture handler, we don't need to fire the gesture again
+        since it bubbles.
+       */
+      if(this._hasIntermediaryHandler(target)){
+
+        return;
+      };
+      this.__gesture[domEvent.pointerId] = {
+        "startTime" : new Date().getTime(),
+        "lastEventTime" : new Date().getTime(),
+        "startX" : domEvent.clientX,
+        "startY" : domEvent.clientY,
+        "clientX" : domEvent.clientX,
+        "clientY" : domEvent.clientY,
+        "velocityX" : 0,
+        "velocityY" : 0,
+        "target" : target,
+        "isTap" : true,
+        "isPrimary" : domEvent.isPrimary,
+        "longTapTimer" : window.setTimeout(this.__fireLongTap.bind(this, domEvent, target), qx.event.handler.GestureCore.LONGTAP_TIME)
+      };
+      if(domEvent.isPrimary){
+
+        this.__isMultiPointerGesture = false;
+        this.__primaryTarget = target;
+        this.__fireTrack("trackstart", domEvent, target);
+      } else {
+
+        this.__isMultiPointerGesture = true;
+        if(Object.keys(this.__gesture).length === 2){
+
+          this.__initialAngle = this._calcAngle();
+          this.__initialDistance = this._calcDistance();
+        };
+      };
+    },
+    /**
+     * Helper method for gesture move.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    gestureMove : function(domEvent, target){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(gesture){
+
+        var oldClientX = gesture.clientX;
+        var oldClientY = gesture.clientY;
+        gesture.clientX = domEvent.clientX;
+        gesture.clientY = domEvent.clientY;
+        gesture.lastEventTime = new Date().getTime();
+        if(oldClientX){
+
+          gesture.velocityX = gesture.clientX - oldClientX;
+        };
+        if(oldClientY){
+
+          gesture.velocityY = gesture.clientY - oldClientY;
+        };
+        if(Object.keys(this.__gesture).length === 2){
+
+          this.__fireRotate(domEvent, gesture.target);
+          this.__firePinch(domEvent, gesture.target);
+        };
+        if(!this.__isMultiPointerGesture){
+
+          this.__fireTrack("track", domEvent, gesture.target);
+          this._fireRoll(domEvent, "touch", gesture.target);
+        };
+        // abort long tap timer if the distance is too big
+        if(gesture.isTap){
+
+          gesture.isTap = this._isBelowTapMaxDistance(domEvent);
+          if(!gesture.isTap){
+
+            this.__stopLongTapTimer(gesture);
+          };
+        };
+      };
+    },
+    /**
+     * Checks if a DOM element located between the target of a gesture
+     * event and the element this handler is attached to has a gesture
+     * handler of its own.
+     *
+     * @param target {Element} The gesture event's target
+     * @return {Boolean}
+     */
+    _hasIntermediaryHandler : function(target){
+
+      while(target && target !== this.__defaultTarget){
+
+        if(target.$$gestureHandler){
+
+          return true;
+        };
+        target = target.parentNode;
+      };
+      return false;
+    },
+    /**
+     * Helper method for gesture end.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    gestureFinish : function(domEvent, target){
+
+      // If no start position is available for this pointerup event, cancel gesture recognition.
+      if(!this.__gesture[domEvent.pointerId]){
+
+        return;
+      };
+      var gesture = this.__gesture[domEvent.pointerId];
+      // delete the long tap
+      this.__stopLongTapTimer(gesture);
+      /*
+        If the dom event's target or one of its ancestors have
+        a gesture handler, we don't need to fire the gesture again
+        since it bubbles.
+       */
+      if(this._hasIntermediaryHandler(target)){
+
+        return;
+      };
+      // always start the roll impulse on the original target
+      this.__handleRollImpulse(gesture.velocityX, gesture.velocityY, domEvent, gesture.target);
+      this.__fireTrack("trackend", domEvent, gesture.target);
+      if(gesture.isTap){
+
+        if(target !== gesture.target){
+
+          delete this.__gesture[domEvent.pointerId];
+          return;
+        };
+        this._fireEvent(domEvent, "tap", domEvent.target || target);
+        var isDblTap = false;
+        if(Object.keys(this.__lastTap).length > 0){
+
+          // delete old tap entries
+          var limit = Date.now() - qx.event.handler.GestureCore.DOUBLETAP_TIME;
+          for(var time in this.__lastTap){
+
+            if(time < limit){
+
+              delete this.__lastTap[time];
+            } else {
+
+              var lastTap = this.__lastTap[time];
+              var isBelowDoubleTapDistance = this.__isBelowDoubleTapDistance(lastTap.x, lastTap.y, domEvent.clientX, domEvent.clientY, domEvent.getPointerType());
+              var isSameTarget = lastTap.target === (domEvent.target || target);
+              var isSameButton = lastTap.button === domEvent.button;
+              if(isBelowDoubleTapDistance && isSameButton && isSameTarget){
+
+                isDblTap = true;
+                delete this.__lastTap[time];
+                this._fireEvent(domEvent, "dbltap", domEvent.target || target);
+              };
+            };
+          };
+        };
+        if(!isDblTap){
+
+          this.__lastTap[Date.now()] = {
+            x : domEvent.clientX,
+            y : domEvent.clientY,
+            target : domEvent.target || target,
+            button : domEvent.button
+          };
+        };
+      } else if(!this._isBelowTapMaxDistance(domEvent)){
+
+        var swipe = this.__getSwipeGesture(domEvent, target);
+        if(swipe){
+
+          domEvent.swipe = swipe;
+          this._fireEvent(domEvent, "swipe", gesture.target || target);
+        };
+      };
+      delete this.__gesture[domEvent.pointerId];
+    },
+    /**
+     * Stops the momentum scrolling currently running.
+     *
+     * @param id {Integer} The timeoutId of a 'roll' event
+     */
+    stopMomentum : function(id){
+
+      this.__stopMomentum[id] = true;
+    },
+    /**
+     * Cancels the gesture if running.
+     * @param id {Number} The pointer Id.
+     */
+    gestureCancel : function(id){
+
+      if(this.__gesture[id]){
+
+        this.__stopLongTapTimer(this.__gesture[id]);
+        delete this.__gesture[id];
+      };
+    },
+    /**
+     * Update the target of a running gesture. This is used in virtual widgets
+     * when the DOM element changes.
+     *
+     * @param id {String} The pointer id.
+     * @param target {Element} The new target element.
+     * @internal
+     */
+    updateGestureTarget : function(id, target){
+
+      this.__gesture[id].target = target;
+    },
+    /**
+     * Method which will be called recursively to provide a momentum scrolling.
+     * @param deltaX {Number} The last offset in X direction
+     * @param deltaY {Number} The last offset in Y direction
+     * @param domEvent {Event} The original gesture event
+     * @param target {Element} The target of the momentum roll events
+     * @param time {Number ?} The time in ms between the last two calls
+     */
+    __handleRollImpulse : function(deltaX, deltaY, domEvent, target, time){
+
+      var oldTimeoutId = domEvent.timeoutId;
+      // do nothing if we don't need to scroll
+      if((Math.abs(deltaY) < 1 && Math.abs(deltaX) < 1) || this.__stopMomentum[oldTimeoutId]){
+
+        delete this.__stopMomentum[oldTimeoutId];
+        return;
+      };
+      if(!time){
+
+        time = 1;
+        var startFactor = 2.8;
+        deltaY = deltaY / startFactor;
+        deltaX = deltaX / startFactor;
+      };
+      time += 0.0006;
+      deltaY = deltaY / time;
+      deltaX = deltaX / time;
+      // set up a new timer with the new delta
+      var timeoutId = qx.bom.AnimationFrame.request(qx.lang.Function.bind(function(deltaX, deltaY, domEvent, target, time){
+
+        this.__handleRollImpulse(deltaX, deltaY, domEvent, target, time);
+      }, this, deltaX, deltaY, domEvent, target, time));
+      deltaX = Math.round(deltaX * 100) / 100;
+      deltaY = Math.round(deltaY * 100) / 100;
+      // scroll the desired new delta
+      domEvent.delta = {
+        x : -deltaX,
+        y : -deltaY
+      };
+      domEvent.momentum = true;
+      domEvent.timeoutId = timeoutId;
+      this._fireEvent(domEvent, "roll", domEvent.target || target);
+    },
+    /**
+    * Calculates the angle of the primary and secondary pointer.
+    * @return {Number} the rotation angle of the 2 pointers.
+    */
+    _calcAngle : function(){
+
+      var pointerA = null;
+      var pointerB = null;
+      for(var pointerId in this.__gesture){
+
+        var gesture = this.__gesture[pointerId];
+        if(pointerA === null){
+
+          pointerA = gesture;
+        } else {
+
+          pointerB = gesture;
+        };
+      };
+      var x = pointerA.clientX - pointerB.clientX;
+      var y = pointerA.clientY - pointerB.clientY;
+      return (360 + Math.atan2(y, x) * (180 / Math.PI)) % 360;
+    },
+    /**
+     * Calculates the scaling distance between two pointers.
+     * @return {Number} the calculated distance.
+     */
+    _calcDistance : function(){
+
+      var pointerA = null;
+      var pointerB = null;
+      for(var pointerId in this.__gesture){
+
+        var gesture = this.__gesture[pointerId];
+        if(pointerA === null){
+
+          pointerA = gesture;
+        } else {
+
+          pointerB = gesture;
+        };
+      };
+      var scale = Math.sqrt(Math.pow(pointerA.clientX - pointerB.clientX, 2) + Math.pow(pointerA.clientY - pointerB.clientY, 2));
+      return scale;
+    },
+    /**
+     * Checks if the distance between the x/y coordinates of DOM event
+     * exceeds TAP_MAX_DISTANCE and returns the result.
+     *
+     * @param domEvent {Event} The DOM event from the browser.
+     * @return {Boolean|null} true if distance is below TAP_MAX_DISTANCE.
+     */
+    _isBelowTapMaxDistance : function(domEvent){
+
+      var delta = this._getDeltaCoordinates(domEvent);
+      var maxDistance = qx.event.handler.GestureCore.TAP_MAX_DISTANCE[domEvent.getPointerType()];
+      if(!delta){
+
+        return null;
+      };
+      return (Math.abs(delta.x) <= maxDistance && Math.abs(delta.y) <= maxDistance);
+    },
+    /**
+     * Checks if the distance between the x1/y1 and x2/y2 is
+     * below the TAP_MAX_DISTANCE and returns the result.
+     *
+     * @param x1 {Number} The x position of point one.
+     * @param y1 {Number} The y position of point one.
+     * @param x2 {Number} The x position of point two.
+     * @param y2 {Number} The y position of point two.
+     * @param type {String} The pointer type e.g. "mouse"
+     * @return {Boolean} <code>true</code>, if points are in range
+     */
+    __isBelowDoubleTapDistance : function(x1, y1, x2, y2, type){
+
+      var clazz = qx.event.handler.GestureCore;
+      var inX = Math.abs(x1 - x2) < clazz.DOUBLETAP_MAX_DISTANCE[type];
+      var inY = Math.abs(y1 - y2) < clazz.DOUBLETAP_MAX_DISTANCE[type];
+      return inX && inY;
+    },
+    /**
+    * Calculates the delta coordinates in relation to the position on <code>pointerstart</code> event.
+    * @param domEvent {Event} The DOM event from the browser.
+    * @return {Map} containing the deltaX as x, and deltaY as y.
+    */
+    _getDeltaCoordinates : function(domEvent){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(!gesture){
+
+        return null;
+      };
+      var deltaX = domEvent.clientX - gesture.startX;
+      var deltaY = domEvent.clientY - gesture.startY;
+      var axis = "x";
+      if(Math.abs(deltaX / deltaY) < 1){
+
+        axis = "y";
+      };
+      return {
+        "x" : deltaX,
+        "y" : deltaY,
+        "axis" : axis
+      };
+    },
+    /**
+     * Fire a gesture event with the given parameters
+     *
+     * @param domEvent {Event} DOM event
+     * @param type {String} type of the event
+     * @param target {Element ? null} event target
+     */
+    _fireEvent : function(domEvent, type, target){
+
+      // The target may have been removed, e.g. menu hide on tap
+      if(!this.__defaultTarget){
+
+        return;
+      };
+      var evt;
+      if(qx.core.Environment.get("event.dispatchevent")){
+
+        evt = new qx.event.type.dom.Custom(type, domEvent, {
+          bubbles : true,
+          swipe : domEvent.swipe,
+          scale : domEvent.scale,
+          angle : domEvent.angle,
+          delta : domEvent.delta,
+          pointerType : domEvent.pointerType,
+          momentum : domEvent.momentum
+        });
+        target.dispatchEvent(evt);
+      } else if(this.__emitter){
+
+        evt = new qx.event.type.dom.Custom(type, domEvent, {
+          target : this.__defaultTarget,
+          currentTarget : this.__defaultTarget,
+          srcElement : this.__defaultTarget,
+          swipe : domEvent.swipe,
+          scale : domEvent.scale,
+          angle : domEvent.angle,
+          delta : domEvent.delta,
+          pointerType : domEvent.pointerType,
+          momentum : domEvent.momentum
+        });
+        this.__emitter.emit(type, domEvent);
+      };
+    },
+    /**
+     * Fire "tap" and "dbltap" events after a native "dblclick"
+     * event to fix IE 8's broken mouse event sequence.
+     *
+     * @param domEvent {Event} dblclick event
+     */
+    _onDblClick : function(domEvent){
+
+      var target = qx.bom.Event.getTarget(domEvent);
+      this._fireEvent(domEvent, "tap", target);
+      this._fireEvent(domEvent, "dbltap", target);
+    },
+    /**
+     * Returns the swipe gesture when the user performed a swipe.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     * @return {Map|null} returns the swipe data when the user performed a swipe, null if the gesture was no swipe.
+     */
+    __getSwipeGesture : function(domEvent, target){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(!gesture){
+
+        return null;
+      };
+      var clazz = qx.event.handler.GestureCore;
+      var deltaCoordinates = this._getDeltaCoordinates(domEvent);
+      var duration = new Date().getTime() - gesture.startTime;
+      var axis = (Math.abs(deltaCoordinates.x) >= Math.abs(deltaCoordinates.y)) ? "x" : "y";
+      var distance = deltaCoordinates[axis];
+      var direction = clazz.SWIPE_DIRECTION[axis][distance < 0 ? 0 : 1];
+      var velocity = (duration !== 0) ? distance / duration : 0;
+      var swipe = {
+        startTime : gesture.startTime,
+        duration : duration,
+        axis : axis,
+        direction : direction,
+        distance : distance,
+        velocity : velocity
+      };
+      return swipe;
+    },
+    /**
+     * Fires a track event.
+     *
+     * @param type {String} the track type
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __fireTrack : function(type, domEvent, target){
+
+      domEvent.delta = this._getDeltaCoordinates(domEvent);
+      this._fireEvent(domEvent, type, domEvent.target || target);
+    },
+    /**
+     * Fires a roll event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param type {String} The type of the dom event
+     * @param target {Element} event target
+     */
+    _fireRoll : function(domEvent, type, target){
+
+      if(domEvent.type === qx.core.Environment.get("event.mousewheel").type){
+
+        domEvent.delta = {
+          x : qx.util.Wheel.getDelta(domEvent, "x") * qx.event.handler.GestureCore.ROLL_FACTOR,
+          y : qx.util.Wheel.getDelta(domEvent, "y") * qx.event.handler.GestureCore.ROLL_FACTOR
+        };
+        domEvent.delta.axis = Math.abs(domEvent.delta.x / domEvent.delta.y) < 1 ? "y" : "x";
+        domEvent.pointerType = "wheel";
+      } else {
+
+        var gesture = this.__gesture[domEvent.pointerId];
+        domEvent.delta = {
+          x : -gesture.velocityX,
+          y : -gesture.velocityY,
+          axis : Math.abs(gesture.velocityX / gesture.velocityY) < 1 ? "y" : "x"
+        };
+      };
+      this._fireEvent(domEvent, "roll", domEvent.target || target);
+    },
+    /**
+     * Fires a rotate event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __fireRotate : function(domEvent, target){
+
+      if(!domEvent.isPrimary){
+
+        var angle = this._calcAngle();
+        domEvent.angle = Math.round((angle - this.__initialAngle) % 360);
+        this._fireEvent(domEvent, "rotate", this.__primaryTarget);
+      };
+    },
+    /**
+     * Fires a pinch event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __firePinch : function(domEvent, target){
+
+      if(!domEvent.isPrimary){
+
+        var distance = this._calcDistance();
+        var scale = distance / this.__initialDistance;
+        domEvent.scale = (Math.round(scale * 100) / 100);
+        this._fireEvent(domEvent, "pinch", this.__primaryTarget);
+      };
+    },
+    /**
+     * Fires the long tap event.
+     *
+     * @param domEvent {Event} DOM event
+     * @param target {Element} event target
+     */
+    __fireLongTap : function(domEvent, target){
+
+      var gesture = this.__gesture[domEvent.pointerId];
+      if(gesture){
+
+        this._fireEvent(domEvent, "longtap", domEvent.target || target);
+        gesture.longTapTimer = null;
+        gesture.isTap = false;
+      };
+    },
+    /**
+     * Stops the time for the long tap event.
+     * @param gesture {Map} Data may representing the gesture.
+     */
+    __stopLongTapTimer : function(gesture){
+
+      if(gesture.longTapTimer){
+
+        window.clearTimeout(gesture.longTapTimer);
+        gesture.longTapTimer = null;
+      };
+    },
+    /**
+     * Checks if the distance between the x/y coordinates of touchstart/mousedown and touchmove/mousemove event
+     * exceeds TAP_MAX_DISTANCE and returns the result.
+     *
+     * @param event {Event} The event from the browser.
+     * @return {Boolean} true if distance is below TAP_MAX_DISTANCE.
+     */
+    isBelowTapMaxDistance : function(event){
+
+      var deltaCoordinates = this._calcDelta(event);
+      var clazz = qx.event.handler.GestureCore;
+      return (Math.abs(deltaCoordinates.x) <= clazz.TAP_MAX_DISTANCE && Math.abs(deltaCoordinates.y) <= clazz.TAP_MAX_DISTANCE);
+    },
+    /**
+     * Dispose the current instance
+     */
+    dispose : function(){
+
+      for(var gesture in this.__gesture){
+
+        this.__stopLongTapTimer(gesture);
+      };
+      this._stopObserver();
+      this.__defaultTarget = this.__emitter = null;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (wittemann)
+
+************************************************************************ */
+/**
+ * This is a cross browser wrapper for requestAnimationFrame. For further
+ * information about the feature, take a look at spec:
+ * http://www.w3.org/TR/animation-timing/
+ *
+ * This class offers two ways of using this feature. First, the plain
+ * API the spec describes.
+ *
+ * Here is a sample usage:
+ * <pre class='javascript'>var start = +(new Date());
+ * var clb = function(time) {
+ *   if (time >= start + duration) {
+ *     // ... do some last tasks
+ *   } else {
+ *     var timePassed = time - start;
+ *     // ... calculate the current step and apply it
+ *     qx.bom.AnimationFrame.request(clb, this);
+ *   }
+ * };
+ * qx.bom.AnimationFrame.request(clb, this);
+ * </pre>
+ *
+ * Another way of using it is to use it as an instance emitting events.
+ *
+ * Here is a sample usage of that API:
+ * <pre class='javascript'>var frame = new qx.bom.AnimationFrame();
+ * frame.on("end", function() {
+ *   // ... do some last tasks
+ * }, this);
+ * frame.on("frame", function(timePassed) {
+ *   // ... calculate the current step and apply it
+ * }, this);
+ * frame.startSequence(duration);
+ * </pre>
+ *
+ * @require(qx.lang.normalize.Date)
+ */
+qx.Bootstrap.define("qx.bom.AnimationFrame", {
+  extend : qx.event.Emitter,
+  events : {
+    /** Fired as soon as the animation has ended. */
+    "end" : undefined,
+    /**
+     * Fired on every frame having the passed time as value
+     * (might be a float for higher precision).
+     */
+    "frame" : "Number"
+  },
+  members : {
+    __canceled : false,
+    /**
+     * Method used to start a series of animation frames. The series will end as
+     * soon as the given duration is over.
+     *
+     * @param duration {Number} The duration the sequence should take.
+     */
+    startSequence : function(duration){
+
+      this.__canceled = false;
+      var start = +(new Date());
+      var clb = function(time){
+
+        if(this.__canceled){
+
+          this.id = null;
+          return;
+        };
+        // final call
+        if(time >= start + duration){
+
+          this.emit("end");
+          this.id = null;
+        } else {
+
+          var timePassed = Math.max(time - start, 0);
+          this.emit("frame", timePassed);
+          this.id = qx.bom.AnimationFrame.request(clb, this);
+        };
+      };
+      this.id = qx.bom.AnimationFrame.request(clb, this);
+    },
+    /**
+     * Cancels a started sequence of frames. It will do nothing if no
+     * sequence is running.
+     */
+    cancelSequence : function(){
+
+      this.__canceled = true;
+    }
+  },
+  statics : {
+    /**
+     * The default time in ms the timeout fallback implementation uses.
+     */
+    TIMEOUT : 30,
+    /**
+     * Calculation of the predefined timing functions. Approximation of the real
+     * bezier curves has been used for easier calculation. This is good and close
+     * enough for the predefined functions like <code>ease</code> or
+     * <code>linear</code>.
+     *
+     * @param func {String} The defined timing function. One of the following values:
+     *   <code>"ease-in"</code>, <code>"ease-out"</code>, <code>"linear"</code>,
+     *   <code>"ease-in-out"</code>, <code>"ease"</code>.
+     * @param x {Integer} The percent value of the function.
+     * @return {Integer} The calculated value
+     */
+    calculateTiming : function(func, x){
+
+      if(func == "ease-in"){
+
+        var a = [3.1223e-7, 0.0757, 1.2646, -0.167, -0.4387, 0.2654];
+      } else if(func == "ease-out"){
+
+        var a = [-7.0198e-8, 1.652, -0.551, -0.0458, 0.1255, -0.1807];
+      } else if(func == "linear"){
+
+        return x;
+      } else if(func == "ease-in-out"){
+
+        var a = [2.482e-7, -0.2289, 3.3466, -1.0857, -1.7354, 0.7034];
+      } else {
+
+        // default is 'ease'
+        var a = [-0.0021, 0.2472, 9.8054, -21.6869, 17.7611, -5.1226];
+      };;;
+      // A 6th grade polynomial has been used as approximation of the original
+      // bezier curves  described in the transition spec
+      // http://www.w3.org/TR/css3-transitions/#transition-timing-function_tag
+      // (the same is used for animations as well)
+      var y = 0;
+      for(var i = 0;i < a.length;i++){
+
+        y += a[i] * Math.pow(x, i);
+      };
+      return y;
+    },
+    /**
+     * Request for an animation frame. If the native <code>requestAnimationFrame</code>
+     * method is supported, it will be used. Otherwise, we use timeouts with a
+     * 30ms delay. The HighResolutionTime will be used if supported but the time given
+     * to the callback will still be a timestamp starting at 1 January 1970 00:00:00 UTC.
+     *
+     * @param callback {Function} The callback function which will get the current
+     *   time as argument (which could be a float for higher precision).
+     * @param context {var} The context of the callback.
+     * @return {Number} The id of the request.
+     */
+    request : function(callback, context){
+
+      var req = qx.core.Environment.get("css.animation.requestframe");
+      var clb = function(time){
+
+        // check for high resolution time
+        if(time < 1e10){
+
+          time = this.__start + time;
+        };
+        time = time || +(new Date());
+        callback.call(context, time);
+      };
+      if(req){
+
+        return window[req](clb);
+      } else {
+
+        // make sure to use an indirection because setTimeout passes a
+        // number as first argument as well
+        return window.setTimeout(function(){
+
+          clb();
+        }, qx.bom.AnimationFrame.TIMEOUT);
+      };
+    }
+  },
+  /**
+   * @ignore(performance.timing.*)
+   */
+  defer : function(statics){
+
+    // check and use the high resolution start time if available
+    statics.__start = window.performance && performance.timing && performance.timing.navigationStart;
+    // if not, simply use the current time
+    if(!statics.__start){
+
+      statics.__start = Date.now();
+    };
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
+     2006 STZ-IDA, Germany, http://www.stz-ida.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Sebastian Werner (wpbasti)
+     * Andreas Ecker (ecker)
+     * Andreas Junghans (lucidcake)
+
+************************************************************************ */
+/**
+ * Cross-browser wrapper to work with CSS stylesheets.
+ */
+qx.Bootstrap.define("qx.bom.Stylesheet", {
+  /*
+  *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics : {
+    /**
+     * Include a CSS file
+     *
+     * <em>Note:</em> Using a resource ID as the <code>href</code> parameter
+     * will no longer be supported. Call
+     * <code>qx.util.ResourceManager.getInstance().toUri(href)</code> to get
+     * valid URI to be used with this method.
+     *
+     * @param href {String} Href value
+     * @param doc {Document?} Document to modify
+     */
+    includeFile : function(href, doc){
+
+      if(!doc){
+
+        doc = document;
+      };
+      var el = doc.createElement("link");
+      el.type = "text/css";
+      el.rel = "stylesheet";
+      el.href = href;
+      var head = doc.getElementsByTagName("head")[0];
+      head.appendChild(el);
+    },
+    /**
+     * Create a new Stylesheet node and append it to the document
+     *
+     * @param text {String?} optional string of css rules
+     * @return {Stylesheet} the generates stylesheet element
+     */
+    createElement : function(text){
+
+      if(qx.core.Environment.get("html.stylesheet.createstylesheet")){
+
+        var sheet = document.createStyleSheet();
+        if(text){
+
+          sheet.cssText = text;
+        };
+        return sheet;
+      } else {
+
+        var elem = document.createElement("style");
+        elem.type = "text/css";
+        if(text){
+
+          elem.appendChild(document.createTextNode(text));
+        };
+        document.getElementsByTagName("head")[0].appendChild(elem);
+        return elem.sheet;
+      };
+    },
+    /**
+     * Insert a new CSS rule into a given Stylesheet
+     *
+     * @param sheet {Object} the target Stylesheet object
+     * @param selector {String} the selector
+     * @param entry {String} style rule
+     */
+    addRule : function(sheet, selector, entry){
+
+      {
+
+        var msg = "qx.bom.Stylesheet.addRule: The rule '" + entry + "' for the selector '" + selector + "' must not be enclosed in braces";
+        qx.core.Assert.assertFalse(/^\s*?\{.*?\}\s*?$/.test(entry), msg);
+      };
+      if(qx.core.Environment.get("html.stylesheet.insertrule")){
+
+        sheet.insertRule(selector + "{" + entry + "}", sheet.cssRules.length);
+      } else {
+
+        sheet.addRule(selector, entry);
+      };
+    },
+    /**
+     * Remove a CSS rule from a stylesheet
+     *
+     * @param sheet {Object} the Stylesheet
+     * @param selector {String} the Selector of the rule to remove
+     */
+    removeRule : function(sheet, selector){
+
+      if(qx.core.Environment.get("html.stylesheet.deleterule")){
+
+        var rules = sheet.cssRules;
+        var len = rules.length;
+        for(var i = len - 1;i >= 0;--i){
+
+          if(rules[i].selectorText == selector){
+
+            sheet.deleteRule(i);
+          };
+        };
+      } else {
+
+        var rules = sheet.rules;
+        var len = rules.length;
+        for(var i = len - 1;i >= 0;--i){
+
+          if(rules[i].selectorText == selector){
+
+            sheet.removeRule(i);
+          };
+        };
+      };
+    },
+    /**
+     * Remove the given sheet from its owner.
+     * @param sheet {Object} the stylesheet object
+     */
+    removeSheet : function(sheet){
+
+      var owner = sheet.ownerNode ? sheet.ownerNode : sheet.owningElement;
+      qx.dom.Element.removeChild(owner, owner.parentNode);
+    },
+    /**
+     * Remove all CSS rules from a stylesheet
+     *
+     * @param sheet {Object} the stylesheet object
+     */
+    removeAllRules : function(sheet){
+
+      if(qx.core.Environment.get("html.stylesheet.deleterule")){
+
+        var rules = sheet.cssRules;
+        var len = rules.length;
+        for(var i = len - 1;i >= 0;i--){
+
+          sheet.deleteRule(i);
+        };
+      } else {
+
+        var rules = sheet.rules;
+        var len = rules.length;
+        for(var i = len - 1;i >= 0;i--){
+
+          sheet.removeRule(i);
+        };
+      };
+    },
+    /**
+     * Add an import of an external CSS file to a stylesheet
+     *
+     * @param sheet {Object} the stylesheet object
+     * @param url {String} URL of the external stylesheet file
+     */
+    addImport : function(sheet, url){
+
+      if(qx.core.Environment.get("html.stylesheet.addimport")){
+
+        sheet.addImport(url);
+      } else {
+
+        sheet.insertRule('@import "' + url + '";', sheet.cssRules.length);
+      };
+    },
+    /**
+     * Removes an import from a stylesheet
+     *
+     * @param sheet {Object} the stylesheet object
+     * @param url {String} URL of the imported CSS file
+     */
+    removeImport : function(sheet, url){
+
+      if(qx.core.Environment.get("html.stylesheet.removeimport")){
+
+        var imports = sheet.imports;
+        var len = imports.length;
+        for(var i = len - 1;i >= 0;i--){
+
+          if(imports[i].href == url || imports[i].href == qx.util.Uri.getAbsolute(url)){
+
+            sheet.removeImport(i);
+          };
+        };
+      } else {
+
+        var rules = sheet.cssRules;
+        var len = rules.length;
+        for(var i = len - 1;i >= 0;i--){
+
+          if(rules[i].href == url){
+
+            sheet.deleteRule(i);
+          };
+        };
+      };
+    },
+    /**
+     * Remove all imports from a stylesheet
+     *
+     * @param sheet {Object} the stylesheet object
+     */
+    removeAllImports : function(sheet){
+
+      if(qx.core.Environment.get("html.stylesheet.removeimport")){
+
+        var imports = sheet.imports;
+        var len = imports.length;
+        for(var i = len - 1;i >= 0;i--){
+
+          sheet.removeImport(i);
+        };
+      } else {
+
+        var rules = sheet.cssRules;
+        var len = rules.length;
+        for(var i = len - 1;i >= 0;i--){
+
+          if(rules[i].type == rules[i].IMPORT_RULE){
+
+            sheet.deleteRule(i);
+          };
+        };
+      };
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Tristan Koch (tristankoch)
+
+************************************************************************ */
+/**
+ * Static helpers for parsing and modifying URIs.
+ */
+qx.Bootstrap.define("qx.util.Uri", {
+  statics : {
+    /**
+     * Split URL
+     *
+     * Code taken from:
+     *   parseUri 1.2.2
+     *   (c) Steven Levithan <stevenlevithan.com>
+     *   MIT License
+     *
+     *
+     * @param str {String} String to parse as URI
+     * @param strict {Boolean} Whether to parse strictly by the rules
+     * @return {Object} Map with parts of URI as properties
+     */
+    parseUri : function(str, strict){
+
+      var options = {
+        key : ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+        q : {
+          name : "queryKey",
+          parser : /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser : {
+          strict : /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+          loose : /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+      };
+      var o = options,m = options.parser[strict ? "strict" : "loose"].exec(str),uri = {
+      },i = 14;
+      while(i--){
+
+        uri[o.key[i]] = m[i] || "";
+      };
+      uri[o.q.name] = {
+      };
+      uri[o.key[12]].replace(o.q.parser, function($0, $1, $2){
+
+        if($1){
+
+          uri[o.q.name][$1] = $2;
+        };
+      });
+      return uri;
+    },
+    /**
+     * Append string to query part of URL. Respects existing query.
+     *
+     * @param url {String} URL to append string to.
+     * @param params {String} Parameters to append to URL.
+     * @return {String} URL with string appended in query part.
+     */
+    appendParamsToUrl : function(url, params){
+
+      if(params === undefined){
+
+        return url;
+      };
+      {
+
+        if(!(qx.lang.Type.isString(params) || qx.lang.Type.isObject(params))){
+
+          throw new Error("params must be either string or object");
+        };
+      };
+      if(qx.lang.Type.isObject(params)){
+
+        params = qx.util.Uri.toParameter(params);
+      };
+      if(!params){
+
+        return url;
+      };
+      return url += /\?/.test(url) ? "&" + params : "?" + params;
+    },
+    /**
+     * Serializes an object to URI parameters (also known as query string).
+     *
+     * Escapes characters that have a special meaning in URIs as well as
+     * umlauts. Uses the global function encodeURIComponent, see
+     * https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/encodeURIComponent
+     *
+     * Note: For URI parameters that are to be sent as
+     * application/x-www-form-urlencoded (POST), spaces should be encoded
+     * with "+".
+     *
+     * @param obj {Object}   Object to serialize.
+     * @param post {Boolean} Whether spaces should be encoded with "+".
+     * @return {String}      Serialized object. Safe to append to URIs or send as
+     *                       URL encoded string.
+     */
+    toParameter : function(obj, post){
+
+      var key,parts = [];
+      for(key in obj){
+
+        if(obj.hasOwnProperty(key)){
+
+          var value = obj[key];
+          if(value instanceof Array){
+
+            for(var i = 0;i < value.length;i++){
+
+              this.__toParameterPair(key, value[i], parts, post);
+            };
+          } else {
+
+            this.__toParameterPair(key, value, parts, post);
+          };
+        };
+      };
+      return parts.join("&");
+    },
+    /**
+     * Encodes key/value to URI safe string and pushes to given array.
+     *
+     * @param key {String} Key.
+     * @param value {String} Value.
+     * @param parts {Array} Array to push to.
+     * @param post {Boolean} Whether spaces should be encoded with "+".
+     */
+    __toParameterPair : function(key, value, parts, post){
+
+      var encode = window.encodeURIComponent;
+      if(post){
+
+        parts.push(encode(key).replace(/%20/g, "+") + "=" + encode(value).replace(/%20/g, "+"));
+      } else {
+
+        parts.push(encode(key) + "=" + encode(value));
+      };
+    },
+    /**
+     * Takes a relative URI and returns an absolute one.
+     *
+     * @param uri {String} relative URI
+     * @return {String} absolute URI
+     */
+    getAbsolute : function(uri){
+
+      var div = document.createElement("div");
+      div.innerHTML = '<a href="' + uri + '">0</a>';
+      return div.firstChild.href;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Daniel Wagner (d_wagner)
+
+************************************************************************ */
+/**
+ * Internal class which contains the checks used by {@link qx.core.Environment}.
+ * All checks in here are marked as internal which means you should never use
+ * them directly.
+ *
+ * This class contains checks related to Stylesheet objects.
+ *
+ * @internal
+ */
+qx.Bootstrap.define("qx.bom.client.Stylesheet", {
+  statics : {
+    /**
+     * Returns a stylesheet to be used for feature checks
+     *
+     * @return {Stylesheet} Stylesheet element
+     */
+    __getStylesheet : function(){
+
+      if(!qx.bom.client.Stylesheet.__stylesheet){
+
+        qx.bom.client.Stylesheet.__stylesheet = qx.bom.Stylesheet.createElement();
+      };
+      return qx.bom.client.Stylesheet.__stylesheet;
+    },
+    /**
+     * Check for IE's non-standard document.createStyleSheet function.
+     * In IE9 (standards mode), the typeof check returns "function" so false is
+     * returned. This is intended since IE9 supports the DOM-standard
+     * createElement("style") which should be used instead.
+     *
+     * @internal
+     * @return {Boolean} <code>true</code> if the browser supports
+     * document.createStyleSheet
+     */
+    getCreateStyleSheet : function(){
+
+      return typeof document.createStyleSheet === "object";
+    },
+    /**
+     * Check for stylesheet.insertRule. Legacy IEs do not support this.
+     *
+     * @internal
+     * @return {Boolean} <code>true</code> if insertRule is supported
+     */
+    getInsertRule : function(){
+
+      return typeof qx.bom.client.Stylesheet.__getStylesheet().insertRule === "function";
+    },
+    /**
+     * Check for stylesheet.deleteRule. Legacy IEs do not support this.
+     *
+     * @internal
+     * @return {Boolean} <code>true</code> if deleteRule is supported
+     */
+    getDeleteRule : function(){
+
+      return typeof qx.bom.client.Stylesheet.__getStylesheet().deleteRule === "function";
+    },
+    /**
+     * Decides whether to use the legacy IE-only stylesheet.addImport or the
+     * DOM-standard stylesheet.insertRule('@import [...]')
+     *
+     * @internal
+     * @return {Boolean} <code>true</code> if stylesheet.addImport is supported
+     */
+    getAddImport : function(){
+
+      return (typeof qx.bom.client.Stylesheet.__getStylesheet().addImport === "object");
+    },
+    /**
+     * Decides whether to use the legacy IE-only stylesheet.removeImport or the
+     * DOM-standard stylesheet.deleteRule('@import [...]')
+     *
+     * @internal
+     * @return {Boolean} <code>true</code> if stylesheet.removeImport is supported
+     */
+    getRemoveImport : function(){
+
+      return (typeof qx.bom.client.Stylesheet.__getStylesheet().removeImport === "object");
+    }
+  },
+  defer : function(statics){
+
+    qx.core.Environment.add("html.stylesheet.createstylesheet", statics.getCreateStyleSheet);
+    qx.core.Environment.add("html.stylesheet.insertrule", statics.getInsertRule);
+    qx.core.Environment.add("html.stylesheet.deleterule", statics.getDeleteRule);
+    qx.core.Environment.add("html.stylesheet.addimport", statics.getAddImport);
+    qx.core.Environment.add("html.stylesheet.removeimport", statics.getRemoveImport);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (wittemann)
+
+************************************************************************ */
+/**
+ * Responsible for checking all relevant animation properties.
+ *
+ * Spec: http://www.w3.org/TR/css3-animations/
+ *
+ * @require(qx.bom.Stylesheet)
+ * @internal
+ */
+qx.Bootstrap.define("qx.bom.client.CssAnimation", {
+  statics : {
+    /**
+     * Main check method which returns an object if CSS animations are
+     * supported. This object contains all necessary keys to work with CSS
+     * animations.
+     * <ul>
+     *  <li><code>name</code> The name of the css animation style</li>
+     *  <li><code>play-state</code> The name of the play-state style</li>
+     *  <li><code>start-event</code> The name of the start event</li>
+     *  <li><code>iternation-event</code> The name of the iternation event</li>
+     *  <li><code>end-event</code> The name of the end event</li>
+     *  <li><code>fill-mode</code> The fill-mode style</li>
+     *  <li><code>keyframes</code> The name of the keyframes selector.</li>
+     * </ul>
+     *
+     * @internal
+     * @return {Object|null} The described object or null, if animations are
+     *   not supported.
+     */
+    getSupport : function(){
+
+      var name = qx.bom.client.CssAnimation.getName();
+      if(name != null){
+
+        return {
+          "name" : name,
+          "play-state" : qx.bom.client.CssAnimation.getPlayState(),
+          "start-event" : qx.bom.client.CssAnimation.getAnimationStart(),
+          "iteration-event" : qx.bom.client.CssAnimation.getAnimationIteration(),
+          "end-event" : qx.bom.client.CssAnimation.getAnimationEnd(),
+          "fill-mode" : qx.bom.client.CssAnimation.getFillMode(),
+          "keyframes" : qx.bom.client.CssAnimation.getKeyFrames()
+        };
+      };
+      return null;
+    },
+    /**
+     * Checks for the 'animation-fill-mode' CSS style.
+     * @internal
+     * @return {String|null} The name of the style or null, if the style is
+     *   not supported.
+     */
+    getFillMode : function(){
+
+      return qx.bom.Style.getPropertyName("AnimationFillMode");
+    },
+    /**
+     * Checks for the 'animation-play-state' CSS style.
+     * @internal
+     * @return {String|null} The name of the style or null, if the style is
+     *   not supported.
+     */
+    getPlayState : function(){
+
+      return qx.bom.Style.getPropertyName("AnimationPlayState");
+    },
+    /**
+     * Checks for the style name used for animations.
+     * @internal
+     * @return {String|null} The name of the style or null, if the style is
+     *   not supported.
+     */
+    getName : function(){
+
+      return qx.bom.Style.getPropertyName("animation");
+    },
+    /**
+     * Checks for the event name of animation start.
+     * @internal
+     * @return {String} The name of the event.
+     */
+    getAnimationStart : function(){
+
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationstart")){
+
+        return "webkitAnimationStart";
+      };
+      var mapping = {
+        "msAnimation" : "MSAnimationStart",
+        "WebkitAnimation" : "webkitAnimationStart",
+        "MozAnimation" : "animationstart",
+        "OAnimation" : "oAnimationStart",
+        "animation" : "animationstart"
+      };
+      return mapping[this.getName()];
+    },
+    /**
+     * Checks for the event name of animation end.
+     * @internal
+     * @return {String} The name of the event.
+     */
+    getAnimationIteration : function(){
+
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationiteration")){
+
+        return "webkitAnimationIteration";
+      };
+      var mapping = {
+        "msAnimation" : "MSAnimationIteration",
+        "WebkitAnimation" : "webkitAnimationIteration",
+        "MozAnimation" : "animationiteration",
+        "OAnimation" : "oAnimationIteration",
+        "animation" : "animationiteration"
+      };
+      return mapping[this.getName()];
+    },
+    /**
+     * Checks for the event name of animation end.
+     * @internal
+     * @return {String} The name of the event.
+     */
+    getAnimationEnd : function(){
+
+      // special handling for mixed prefixed / unprefixed implementations
+      if(qx.bom.Event.supportsEvent(window, "webkitanimationend")){
+
+        return "webkitAnimationEnd";
+      };
+      var mapping = {
+        "msAnimation" : "MSAnimationEnd",
+        "WebkitAnimation" : "webkitAnimationEnd",
+        "MozAnimation" : "animationend",
+        "OAnimation" : "oAnimationEnd",
+        "animation" : "animationend"
+      };
+      return mapping[this.getName()];
+    },
+    /**
+     * Checks what selector should be used to add keyframes to stylesheets.
+     * @internal
+     * @return {String|null} The name of the selector or null, if the selector
+     *   is not supported.
+     */
+    getKeyFrames : function(){
+
+      var prefixes = qx.bom.Style.VENDOR_PREFIXES;
+      var keyFrames = [];
+      for(var i = 0;i < prefixes.length;i++){
+
+        var key = "@" + qx.bom.Style.getCssName(prefixes[i]) + "-keyframes";
+        keyFrames.push(key);
+      };
+      keyFrames.unshift("@keyframes");
+      var sheet = qx.bom.Stylesheet.createElement();
+      for(var i = 0;i < keyFrames.length;i++){
+
+        try{
+
+          qx.bom.Stylesheet.addRule(sheet, keyFrames[i] + " name", "");
+          return keyFrames[i];
+        } catch(e) {
+        };
+      };
+      return null;
+    },
+    /**
+     * Checks for the requestAnimationFrame method and return the prefixed name.
+     * @internal
+     * @return {String|null} A string the method name or null, if the method
+     *   is not supported.
+     */
+    getRequestAnimationFrame : function(){
+
+      var choices = ["requestAnimationFrame", "msRequestAnimationFrame", "webkitRequestAnimationFrame", "mozRequestAnimationFrame", "oRequestAnimationFrame"];
+      for(var i = 0;i < choices.length;i++){
+
+        if(window[choices[i]] != undefined){
+
+          return choices[i];
+        };
+      };
+      return null;
+    }
+  },
+  defer : function(statics){
+
+    qx.core.Environment.add("css.animation", statics.getSupport);
+    qx.core.Environment.add("css.animation.requestframe", statics.getRequestAnimationFrame);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (martinwittemann)
+
+ ************************************************************************ */
+/**
+ * Util for mouse wheel normalization.
+ */
+qx.Bootstrap.define("qx.util.Wheel", {
+  statics : {
+    /**
+     * The maximal measured scroll wheel delta.
+     * @internal
+     */
+    MAXSCROLL : null,
+    /**
+     * The minimal measured scroll wheel delta.
+     * @internal
+     */
+    MINSCROLL : null,
+    /**
+     * The normalization factor for the speed calculation.
+     * @internal
+     */
+    FACTOR : 1,
+    /**
+     * Get the amount the wheel has been scrolled
+     *
+     * @param domEvent {Event} The native wheel event.
+     * @param axis {String?} Optional parameter which defines the scroll axis.
+     *   The value can either be <code>"x"</code> or <code>"y"</code>.
+     * @return {Integer} Scroll wheel movement for the given axis. If no axis
+     *   is given, the y axis is used.
+     */
+    getDelta : function(domEvent, axis){
+
+      // default case
+      if(axis === undefined){
+
+        // default case
+        var delta = 0;
+        if(domEvent.wheelDelta !== undefined){
+
+          delta = -domEvent.wheelDelta;
+        } else if(domEvent.detail !== 0){
+
+          delta = domEvent.detail;
+        } else if(domEvent.deltaY !== undefined){
+
+          // use deltaY as default for firefox
+          delta = domEvent.deltaY;
+        };;
+        return this.__normalize(delta);
+      };
+      // get the x scroll delta
+      if(axis === "x"){
+
+        var x = 0;
+        if(domEvent.wheelDelta !== undefined){
+
+          if(domEvent.wheelDeltaX !== undefined){
+
+            x = domEvent.wheelDeltaX ? this.__normalize(-domEvent.wheelDeltaX) : 0;
+          };
+        } else {
+
+          if(domEvent.axis && domEvent.axis == domEvent.HORIZONTAL_AXIS && (domEvent.detail !== undefined) && (domEvent.detail > 0)){
+
+            x = this.__normalize(domEvent.detail);
+          } else if(domEvent.deltaX !== undefined){
+
+            x = this.__normalize(domEvent.deltaX);
+          };
+        };
+        return x;
+      };
+      // get the y scroll delta
+      if(axis === "y"){
+
+        var y = 0;
+        if(domEvent.wheelDelta !== undefined){
+
+          if(domEvent.wheelDeltaY !== undefined){
+
+            y = domEvent.wheelDeltaY ? this.__normalize(-domEvent.wheelDeltaY) : 0;
+          } else {
+
+            y = this.__normalize(-domEvent.wheelDelta);
+          };
+        } else {
+
+          if(!(domEvent.axis && domEvent.axis == domEvent.HORIZONTAL_AXIS) && (domEvent.detail !== undefined) && (domEvent.detail > 0)){
+
+            y = this.__normalize(domEvent.detail);
+          } else if(domEvent.deltaY !== undefined){
+
+            y = this.__normalize(domEvent.deltaY);
+          };
+        };
+        return y;
+      };
+      // default case, return 0
+      return 0;
+    },
+    /**
+     * Normalizer for the mouse wheel data.
+     *
+     * @param delta {Number} The mouse delta.
+     * @return {Number} The normalized delta value
+     */
+    __normalize : function(delta){
+
+      var absDelta = Math.abs(delta);
+      if(absDelta === 0){
+
+        return 0;
+      };
+      // store the min value
+      if(qx.util.Wheel.MINSCROLL == null || qx.util.Wheel.MINSCROLL > absDelta){
+
+        qx.util.Wheel.MINSCROLL = absDelta;
+        this.__recalculateMultiplicator();
+      };
+      // store the max value
+      if(qx.util.Wheel.MAXSCROLL == null || qx.util.Wheel.MAXSCROLL < absDelta){
+
+        qx.util.Wheel.MAXSCROLL = absDelta;
+        this.__recalculateMultiplicator();
+      };
+      // special case for systems not speeding up
+      if(qx.util.Wheel.MAXSCROLL === absDelta && qx.util.Wheel.MINSCROLL === absDelta){
+
+        return 2 * (delta / absDelta);
+      };
+      var range = qx.util.Wheel.MAXSCROLL - qx.util.Wheel.MINSCROLL;
+      var ret = (delta / range) * Math.log(range) * qx.util.Wheel.FACTOR;
+      // return at least 1 or -1
+      return ret < 0 ? Math.min(ret, -1) : Math.max(ret, 1);
+    },
+    /**
+     * Recalculates the factor with which the calculated delta is normalized.
+     */
+    __recalculateMultiplicator : function(){
+
+      var max = qx.util.Wheel.MAXSCROLL || 0;
+      var min = qx.util.Wheel.MINSCROLL || max;
+      if(max <= min){
+
+        return;
+      };
+      var range = max - min;
+      var maxRet = (max / range) * Math.log(range);
+      if(maxRet == 0){
+
+        maxRet = 1;
+      };
+      qx.util.Wheel.FACTOR = 6 / maxRet;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014-2015 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+************************************************************************ */
+/**
+ * A carousel is a widget which can switch between several sub pages {@link qx.ui.website.Widget}.
+ * A page switch is triggered by a swipe to left, for next page, or a swipe to right for
+ * previous page. Pages can also be switched by dragging.
+ *
+ * A carousel shows by default a pagination indicator at the bottom of the carousel.
+ *
+ * @require(qx.module.Transform)
+ * @require(qx.module.event.Swipe)
+ * @require(qx.module.event.GestureHandler)
+ * @require(qx.module.event.Track)
+ */
+qx.Bootstrap.define("qx.ui.website.Carousel", {
+  extend : qx.ui.website.Widget,
+  statics : {
+    _config : {
+      /**
+       * The time in milliseconds for the page switch animation.
+       */
+      pageSwitchDuration : 500
+    },
+    /**
+     * Factory method which converts the current collection into a collection of
+     * Carousel widgets.
+     *
+     * @return {qx.ui.website.Carousel} A new carousel collection.
+     * @attach {qxWeb}
+     */
+    carousel : function(){
+
+      var carousel = new qx.ui.website.Carousel(this);
+      carousel.init();
+      return carousel;
+    }
+  },
+  construct : function(selector, context){
+
+    this.base(arguments, selector, context);
+  },
+  members : {
+    __active : null,
+    __pageContainer : null,
+    __scrollContainer : null,
+    __paginationLabels : null,
+    __startPosLeft : null,
+    __pagination : null,
+    _ie9 : false,
+    __blocked : false,
+    // overridden
+    init : function(){
+
+      if(!this.base(arguments)){
+
+        return false;
+      };
+      this._ie9 = qx.core.Environment.get("browser.documentmode") === 9;
+      if(this._ie9){
+
+        this.setConfig("pageSwitchDuration", 10);
+      } else {
+
+        this.addClass("qx-flex-ready");
+      };
+      qxWeb(window).on("resize", this._onResize, this);
+      var prefix = this.getCssPrefix();
+      this.__scrollContainer = qxWeb.create("<div>").addClass(prefix + "-container").appendTo(this);
+      this.__pageContainer = qxWeb.create("<div>").addClass("qx-hbox").setStyle("height", "100%").appendTo(this.__scrollContainer);
+      this.__paginationLabels = [];
+      this.__pagination = qxWeb.create("<div>").addClasses([prefix + "-pagination", "qx-hbox", "qx-flex1"]).setStyle("visibility", "excluded").appendTo(this);
+      if(this._ie9){
+
+        this.__pageContainer.setStyle("display", "table");
+        this.__pagination.setStyle("textAlign", "center");
+      } else {
+
+        this.on("trackstart", this._onTrackStart, this).on("track", this._onTrack, this).on("trackend", this._onTrackEnd, this);
+      };
+      this.on("swipe", this._onSwipe, this);
+      this.render();
+      return true;
+    },
+    render : function(){
+
+      var pages = this.find("." + this.getCssPrefix() + "-page");
+      pages.forEach(function(page){
+
+        this.addPage(qxWeb(page));
+      }.bind(this));
+      if(pages.length > 0){
+
+        this.setActive(pages.eq(0));
+      };
+      return this;
+    },
+    /**
+     * Sets one of the Carousel's pages as active, meaning it will be
+     * visible.
+     *
+     * @param page {qxWeb} The page to be activated
+     */
+    setActive : function(page){
+
+      var old = this.__active;
+      this.__active = page;
+      this._update();
+      var data = {
+        value : page,
+        old : old,
+        target : this
+      };
+      this.emit("changeActive", data);
+    },
+    /**
+     * Returns the currently active (i.e. visible) page
+     * @return {qxWeb} The active page
+     */
+    getActive : function(){
+
+      return this.__active;
+    },
+    /**
+     * Scrolls the carousel to the next page.
+     *
+     * @return {qx.ui.website.Carousel} Self instance for chaining
+     */
+    nextPage : function(){
+
+      var pages = this._getPages();
+      if(pages.length == 0){
+
+        return this;
+      };
+      var next = this.getActive().getNext();
+      // prevent overflow if we don't use the endless loop mode
+      if(pages.length > 2){
+
+        if(next.length === 0){
+
+          next = pages.eq(0);
+        };
+      };
+      if(next.length > 0){
+
+        this.setActive(next);
+      };
+      return this;
+    },
+    /**
+     * Scrolls the carousel to the previous page.
+     *
+     * @return {qx.ui.website.Carousel} Self instance for chaining
+     */
+    previousPage : function(){
+
+      var pages = this._getPages();
+      if(pages.length == 0){
+
+        return this;
+      };
+      var prev = this.getActive().getPrev();
+      // prevent overflow if we don't use the endless loop mode
+      if(pages.length > 2){
+
+        if(prev.length == 0){
+
+          prev = pages.eq(pages.length - 1);
+        };
+      };
+      if(prev.length > 0){
+
+        this.setActive(prev);
+      };
+      return this;
+    },
+    /**
+     * Adds a page to the Carousel. Updates the pagination,
+     * scroll position, active property and the sizing.
+     * @param child {qxWeb} The added child.
+     */
+    addPage : function(child){
+
+      child.addClasses(["qx-flex1", this.getCssPrefix() + "-page"]).appendTo(this.__pageContainer);
+      if(this.find("." + this.getCssPrefix() + "-page").length > this.__paginationLabels.length){
+
+        var paginationLabel = this._createPaginationLabel();
+        this.__paginationLabels.push(paginationLabel);
+        this.__pagination.append(paginationLabel);
+      };
+      this._updateWidth();
+      if(!this.getActive()){
+
+        this.setActive(child);
+      } else if(this._getPages().length > 2){
+
+        this._updateOrder();
+      };
+      if(this._ie9){
+
+        child.setStyle("display", "table-cell");
+      };
+      this.find(".scroll").setStyle("touchAction", "pan-y");
+      // scroll as soon as we have the third page added
+      if(this._getPages().length === 3 && !this._ie9){
+
+        this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+      };
+      this._updatePagination();
+    },
+    /**
+     * Removes a page from the Carousel. Updates the pagination,
+     * scroll position, active property and the sizing.
+     * @param child {qxWeb} The removed child.
+     */
+    removePage : function(child){
+
+      child.remove();
+      // reset the active page if we don' have any page at all
+      if(this._getPages().length == 0){
+
+        this.__pagination.empty();
+        this.__paginationLabels = [];
+        this.setActive(null);
+        return;
+      };
+      this._updateWidth();
+      if(this.getActive()[0] == child[0]){
+
+        this.setActive(this._getPages().eq(0));
+      } else if(this._getPages().length > 2){
+
+        this._updateOrder();
+      } else {
+
+        // remove all order properties
+        this._setOrder(this._getPages(), 0);
+      };
+      this.__paginationLabels.splice(child.priorPosition, 1)[0].remove();
+      for(var i = 0;i < this.__paginationLabels.length;i++){
+
+        this.__paginationLabels[i].getChildren(".label").setHtml((i + 1) + "");
+      };
+      this._updatePagination();
+    },
+    /**
+     * Updates the order, scroll position and pagination.
+     */
+    _update : function(){
+
+      if(!this.getActive()){
+
+        return;
+      };
+      // special case for only one page
+      if(this._getPages().length < 2){
+
+        return;
+      } else if(this._getPages().length == 2){
+
+        if(this._getPages()[0] === this.getActive()[0]){
+
+          this._translateTo(0);
+        } else {
+
+          this._translateTo(this.getWidth());
+        };
+        this._updatePagination();
+        return;
+      };
+      var left;
+      if(!this._ie9){
+
+        var direction = this._updateOrder();
+        if(direction == "right"){
+
+          left = this._getPositionLeft() - this.__scrollContainer.getWidth();
+        } else if(direction == "left"){
+
+          left = this._getPositionLeft() + this.__scrollContainer.getWidth();
+        } else if(this._getPages().length >= 3){
+
+          // back snapping if the order has not changed
+          this._translateTo(this.getWidth());
+          return;
+        } else {
+
+          // do nothing if we don't have enough pages
+          return;
+        };;
+        if(left !== undefined){
+
+          // first, translate the old page into view
+          this.__scrollContainer.translate([(-left) + "px", 0, 0]);
+          // animate to the new page
+          this._translateTo(this.getWidth());
+        };
+      } else {
+
+        var index = this._getPages().indexOf(this.getActive());
+        left = index * this.getWidth();
+        this._translateTo(left);
+      };
+      this._updatePagination();
+    },
+    /**
+     * Updates the CSS order property of the flexbox layout.
+     * The active page should be the second in order with a order property of '0'.
+     * The page left to the active has the order property set to '-1' and is the
+     * only one on the left side. All other pages get increasing order numers and
+     * are alligned on the right side.
+     *
+     * @return {String} The scroll direction, either 'left' or 'right'.
+     */
+    _updateOrder : function(){
+
+      if(this._ie9){
+
+        return "left";
+      };
+      var scrollDirection;
+      var pages = this._getPages();
+      var orderBefore = this._getOrder(this.getActive());
+      if(orderBefore > 0){
+
+        scrollDirection = "right";
+      } else if(orderBefore < 0){
+
+        scrollDirection = "left";
+      };
+      var activeIndex = pages.indexOf(this.getActive());
+      this._setOrder(this.getActive(), 0);
+      // active page should always have order 0
+      var order = 1;
+      // order all pages with a higher index than the active page
+      for(var i = activeIndex + 1;i < pages.length;i++){
+
+        // move the last page to the left of the active page
+        if(activeIndex === 0 && i == pages.length - 1){
+
+          order = -1;
+        };
+        this._setOrder(pages.eq(i), order++);
+      };
+      // order all pages with a lower index than the active page
+      for(i = 0;i < activeIndex;i++){
+
+        // move the last page to the left of the active page
+        if(i == activeIndex - 1){
+
+          order = -1;
+        };
+        this._setOrder(pages.eq(i), order++);
+      };
+      return scrollDirection;
+    },
+    /**
+     * Updates the width of the container and the pages.
+     */
+    _updateWidth : function(){
+
+      if(!this.isRendered() || this.getProperty("offsetWidth") === 0){
+
+        this.setStyle("visibility", "hidden");
+        if(!this.hasListener("appear", this._updateWidth, this)){
+
+          this.once("appear", this._updateWidth, this);
+        };
+        return;
+      };
+      // set the inital transition on first appear
+      if(this._getPositionLeft() === 0 && this._getPages().length > 2 && !this._ie9){
+
+        this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+      };
+      // set the container width to total width of all pages
+      var containerWidth = this.getWidth() * this._getPages().length;
+      this.__pageContainer.setStyle("width", containerWidth + "px");
+      // set the width of all pages to the carousel width
+      this._getPages().setStyle("width", this.getWidth() + "px");
+      this.setStyle("visibility", "visible");
+    },
+    /**
+     * Handler for trackstart. It saves the initial scroll position and
+     * cancels any running animation.
+     */
+    _onTrackStart : function(){
+
+      if(this.__blocked){
+
+        return;
+      };
+      this.__startPosLeft = this._getPositionLeft();
+      this.__scrollContainer.stop().translate([(-Math.round(this.__startPosLeft)) + "px", 0, 0]);
+    },
+    /**
+     * Track handler which updates the scroll position.
+     * @param e {Event} The track event.
+     */
+    _onTrack : function(e){
+
+      if(this.__blocked){
+
+        return;
+      };
+      if(e.delta.axis == "x" && this._getPages().length > 2){
+
+        this.__scrollContainer.translate([-(this.__startPosLeft - e.delta.x) + "px", 0, 0]);
+      };
+    },
+    /**
+     * TrackEnd handler for enabling the scroll events.
+     */
+    _onTrackEnd : function(){
+
+      if(this.__startPosLeft == null || this.__blocked){
+
+        // dont end if we didn't start
+        return;
+      };
+      // make sure the trackend handling is done after the swipe handling
+      window.setTimeout(function(){
+
+        if(this._getPages().length < 3 || this.__scrollContainer.isPlaying()){
+
+          return;
+        };
+        this.__startPosLeft = null;
+        var width = this.getWidth();
+        var pages = this._getPages();
+        var oldActive = this.getActive();
+        // if more than 50% is visible of the previous page
+        if(this._getPositionLeft() < (width - (width / 2))){
+
+          var prev = this.getActive().getPrev();
+          if(prev.length == 0){
+
+            prev = pages.eq(pages.length - 1);
+          };
+          this.setActive(prev);
+        } else if(this._getPositionLeft() > (width + width / 2)){
+
+          var next = this.getActive().getNext();
+          if(next.length == 0){
+
+            next = pages.eq(0);
+          };
+          this.setActive(next);
+        };
+        if(this.getActive() == oldActive){
+
+          this._update();
+        };
+      }.bind(this), 0);
+    },
+    /**
+     * Swipe handler which triggers page changes based on the
+     * velocity and the direction.
+     * @param e {Event} The swipe event.
+     */
+    _onSwipe : function(e){
+
+      if(this.__blocked){
+
+        return;
+      };
+      var velocity = Math.abs(e.getVelocity());
+      if(e.getAxis() == "x" && velocity > 0.25){
+
+        if(e.getDirection() == "left"){
+
+          this.nextPage();
+        } else if(e.getDirection() == "right"){
+
+          this.previousPage();
+        };
+      };
+    },
+    /**
+     * Factory method for a paginationLabel.
+     * @return {qxWeb} the created pagination label.
+     */
+    _createPaginationLabel : function(){
+
+      var paginationIndex = this._getPages().length;
+      return qxWeb.create('<div class="' + this.getCssPrefix() + '-pagination-label"></div>').on("tap", this._onPaginationLabelTap, this).append(qxWeb.create('<div class="label">' + paginationIndex + '</div>'));
+    },
+    /**
+     * Handles the tap on pagination labels and changes to the desired page.
+     * @param e {Event} The tap event.
+     */
+    _onPaginationLabelTap : function(e){
+
+      this.__paginationLabels.forEach(function(label, index){
+
+        if(label[0] === e.currentTarget){
+
+          var pages = this._getPages();
+          // wo don't reorder with two pages there just set the active property
+          if(pages.length === 2){
+
+            this.setActive(pages.eq(index));
+            return;
+          };
+          var activeIndex = pages.indexOf(this.getActive());
+          var distance = index - activeIndex;
+          // set the order to deault dom order
+          this._setOrder(pages, 0);
+          // get the active page into view
+          this.__scrollContainer.translate([(-activeIndex * this.getWidth()) + "px", 0, 0]);
+          this.__blocked = true;
+          // animate to the desired page
+          this._translateTo((activeIndex + distance) * this.getWidth());
+          this.__scrollContainer.once("animationEnd", function(page){
+
+            this.__blocked = false;
+            // set the viewport back to the default position
+            this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+            this.setActive(page);
+            // this also updates the order
+            this._updatePagination();
+          }.bind(this, pages.eq(index)));
+        };
+      }.bind(this));
+    },
+    /**
+     * Updates the pagination indicator of this carousel.
+     * Adds the 'active' CSS class to the currently visible page's
+     * pagination button.
+     */
+    _updatePagination : function(){
+
+      // hide the pagination for one page
+      this._getPages().length < 2 ? this.__pagination.setStyle("visibility", "excluded") : this.__pagination.setStyle("visibility", "visible");
+      this.__pagination.find("." + this.getCssPrefix() + "-pagination-label").removeClass("active");
+      var pages = this._getPages();
+      this.__paginationLabels[pages.indexOf(this.getActive())].addClass("active");
+    },
+    /**
+     * Resize handler. It updates the sizes, snap points and scroll position.
+     */
+    _onResize : function(){
+
+      this._updateWidth();
+      if(this._getPages().length > 2){
+
+        this.__scrollContainer.translate([(-this.getWidth()) + "px", 0, 0]);
+      };
+    },
+    /**
+     * Animates using CSS translations to the given left position.
+     * @param left {Number} The new left position
+     */
+    _translateTo : function(left){
+
+      this.__scrollContainer.animate({
+        duration : this.getConfig("pageSwitchDuration"),
+        keep : 100,
+        timing : "ease",
+        keyFrames : {
+          '0' : {
+          },
+          '100' : {
+            translate : [(-left) + "px", 0, 0]
+          }
+        }
+      });
+    },
+    /**
+     * Sets the given order on the given collection.
+     * @param col {qxWeb} The collection to set the css property.
+     * @param value {Number|String} The value for the order property
+     */
+    _setOrder : function(col, value){
+
+      col.setStyles({
+        order : value,
+        msFlexOrder : value
+      });
+    },
+    /**
+     * Returns the order css property of the given collection.
+     * @param col {qxWeb} The collection to check.
+     * @return {Number} The order as number.
+     */
+    _getOrder : function(col){
+
+      var order = parseInt(col.getStyle("order"));
+      if(isNaN(order)){
+
+        order = parseInt(col.getStyle("msFlexOrder"));
+      };
+      return order;
+    },
+    /**
+     * Geturns a collection of all pages.
+     * @return {qxWeb} All pages.
+     */
+    _getPages : function(){
+
+      return this.__pageContainer.find("." + this.getCssPrefix() + "-page");
+    },
+    /**
+     * Returns the current left position.
+     * @return {Number} The position in px.
+     */
+    _getPositionLeft : function(){
+
+      var containerRect = this.__scrollContainer[0].getBoundingClientRect();
+      var parentRect = this[0].getBoundingClientRect();
+      return -(containerRect.left - parentRect.left);
+    },
+    // overridden
+    dispose : function(){
+
+      qxWeb(window).off("resize", this._onResize, this);
+      this.off("trackstart", this._onTrackStart, this).off("track", this._onTrack, this).off("swipe", this._onSwipe, this).off("trackend", this._onTrackEnd, this);
+      return this.base(arguments);
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$attach({
+      carousel : statics.carousel
+    });
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Alexander Steitz (aback)
+
+************************************************************************ */
+/**
+ * This is a date picker widget used to combine an input element with a calendar widget
+ * to select a date. The calendar itself is opened as popup to save visual space.
+ *
+ * <h2>Markup</h2>
+ * Each Date Picker widget is connected to an existing input element.
+ *
+ * <h2>CSS Classes</h2>
+ * <table>
+ *   <thead>
+ *     <tr>
+ *       <td>Class Name</td>
+ *       <td>Applied to</td>
+ *       <td>Description</td>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr>
+ *       <td><code>qx-datepicker</code></td>
+ *       <td>Input element</td>
+ *       <td>Identifies the date picker widget</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-datepicker-icon</code></td>
+ *       <td>Icon element</td>
+ *       <td>Identifies the (if configured) image element to open the date picker</td>
+ *     </tr>
+ *   </tbody>
+ * </table>
+ *
+ * @require(qx.module.Template)
+ *
+ * @group (Widget)
+ */
+qx.Bootstrap.define('qx.ui.website.DatePicker', {
+  extend : qx.ui.website.Widget,
+  statics : {
+    /** List of valid positions to check against */
+    __validPositions : null,
+    /**
+     * *format*
+     *
+     * Function which is provided with a JavaScript Date object instance. You can provide
+     * an own format function to manipulate the value which is set to the associated input element.
+     *
+     * Default value:
+     * <pre>function(date) {
+        return date.toLocaleDateString();
+      }</pre>
+     *
+     * *readonly*
+     *
+     * Boolean value to control if the connected input element is read-only.
+     *
+     * Default value:
+     * <pre>true</pre>
+     *
+     * *icon*
+     *
+     * Path to an icon which will be placed next to the input element as additional opener. If configured
+     * a necessary <code>img</code> element is created and equipped with the <code>qx-datepicker-icon</code>
+     * CSS class to style it.
+     *
+     * Default value:
+     * <pre>null</pre>
+     *
+     * *mode*
+     *
+     * Which control should trigger showing the date picker.
+     * Possible values are <code>input</code>, <code>icon</code>, <code>both</code>.
+     *
+     * Default value:
+     * <pre>input</pre>
+     *
+     * *position*
+     *
+     * Position of the calendar popup from the point of view of the <code>INPUT</code> element.
+     * Possible values are
+     *
+     * * <code>top-left</code>
+     * * <code>top-center</code>
+     * * <code>top-right</code>
+     * * <code>bottom-left</code>
+     * * <code>bottom-center</code>
+     * * <code>bottom-right</code>
+     * * <code>left-top</code>
+     * * <code>left-middle</code>
+     * * <code>left-bottom</code>
+     * * <code>right-top</code>
+     * * <code>right-middle</code>
+     * * <code>right-bottom</code>
+     *
+     * Default value:
+     * <pre>bottom-left</pre>
+     */
+    _config : {
+      format : function(date){
+
+        return date.toLocaleDateString();
+      },
+      readonly : true,
+      icon : null,
+      mode : 'input',
+      position : 'bottom-left'
+    },
+    /**
+     * Factory method which converts the current collection into a collection of
+     * Date Picker widgets. Therefore, an initialization process needs to be done which
+     * can be configured with some parameter.
+     *
+     * @param date {Date?null} The initial Date of the calendar.
+     * @return {qx.ui.website.DatePicker} A new date picker collection.
+     * @attach {qxWeb}
+     */
+    datepicker : function(date){
+
+      var datepicker = new qx.ui.website.DatePicker(this);
+      datepicker.init(date);
+      return datepicker;
+    }
+  },
+  construct : function(selector, context){
+
+    this.base(arguments, selector, context);
+  },
+  members : {
+    _calendarId : null,
+    _iconId : null,
+    _uniqueId : null,
+    /**
+     * Get the associated calendar widget
+     * @return {qx.ui.website.Calendar} calendar widget instance
+     */
+    getCalendar : function(){
+
+      var calendarCollection = qxWeb();
+      calendarCollection = calendarCollection.concat(qxWeb('div#' + this._calendarId));
+      return calendarCollection;
+    },
+    // overridden
+    /**
+     * Initializes the date picker widget
+     *
+     * @param date {Date} A JavaScript Date object to set the current date
+     * @return {Boolean} <code>true</code> if the widget has been initialized
+     */
+    init : function(date){
+
+      if(!this.base(arguments)){
+
+        return false;
+      };
+      var uniqueId = Math.round(Math.random() * 10000);
+      this._uniqueId = uniqueId;
+      this.__setReadOnly(this);
+      this.__setIcon(this);
+      this.__addInputListener(this);
+      var calendarId = 'datepicker-calendar-' + uniqueId;
+      var calendar = qxWeb.create('<div id="' + calendarId + '"></div>').calendar();
+      calendar.on('tap', this._onCalendarTap);
+      calendar.appendTo(document.body).hide();
+      // create the connection between the date picker and the corresponding calendar widget
+      this._calendarId = calendarId;
+      // grab tap events at the body element to be able to hide the calender popup
+      // if the user taps outside
+      var bodyElement = qxWeb.getDocument(this).body;
+      qxWeb(bodyElement).on('tap', this._onBodyTap, this);
+      // react on date selection
+      calendar.on('changeValue', this._calendarChangeValue, this);
+      if(date !== undefined){
+
+        calendar.setValue(date);
+      };
+      return true;
+    },
+    // overridden
+    render : function(){
+
+      this.getCalendar().render();
+      this.__setReadOnly(this);
+      this.__setIcon(this);
+      this.__addInputListener(this);
+      this.setEnabled(this.getEnabled());
+      return this;
+    },
+    // overridden
+    setConfig : function(name, config){
+
+      if(name === 'position'){
+
+        var validPositions = qx.ui.website.DatePicker.__validPositions;
+        if(validPositions.indexOf(config) === -1){
+
+          throw new Error('Wrong config value for "position"! ' + 'Only the values "' + validPositions.join('", "') + '" are supported!');
+        };
+      };
+      this.base(arguments, name, config);
+      return this;
+    },
+    /**
+     * Listener which handles clicks/taps on the associated input element and
+     * opens / hides the calendar.
+     *
+     * @param e {Event} tap event
+     */
+    _onTap : function(e){
+
+      if(!this.getEnabled()){
+
+        return;
+      };
+      var calendar = qxWeb('div#' + this._calendarId);
+      if(calendar.getStyle('display') == 'none'){
+
+        this.getCalendar().show().placeTo(this, this.getConfig('position'));
+      } else {
+
+        this.getCalendar().hide();
+      };
+    },
+    /**
+     * Stop tap events from reaching the body so the calendar won't close
+     * @param e {Event} Tap event
+     */
+    _onCalendarTap : function(e){
+
+      e.stopPropagation();
+    },
+    /**
+     * Listener to the body element to be able to hide the calendar if the user clicks
+     * or taps outside the calendar.
+     *
+     * @param e {Event} tap event
+     */
+    _onBodyTap : function(e){
+
+      var target = qxWeb(e.getTarget());
+      // fast check for tap on the connected input field
+      if(this.length > 0 && target.length > 0 && this[0] == target[0]){
+
+        return;
+      };
+      // fast check for tap on the configured icon
+      if(this.getConfig('icon') !== null){
+
+        var icon = qxWeb('#' + this._iconId);
+        if(icon.length > 0 && target.length > 0 && icon[0] == target[0]){
+
+          return;
+        };
+      };
+      // otherwise check if the target is a child of the (rendered) calendar
+      if(this.getCalendar().isRendered()){
+
+        var tappedCol = qxWeb(e.getTarget());
+        if(tappedCol.isChildOf(this.getCalendar()) === false){
+
+          this.getCalendar().hide();
+        };
+      };
+    },
+    /**
+     * Listens to value selection of the calendar, Whenever the user selected a day
+     * we write it back to the input element and hide the calendar.
+     *
+     * The format of the date can be controlled with the 'format' config function
+     *
+     * @param e {Event} selected date value
+     */
+    _calendarChangeValue : function(e){
+
+      var formattedValue = this.getConfig('format').call(this, e);
+      this.setValue(formattedValue);
+      this.getCalendar().hide();
+    },
+    /**
+     * Helper method to set the readonly status on the input element
+     *
+     * @param collection {qxWeb} collection to work on
+     */
+    __setReadOnly : function(collection){
+
+      if(collection.getConfig('readonly')){
+
+        collection.setAttribute('readonly', 'readonly');
+      } else {
+
+        collection.removeAttribute('readonly');
+      };
+    },
+    /**
+     * Helper method to add / remove an icon next to the input element
+     *
+     * @param collection {qxWeb} collection to work on
+     */
+    __setIcon : function(collection){
+
+      var icon;
+      if(collection.getConfig('icon') === null){
+
+        icon = collection.getNext('img#' + collection._iconId);
+        if(icon.length === 1){
+
+          icon.off('tap', this._onTap, collection);
+          icon.remove();
+        };
+      } else {
+
+        var iconId = 'datepicker-icon-' + collection._uniqueId;
+        // check if there is already an icon
+        if(collection._iconId == undefined){
+
+          collection._iconId = iconId;
+          icon = qxWeb.create('<img>');
+          icon.setAttributes({
+            id : iconId,
+            src : collection.getConfig('icon')
+          });
+          icon.addClass(this.getCssPrefix() + '-icon');
+          var openingMode = collection.getConfig('mode');
+          if(openingMode === 'icon' || openingMode === 'both'){
+
+            icon.on('tap', this._onTap, collection);
+          };
+          icon.insertAfter(collection);
+        };
+      };
+    },
+    /**
+     * Helper method to add a listener to the connected input element
+     * if the configured mode is set.
+     *
+     * @param collection {qxWeb} collection to work on
+     */
+    __addInputListener : function(collection){
+
+      if(collection.getConfig('mode') === 'icon'){
+
+        collection.off('tap', collection._onTap);
+      } else {
+
+        collection.on('tap', collection._onTap);
+      };
+    },
+    // overridden
+    dispose : function(){
+
+      this.removeAttribute('readonly');
+      this.getNext('img#' + this._iconId).remove();
+      this.off('tap', this._onTap);
+      var bodyElement = qxWeb.getDocument(this).body;
+      qxWeb(bodyElement).off('tap', this._onBodyTap, this);
+      this.getCalendar().off('changeValue', this._calendarChangeValue, this).off('tap', this._onCalendarTap);
+      var calendar = qxWeb('div#' + this._calendarId);
+      calendar.remove();
+      calendar.dispose();
+      return this.base(arguments);
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$attach({
+      datepicker : statics.datepicker
+    });
+    statics.__validPositions = ['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'left-top', 'left-middle', 'left-bottom', 'right-top', 'right-middle', 'right-bottom'];
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2013 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Martin Wittemann (wittemann)
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * This is a simple rating widget which can be used to display a predefined
+ * number of symbols which the user can click or tap to give a rating e.g.
+ * 3 out of 5 stars.
+ *
+ * <h2>Markup</h2>
+ * Each rating item is a span element. Span elements already existing within
+ * the Rating's container will be used, otherwise new elements will be added or
+ * removed according to the <code>length</code> config option.
+ *
+ * <h2>CSS Classes</h2>
+ * <table>
+ *   <thead>
+ *     <tr>
+ *       <td>Class Name</td>
+ *       <td>Applied to</td>
+ *       <td>Description</td>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr>
+ *       <td><code>qx-rating</code></td>
+ *       <td>Container element</td>
+ *       <td>Identifies the Rating widget</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-rating-item</code></td>
+ *       <td>Rating item (span)</td>
+ *       <td>Identifies and styles an active Rating item</td>
+ *     </tr>
+ *     <tr>
+ *       <td><code>qx-rating-item-off</code></td>
+ *       <td>Rating item (span)</td>
+ *       <td>Identifies and styles an inactive Rating item. Applied in addition to <code>qx-rating-item</code></td>
+ *     </tr>
+ *   </tbody>
+ * </table>
+ *
+ * <h2 class="widget-markup">Generated DOM Structure</h2>
+ *
+ * @group (Widget)
+ */
+qx.Bootstrap.define("qx.ui.website.Rating", {
+  extend : qx.ui.website.Widget,
+  statics : {
+    /**
+     * *length*
+     *
+     * The length of the rating widget.
+     *
+     * Default value: <pre>5</pre>
+     *
+     *
+     * *symbol*
+     *
+     * The symbol used to render the rating items. This can be any
+     * String e.g. a UTF-8 character.
+     *
+     * Default value: <pre>★</pre>
+     */
+    _config : {
+      length : 5,
+      symbol : "★"
+    },
+    /**
+     * Factory method which converts the current collection into a collection of
+     * rating widgets. Therefore, an initialization process needs to be done which
+     * can be configured with some parameter.
+     *
+     * @param initValue {Number?0} The initial value of the rating.
+     * @param symbol {String?"★"} The symbol which should be used for each rating item.
+     * @param length {Number?5} The length of the rating widget.
+     * @return {qx.ui.website.Rating} A new rating collection.
+     * @attach {qxWeb}
+     */
+    rating : function(initValue, symbol, length){
+
+      var rating = new qx.ui.website.Rating(this);
+      rating.init();
+      var modified = false;
+      if(length != undefined && length != rating.getConfig("length")){
+
+        rating.setConfig("length", length);
+        modified = true;
+      };
+      if(symbol != undefined){
+
+        rating.setConfig("symbol", symbol);
+        modified = true;
+      };
+      if(modified){
+
+        rating.render();
+      };
+      if(initValue != undefined){
+
+        rating.setValue(initValue);
+      };
+      return rating;
+    }
+  },
+  construct : function(selector, context){
+
+    this.base(arguments, selector, context);
+  },
+  events : {
+    /** Fired at each value change */
+    "changeValue" : "Number"
+  },
+  members : {
+    // overridden
+    init : function(){
+
+      if(!this.base(arguments)){
+
+        return false;
+      };
+      this._updateSymbolLength();
+      var cssPrefix = this.getCssPrefix();
+      if(this.getAttribute("tabindex") < 0){
+
+        this.setAttribute("tabindex", 0);
+      };
+      this.on("focus", this._onFocus, this).on("blur", this._onBlur, this).getChildren("span").addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).on("tap", this._onTap, this);
+      return true;
+    },
+    /**
+     * Sets the given value of the raining widget's in the collection. The value will be
+     * converted to the maximum or minimum if our of range.
+     *
+     * @param value {Number} The value of the rating.
+     * @return {qx.ui.website.Rating} <code>this</code> reference for chaining.
+     */
+    setValue : function(value){
+
+      if(this.getValue() == value){
+
+        return this;
+      };
+      if(value < 0){
+
+        value = 0;
+      };
+      var cssPrefix = this.getCssPrefix();
+      var children = this.getChildren("span");
+      children.removeClass(cssPrefix + "-item-off");
+      children.slice(value, children.length).addClass(cssPrefix + "-item-off");
+      this.emit("changeValue", this.getValue());
+      return this;
+    },
+    /**
+     * Reads the current value of the first rating widget in the collection
+     * from the DOM and returns it.
+     *
+     * @return {Number} The current value.
+     */
+    getValue : function(){
+
+      var cssPrefix = this.getCssPrefix();
+      return this.getChildren("span").not("." + cssPrefix + "-item-off").length;
+    },
+    // overridden
+    render : function(){
+
+      this._updateSymbolLength();
+    },
+    /**
+     * Checks the set length and adds / removes spans containing the rating symbol.
+     *
+     * @return {qx.ui.website.Rating} <code>this</code> reference for chaining.
+     */
+    _updateSymbolLength : function(){
+
+      var cssPrefix = this.getCssPrefix();
+      var length = this.getConfig("length");
+      var children = this.getChildren();
+      children.setHtml(this.getConfig("symbol"));
+      var diff = length - children.length;
+      if(diff > 0){
+
+        for(var i = 0;i < diff;i++){
+
+          qxWeb.create("<span>" + this.getConfig("symbol") + "</span>").on("tap", this._onTap, this).addClasses([cssPrefix + "-item", cssPrefix + "-item-off"]).appendTo(this);
+        };
+      } else {
+
+        for(var i = 0;i < Math.abs(diff);i++){
+
+          this.getChildren().getLast().off("tap", this._onTap, this).remove();
+        };
+      };
+      return this;
+    },
+    /**
+     * Tap handler which updates the value depending on the selected element.
+     *
+     * @param e {Event} tap event
+     */
+    _onTap : function(e){
+
+      var parents = qxWeb(e.getTarget()).getParents();
+      this.setValue(parents.getChildren().indexOf(e.getTarget()) + 1);
+    },
+    /**
+     * Attaches the keydown listener.
+     * @param e {Event} The native focus event.
+     */
+    _onFocus : function(e){
+
+      qxWeb(document.documentElement).on("keydown", this._onKeyDown, this);
+    },
+    /**
+     * Removes the keydown listener if the widget loses focus.
+     *
+     * @param e {Event} The native blur event.
+     */
+    _onBlur : function(e){
+
+      qxWeb(document.documentElement).off("keydown", this._onKeyDown, this);
+    },
+    /**
+     * Changes the value if the left or right arrow key is pressed.
+     *
+     * @param e {Event} The native keydown event.
+     */
+    _onKeyDown : function(e){
+
+      var key = e.getKeyIdentifier();
+      if(key === "Right"){
+
+        this.setValue(this.getValue() + 1);
+      } else if(key === "Left"){
+
+        this.setValue(this.getValue() - 1);
+      };
+    },
+    // overridden
+    dispose : function(){
+
+      qxWeb(document.documentElement).off("keydown", this._onKeyDown, this);
+      this.off("focus", this._onFocus, this).off("blur", this._onBlur, this);
+      this.getChildren("span").off("tap", this._onTap, this);
+      this.setHtml("");
+      return this.base(arguments);
+    }
+  },
+  defer : function(statics){
+
+    qxWeb.$attach({
+      rating : statics.rating
+    });
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2014 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
  * Normalization for the pinch gesture.
  *
  * @require(qx.module.Event)
@@ -25852,6 +28569,40 @@ qx.Bootstrap.define("qx.module.event.Pinch", {
  */
 qx.Bootstrap.define("qx.module.TextSelection", {
   statics : {
+    /**
+     * Checks if the given DOM node is a text input field or textarea
+     *
+     * @param el {Element} The node to check
+     * @return {Boolean} <code>true</code> if the given node is an input field
+     *
+     * @attach {qxWeb}
+     */
+    __isInput : function(el){
+
+      var tag = el.tagName ? el.tagName.toLowerCase() : null;
+      return (tag === "input" || tag === "textarea");
+    },
+    /**
+     * Returns the first text child node of the given element
+     *
+     * @param el {Element} DOM element
+     * @return {Node|null} text node
+     *
+     * @attach {qxWeb}
+     */
+    __getTextNode : function(el){
+
+      for(var i = 0,l = el.childNodes.length;i < l;i++){
+
+        if(el.childNodes[i].nodeType === 3){
+
+          return el.childNodes[i];
+        };
+      };
+      return null;
+    }
+  },
+  members : {
     /**
      * Get the text selection of the first element.
      *
@@ -25979,50 +28730,11 @@ qx.Bootstrap.define("qx.module.TextSelection", {
         };
       });
       return this;
-    },
-    /**
-     * Checks if the given DOM node is a text input field or textarea
-     *
-     * @param el {Element} The node to check
-     * @return {Boolean} <code>true</code> if the given node is an input field
-     *
-     * @attach {qxWeb}
-     */
-    __isInput : function(el){
-
-      var tag = el.tagName ? el.tagName.toLowerCase() : null;
-      return (tag === "input" || tag === "textarea");
-    },
-    /**
-     * Returns the first text child node of the given element
-     *
-     * @param el {Element} DOM element
-     * @return {Node|null} text node
-     *
-     * @attach {qxWeb}
-     */
-    __getTextNode : function(el){
-
-      for(var i = 0,l = el.childNodes.length;i < l;i++){
-
-        if(el.childNodes[i].nodeType === 3){
-
-          return el.childNodes[i];
-        };
-      };
-      return null;
     }
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "getTextSelection" : statics.getTextSelection,
-      "getTextSelectionLength" : statics.getTextSelectionLength,
-      "getTextSelectionStart" : statics.getTextSelectionStart,
-      "getTextSelectionEnd" : statics.getTextSelectionEnd,
-      "setTextSelection" : statics.setTextSelection,
-      "clearTextSelection" : statics.clearTextSelection
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -26858,6 +29570,357 @@ qx.Bootstrap.define("qx.util.StringSplit", {
 qx.Bootstrap.define("qx.module.Css", {
   statics : {
     /**
+     * INTERNAL
+     *
+     * Returns the rendered height of the first element in the collection.
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the height of a <em>non displayed</em> element
+     * @return {Number} The first item's rendered height
+     */
+    _getHeight : function(force){
+
+      var elem = this[0];
+      if(elem){
+
+        if(qx.dom.Node.isElement(elem)){
+
+          var elementHeight;
+          if(force){
+
+            var stylesToSwap = {
+              display : "block",
+              position : "absolute",
+              visibility : "hidden"
+            };
+            elementHeight = qx.module.Css.__swap(elem, stylesToSwap, "_getHeight", this);
+          } else {
+
+            elementHeight = qx.bom.element.Dimension.getHeight(elem);
+          };
+          return elementHeight;
+        } else if(qx.dom.Node.isDocument(elem)){
+
+          return qx.bom.Document.getHeight(qx.dom.Node.getWindow(elem));
+        } else if(qx.dom.Node.isWindow(elem)){
+
+          return qx.bom.Viewport.getHeight(elem);
+        };;
+      };
+      return null;
+    },
+    /**
+     * INTERNAL
+     *
+     * Returns the rendered width of the first element in the collection
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the width of a <em>non displayed</em> element
+     * @return {Number} The first item's rendered width
+     */
+    _getWidth : function(force){
+
+      var elem = this[0];
+      if(elem){
+
+        if(qx.dom.Node.isElement(elem)){
+
+          var elementWidth;
+          if(force){
+
+            var stylesToSwap = {
+              display : "block",
+              position : "absolute",
+              visibility : "hidden"
+            };
+            elementWidth = qx.module.Css.__swap(elem, stylesToSwap, "_getWidth", this);
+          } else {
+
+            elementWidth = qx.bom.element.Dimension.getWidth(elem);
+          };
+          return elementWidth;
+        } else if(qx.dom.Node.isDocument(elem)){
+
+          return qx.bom.Document.getWidth(qx.dom.Node.getWindow(elem));
+        } else if(qx.dom.Node.isWindow(elem)){
+
+          return qx.bom.Viewport.getWidth(elem);
+        };;
+      };
+      return null;
+    },
+    /**
+     * INTERNAL
+     *
+     * Returns the content height of the first element in the collection.
+     * This is the maximum height the element can use, excluding borders,
+     * margins, padding or scroll bars.
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the content height of a <em>non displayed</em> element
+     * @return {Number} Computed content height
+     */
+    _getContentHeight : function(force){
+
+      var obj = this[0];
+      if(qx.dom.Node.isElement(obj)){
+
+        var contentHeight;
+        if(force){
+
+          var stylesToSwap = {
+            position : "absolute",
+            visibility : "hidden",
+            display : "block"
+          };
+          contentHeight = qx.module.Css.__swap(obj, stylesToSwap, "_getContentHeight", this);
+        } else {
+
+          contentHeight = qx.bom.element.Dimension.getContentHeight(obj);
+        };
+        return contentHeight;
+      };
+      return null;
+    },
+    /**
+     * INTERNAL
+     *
+     * Returns the content width of the first element in the collection.
+     * This is the maximum width the element can use, excluding borders,
+     * margins, padding or scroll bars.
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the content width of a <em>non displayed</em> element
+     * @return {Number} Computed content width
+     */
+    _getContentWidth : function(force){
+
+      var obj = this[0];
+      if(qx.dom.Node.isElement(obj)){
+
+        var contentWidth;
+        if(force){
+
+          var stylesToSwap = {
+            position : "absolute",
+            visibility : "hidden",
+            display : "block"
+          };
+          contentWidth = qx.module.Css.__swap(obj, stylesToSwap, "_getContentWidth", this);
+        } else {
+
+          contentWidth = qx.bom.element.Dimension.getContentWidth(obj);
+        };
+        return contentWidth;
+      };
+      return null;
+    },
+    /**
+     * Maps HTML elements to their default "display" style values.
+     */
+    __displayDefaults : {
+    },
+    /**
+     * Attempts tp determine the default "display" style value for
+     * elements with the given tag name.
+     *
+     * @param tagName {String} Tag name
+     * @param  doc {Document?} Document element. Default: The current document
+     * @return {String} The default "display" value, e.g. <code>inline</code>
+     * or <code>block</code>
+     */
+    __getDisplayDefault : function(tagName, doc){
+
+      var defaults = qx.module.Css.__displayDefaults;
+      if(!defaults[tagName]){
+
+        var docu = doc || document;
+        var tempEl = qxWeb(docu.createElement(tagName)).appendTo(doc.body);
+        defaults[tagName] = tempEl.getStyle("display");
+        tempEl.remove();
+      };
+      return defaults[tagName] || "";
+    },
+    /**
+     * Swaps the given styles of the element and execute the callback
+     * before the original values are restored.
+     *
+     * Finally returns the return value of the callback.
+     *
+     * @param element {Element} the DOM element to operate on
+     * @param styles {Map} the styles to swap
+     * @param methodName {String} the callback functions name
+     * @param context {Object} the context in which the callback should be called
+     * @return {Object} the return value of the callback
+     */
+    __swap : function(element, styles, methodName, context){
+
+      // get the current values
+      var currentValues = {
+      };
+      for(var styleProperty in styles){
+
+        currentValues[styleProperty] = element.style[styleProperty];
+        element.style[styleProperty] = styles[styleProperty];
+      };
+      var value = context[methodName]();
+      for(var styleProperty in currentValues){
+
+        element.style[styleProperty] = currentValues[styleProperty];
+      };
+      return value;
+    },
+    /**
+     * Includes a Stylesheet file
+     *
+     * @attachStatic {qxWeb}
+     * @param uri {String} The stylesheet's URI
+     * @param doc {Document?} Document to modify
+     */
+    includeStylesheet : function(uri, doc){
+
+      qx.bom.Stylesheet.includeFile(uri, doc);
+    }
+  },
+  members : {
+    /**
+     * Returns the rendered height of the first element in the collection.
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the height of a <em>non displayed</em> element
+     * @return {Number} The first item's rendered height
+     */
+    getHeight : function(force){
+
+      return this._getHeight(force);
+    },
+    /**
+     * Returns the rendered width of the first element in the collection
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the width of a <em>non displayed</em> element
+     * @return {Number} The first item's rendered width
+     */
+    getWidth : function(force){
+
+      return this._getWidth(force);
+    },
+    /**
+     * Returns the content height of the first element in the collection.
+     * This is the maximum height the element can use, excluding borders,
+     * margins, padding or scroll bars.
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the content height of a <em>non displayed</em> element
+     * @return {Number} Computed content height
+     */
+    getContentHeight : function(force){
+
+      return this._getContentHeight(force);
+    },
+    /**
+     * Returns the content width of the first element in the collection.
+     * This is the maximum width the element can use, excluding borders,
+     * margins, padding or scroll bars.
+     * @attach {qxWeb}
+     * @param force {Boolean?false} When true also get the content width of a <em>non displayed</em> element
+     * @return {Number} Computed content width
+     */
+    getContentWidth : function(force){
+
+      return this._getContentWidth(force);
+    },
+    /**
+     * Shows any elements with "display: none" in the collection. If an element
+     * was hidden by using the {@link #hide} method, its previous
+     * "display" style value will be re-applied. Otherwise, the
+     * default "display" value for the element type will be applied.
+     *
+     * @attach {qxWeb}
+     * @return {qxWeb} The collection for chaining
+     */
+    show : function(){
+
+      this._forEachElementWrapped(function(item){
+
+        var currentVal = item.getStyle("display");
+        var prevVal = item[0].$$qPrevDisp;
+        var newVal;
+        if(currentVal == "none"){
+
+          if(prevVal && prevVal != "none"){
+
+            newVal = prevVal;
+          } else {
+
+            var doc = qxWeb.getDocument(item[0]);
+            newVal = qx.module.Css.__getDisplayDefault(item[0].tagName, doc);
+          };
+          item.setStyle("display", newVal);
+          item[0].$$qPrevDisp = "none";
+        };
+      });
+      return this;
+    },
+    /**
+     * Hides all elements in the collection by setting their "display"
+     * style to "none". The previous value is stored so it can be re-applied
+     * when {@link #show} is called.
+     *
+     * @attach {qxWeb}
+     * @return {qxWeb} The collection for chaining
+     */
+    hide : function(){
+
+      this._forEachElementWrapped(function(item){
+
+        var prevStyle = item.getStyle("display");
+        if(prevStyle !== "none"){
+
+          item[0].$$qPrevDisp = prevStyle;
+          item.setStyle("display", "none");
+        };
+      });
+      return this;
+    },
+    /**
+     * Returns the distance between the first element in the collection and its
+     * offset parent
+     *
+     * @attach {qxWeb}
+     * @return {Map} a map with the keys <code>left</code> and <code>top</code>
+     * containing the distance between the elements
+     */
+    getPosition : function(){
+
+      var obj = this[0];
+      if(qx.dom.Node.isElement(obj)){
+
+        return qx.bom.element.Location.getPosition(obj);
+      };
+      return null;
+    },
+    /**
+     * Returns the computed location of the given element in the context of the
+     * document dimensions.
+     *
+     * Supported modes:
+     *
+     * * <code>margin</code>: Calculate from the margin box of the element (bigger than the visual appearance: including margins of given element)
+     * * <code>box</code>: Calculates the offset box of the element (default, uses the same size as visible)
+     * * <code>border</code>: Calculate the border box (useful to align to border edges of two elements).
+     * * <code>scroll</code>: Calculate the scroll box (relevant for absolute positioned content).
+     * * <code>padding</code>: Calculate the padding box (relevant for static/relative positioned content).
+     *
+     * @attach {qxWeb}
+     * @param mode {String?box} A supported option. See comment above.
+     * @return {Map} A map with the keys <code>left</code>, <code>top</code>,
+     * <code>right</code> and <code>bottom</code> which contains the distance
+     * of the element relative to the document.
+     */
+    getOffset : function(mode){
+
+      var elem = this[0];
+      if(elem && qx.dom.Node.isElement(elem)){
+
+        return qx.bom.element.Location.get(elem, mode);
+      };
+      return null;
+    },
+    /**
      * Modifies the given style property on all elements in the collection.
      *
      * @attach {qxWeb}
@@ -27066,333 +30129,697 @@ qx.Bootstrap.define("qx.module.Css", {
         qx.bom.element.Class.replace(item, oldName, newName);
       });
       return this;
-    },
-    /**
-     * Returns the rendered height of the first element in the collection.
-     * @attach {qxWeb}
-     * @param force {Boolean?false} When true also get the height of a <em>non displayed</em> element
-     * @return {Number} The first item's rendered height
-     */
-    getHeight : function(force){
-
-      var elem = this[0];
-      if(elem){
-
-        if(qx.dom.Node.isElement(elem)){
-
-          var elementHeight;
-          if(force){
-
-            var stylesToSwap = {
-              display : "block",
-              position : "absolute",
-              visibility : "hidden"
-            };
-            elementHeight = qx.module.Css.__swap(elem, stylesToSwap, qx.module.Css.getHeight, this);
-          } else {
-
-            elementHeight = qx.bom.element.Dimension.getHeight(elem);
-          };
-          return elementHeight;
-        } else if(qx.dom.Node.isDocument(elem)){
-
-          return qx.bom.Document.getHeight(qx.dom.Node.getWindow(elem));
-        } else if(qx.dom.Node.isWindow(elem)){
-
-          return qx.bom.Viewport.getHeight(elem);
-        };;
-      };
-      return null;
-    },
-    /**
-     * Returns the rendered width of the first element in the collection
-     * @attach {qxWeb}
-     * @param force {Boolean?false} When true also get the width of a <em>non displayed</em> element
-     * @return {Number} The first item's rendered width
-     */
-    getWidth : function(force){
-
-      var elem = this[0];
-      if(elem){
-
-        if(qx.dom.Node.isElement(elem)){
-
-          var elementWidth;
-          if(force){
-
-            var stylesToSwap = {
-              display : "block",
-              position : "absolute",
-              visibility : "hidden"
-            };
-            elementWidth = qx.module.Css.__swap(elem, stylesToSwap, qx.module.Css.getWidth, this);
-          } else {
-
-            elementWidth = qx.bom.element.Dimension.getWidth(elem);
-          };
-          return elementWidth;
-        } else if(qx.dom.Node.isDocument(elem)){
-
-          return qx.bom.Document.getWidth(qx.dom.Node.getWindow(elem));
-        } else if(qx.dom.Node.isWindow(elem)){
-
-          return qx.bom.Viewport.getWidth(elem);
-        };;
-      };
-      return null;
-    },
-    /**
-     * Returns the computed location of the given element in the context of the
-     * document dimensions.
-     *
-     * Supported modes:
-     *
-     * * <code>margin</code>: Calculate from the margin box of the element (bigger than the visual appearance: including margins of given element)
-     * * <code>box</code>: Calculates the offset box of the element (default, uses the same size as visible)
-     * * <code>border</code>: Calculate the border box (useful to align to border edges of two elements).
-     * * <code>scroll</code>: Calculate the scroll box (relevant for absolute positioned content).
-     * * <code>padding</code>: Calculate the padding box (relevant for static/relative positioned content).
-     *
-     * @attach {qxWeb}
-     * @param mode {String?box} A supported option. See comment above.
-     * @return {Map} A map with the keys <code>left</code>, <code>top</code>,
-     * <code>right</code> and <code>bottom</code> which contains the distance
-     * of the element relative to the document.
-     */
-    getOffset : function(mode){
-
-      var elem = this[0];
-      if(elem && qx.dom.Node.isElement(elem)){
-
-        return qx.bom.element.Location.get(elem, mode);
-      };
-      return null;
-    },
-    /**
-     * Returns the content height of the first element in the collection.
-     * This is the maximum height the element can use, excluding borders,
-     * margins, padding or scroll bars.
-     * @attach {qxWeb}
-     * @param force {Boolean?false} When true also get the content height of a <em>non displayed</em> element
-     * @return {Number} Computed content height
-     */
-    getContentHeight : function(force){
-
-      var obj = this[0];
-      if(qx.dom.Node.isElement(obj)){
-
-        var contentHeight;
-        if(force){
-
-          var stylesToSwap = {
-            position : "absolute",
-            visibility : "hidden",
-            display : "block"
-          };
-          contentHeight = qx.module.Css.__swap(obj, stylesToSwap, qx.module.Css.getContentHeight, this);
-        } else {
-
-          contentHeight = qx.bom.element.Dimension.getContentHeight(obj);
-        };
-        return contentHeight;
-      };
-      return null;
-    },
-    /**
-     * Returns the content width of the first element in the collection.
-     * This is the maximum width the element can use, excluding borders,
-     * margins, padding or scroll bars.
-     * @attach {qxWeb}
-     * @param force {Boolean?false} When true also get the content width of a <em>non displayed</em> element
-     * @return {Number} Computed content width
-     */
-    getContentWidth : function(force){
-
-      var obj = this[0];
-      if(qx.dom.Node.isElement(obj)){
-
-        var contentWidth;
-        if(force){
-
-          var stylesToSwap = {
-            position : "absolute",
-            visibility : "hidden",
-            display : "block"
-          };
-          contentWidth = qx.module.Css.__swap(obj, stylesToSwap, qx.module.Css.getContentWidth, this);
-        } else {
-
-          contentWidth = qx.bom.element.Dimension.getContentWidth(obj);
-        };
-        return contentWidth;
-      };
-      return null;
-    },
-    /**
-     * Returns the distance between the first element in the collection and its
-     * offset parent
-     *
-     * @attach {qxWeb}
-     * @return {Map} a map with the keys <code>left</code> and <code>top</code>
-     * containing the distance between the elements
-     */
-    getPosition : function(){
-
-      var obj = this[0];
-      if(qx.dom.Node.isElement(obj)){
-
-        return qx.bom.element.Location.getPosition(obj);
-      };
-      return null;
-    },
-    /**
-     * Includes a Stylesheet file
-     *
-     * @attachStatic {qxWeb}
-     * @param uri {String} The stylesheet's URI
-     * @param doc {Document?} Document to modify
-     */
-    includeStylesheet : function(uri, doc){
-
-      qx.bom.Stylesheet.includeFile(uri, doc);
-    },
-    /**
-     * Hides all elements in the collection by setting their "display"
-     * style to "none". The previous value is stored so it can be re-applied
-     * when {@link #show} is called.
-     *
-     * @attach {qxWeb}
-     * @return {qxWeb} The collection for chaining
-     */
-    hide : function(){
-
-      this._forEachElementWrapped(function(item){
-
-        var prevStyle = item.getStyle("display");
-        if(prevStyle !== "none"){
-
-          item[0].$$qPrevDisp = prevStyle;
-          item.setStyle("display", "none");
-        };
-      });
-      return this;
-    },
-    /**
-     * Shows any elements with "display: none" in the collection. If an element
-     * was hidden by using the {@link #hide} method, its previous
-     * "display" style value will be re-applied. Otherwise, the
-     * default "display" value for the element type will be applied.
-     *
-     * @attach {qxWeb}
-     * @return {qxWeb} The collection for chaining
-     */
-    show : function(){
-
-      this._forEachElementWrapped(function(item){
-
-        var currentVal = item.getStyle("display");
-        var prevVal = item[0].$$qPrevDisp;
-        var newVal;
-        if(currentVal == "none"){
-
-          if(prevVal && prevVal != "none"){
-
-            newVal = prevVal;
-          } else {
-
-            var doc = qxWeb.getDocument(item[0]);
-            newVal = qx.module.Css.__getDisplayDefault(item[0].tagName, doc);
-          };
-          item.setStyle("display", newVal);
-          item[0].$$qPrevDisp = "none";
-        };
-      });
-      return this;
-    },
-    /**
-     * Maps HTML elements to their default "display" style values.
-     */
-    __displayDefaults : {
-    },
-    /**
-     * Attempts tp determine the default "display" style value for
-     * elements with the given tag name.
-     *
-     * @param tagName {String} Tag name
-     * @param  doc {Document?} Document element. Default: The current document
-     * @return {String} The default "display" value, e.g. <code>inline</code>
-     * or <code>block</code>
-     */
-    __getDisplayDefault : function(tagName, doc){
-
-      var defaults = qx.module.Css.__displayDefaults;
-      if(!defaults[tagName]){
-
-        var docu = doc || document;
-        var tempEl = qxWeb(docu.createElement(tagName)).appendTo(doc.body);
-        defaults[tagName] = tempEl.getStyle("display");
-        tempEl.remove();
-      };
-      return defaults[tagName] || "";
-    },
-    /**
-     * Swaps the given styles of the element and execute the callback
-     * before the original values are restored.
-     *
-     * Finally returns the return value of the callback.
-     *
-     * @param element {Element} the DOM element to operate on
-     * @param styles {Map} the styles to swap
-     * @param callback {Function} the callback function
-     * @param context {Object} the context in which the callback should be called
-     * @return {Object} the return value of the callback
-     */
-    __swap : function(element, styles, callback, context){
-
-      // get the current values
-      var currentValues = {
-      };
-      for(var styleProperty in styles){
-
-        currentValues[styleProperty] = element.style[styleProperty];
-        element.style[styleProperty] = styles[styleProperty];
-      };
-      var value = callback.call(context);
-      for(var styleProperty in currentValues){
-
-        element.style[styleProperty] = currentValues[styleProperty];
-      };
-      return value;
     }
   },
   defer : function(statics){
 
+    qxWeb.$attachAll(this);
+    // manually attach private method which is ignored by attachAll
     qxWeb.$attach({
-      "setStyle" : statics.setStyle,
-      "getStyle" : statics.getStyle,
-      "setStyles" : statics.setStyles,
-      "getStyles" : statics.getStyles,
-      "addClass" : statics.addClass,
-      "addClasses" : statics.addClasses,
-      "removeClass" : statics.removeClass,
-      "removeClasses" : statics.removeClasses,
-      "hasClass" : statics.hasClass,
-      "getClass" : statics.getClass,
-      "toggleClass" : statics.toggleClass,
-      "toggleClasses" : statics.toggleClasses,
-      "replaceClass" : statics.replaceClass,
-      "getHeight" : statics.getHeight,
-      "getWidth" : statics.getWidth,
-      "getOffset" : statics.getOffset,
-      "getContentHeight" : statics.getContentHeight,
-      "getContentWidth" : statics.getContentWidth,
-      "getPosition" : statics.getPosition,
-      "hide" : statics.hide,
-      "show" : statics.show
+      "_getWidth" : statics._getWidth,
+      "_getHeight" : statics._getHeight,
+      "_getContentHeight" : statics._getContentHeight,
+      "_getContentWidth" : statics._getContentWidth
     });
-    qxWeb.$attachStatic({
-      "includeStylesheet" : statics.includeStylesheet
-    });
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2009 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Sebastian Werner (wpbasti)
+     * Fabian Jakobs (fjakobs)
+
+************************************************************************ */
+/**
+ * Contains support for calculating dimensions of HTML elements.
+ *
+ * We differ between the box (or border) size which is available via
+ * {@link #getWidth} and {@link #getHeight} and the content or scroll
+ * sizes which are available via {@link #getContentWidth} and
+ * {@link #getContentHeight}.
+ */
+qx.Bootstrap.define("qx.bom.element.Dimension", {
+  /*
+  *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics : {
+    /**
+     * Returns the rendered width of the given element.
+     *
+     * This is the visible width of the object, which need not to be identical
+     * to the width configured via CSS. This highly depends on the current
+     * box-sizing for the document and maybe even for the element.
+     *
+     * @signature function(element)
+     * @param element {Element} element to query
+     * @return {Integer} width of the element
+     */
+    getWidth : function(element){
+
+      var rect = this._getBoundingClientRect(element);
+      return Math.round(rect.right - rect.left);
+    },
+    /**
+     * Returns the rendered height of the given element.
+     *
+     * This is the visible height of the object, which need not to be identical
+     * to the height configured via CSS. This highly depends on the current
+     * box-sizing for the document and maybe even for the element.
+     *
+     * @signature function(element)
+     * @param element {Element} element to query
+     * @return {Integer} height of the element
+     */
+    getHeight : function(element){
+
+      var rect = this._getBoundingClientRect(element);
+      return Math.round(rect.bottom - rect.top);
+    },
+    /**
+     * Helper function to return the value of native .getBoundingClientRect().
+     * As IE11 returns bogus values for .getBoundingClientRect() inside an
+     * iframe where an element is displayed full screen, we need to correct the
+     * values.
+     *
+     * @param element {Element} element to query
+     *
+     * @return {Map} Map of client rectangle properties
+     */
+    _getBoundingClientRect : function(element){
+
+      var rect = element.getBoundingClientRect();
+      // To be able to fix IE11 bug multiply all properties with 100
+      if(qx.core.Environment.get("browser.documentmode") === 11 && !!document.msFullscreenElement && window !== window.top && this.__isChildOfFullScreenElement(element)){
+
+        // store corrected values in a new object, because ClientRect object
+        // of IE11 is read only
+        var tmp = {
+        };
+        for(var property in rect){
+
+          tmp[property] = rect[property] * 100;
+        };
+        rect = tmp;
+      };
+      return rect;
+    },
+    /**
+     * Helper function to check if element is self or child of element who is
+     * currently in full screen.
+     *
+     * @param element {Element} element to query
+     *
+     * @return {Boolean} True if element if self or child of full screen element
+     */
+    __isChildOfFullScreenElement : function(element){
+
+      if(document.msFullscreenElement === element){
+
+        return true;
+      };
+      return qx.dom.Hierarchy.contains(document.msFullscreenElement, element);
+    },
+    /**
+     * Returns the rendered size of the given element.
+     *
+     * @param element {Element} element to query
+     * @return {Map} map containing the width and height of the element
+     */
+    getSize : function(element){
+
+      return {
+        width : this.getWidth(element),
+        height : this.getHeight(element)
+      };
+    },
+    /** @type {Map} Contains all overflow values where scrollbars are invisible */
+    __hiddenScrollbars : {
+      visible : true,
+      hidden : true
+    },
+    /**
+     * Returns the content width.
+     *
+     * The content width is basically the maximum
+     * width used or the maximum width which can be used by the content. This
+     * excludes all kind of styles of the element like borders, paddings, margins,
+     * and even scrollbars.
+     *
+     * Please note that with visible scrollbars the content width returned
+     * may be larger than the box width returned via {@link #getWidth}.
+     *
+     * @param element {Element} element to query
+     * @return {Integer} Computed content width
+     */
+    getContentWidth : function(element){
+
+      var Style = qx.bom.element.Style;
+      var overflowX = qx.bom.element.Style.get(element, "overflowX");
+      var paddingLeft = parseInt(Style.get(element, "paddingLeft") || "0px", 10);
+      var paddingRight = parseInt(Style.get(element, "paddingRight") || "0px", 10);
+      if(this.__hiddenScrollbars[overflowX]){
+
+        var contentWidth = element.clientWidth;
+        if((qx.core.Environment.get("engine.name") == "opera") || qx.dom.Node.isBlockNode(element)){
+
+          contentWidth = contentWidth - paddingLeft - paddingRight;
+        };
+        // IE seems to return 0 on clientWidth if the element is 0px
+        // in height so we use the offsetWidth instead
+        if(qx.core.Environment.get("engine.name") == "mshtml"){
+
+          if(contentWidth === 0 && element.offsetHeight === 0){
+
+            return element.offsetWidth;
+          };
+        };
+        return contentWidth;
+      } else {
+
+        if(element.clientWidth >= element.scrollWidth){
+
+          // Scrollbars visible, but not needed? We need to substract both paddings
+          return Math.max(element.clientWidth, element.scrollWidth) - paddingLeft - paddingRight;
+        } else {
+
+          // Scrollbars visible and needed. We just remove the left padding,
+          // as the right padding is not respected in rendering.
+          var width = element.scrollWidth - paddingLeft;
+          // IE renders the paddingRight as well with scrollbars on
+          if(qx.core.Environment.get("engine.name") == "mshtml"){
+
+            width -= paddingRight;
+          };
+          return width;
+        };
+      };
+    },
+    /**
+     * Returns the content height.
+     *
+     * The content height is basically the maximum
+     * height used or the maximum height which can be used by the content. This
+     * excludes all kind of styles of the element like borders, paddings, margins,
+     * and even scrollbars.
+     *
+     * Please note that with visible scrollbars the content height returned
+     * may be larger than the box height returned via {@link #getHeight}.
+     *
+     * @param element {Element} element to query
+     * @return {Integer} Computed content height
+     */
+    getContentHeight : function(element){
+
+      var Style = qx.bom.element.Style;
+      var overflowY = qx.bom.element.Style.get(element, "overflowY");
+      var paddingTop = parseInt(Style.get(element, "paddingTop") || "0px", 10);
+      var paddingBottom = parseInt(Style.get(element, "paddingBottom") || "0px", 10);
+      if(this.__hiddenScrollbars[overflowY]){
+
+        return element.clientHeight - paddingTop - paddingBottom;
+      } else {
+
+        if(element.clientHeight >= element.scrollHeight){
+
+          // Scrollbars visible, but not needed? We need to substract both paddings
+          return Math.max(element.clientHeight, element.scrollHeight) - paddingTop - paddingBottom;
+        } else {
+
+          // Scrollbars visible and needed. We just remove the top padding,
+          // as the bottom padding is not respected in rendering.
+          return element.scrollHeight - paddingTop;
+        };
+      };
+    },
+    /**
+     * Returns the rendered content size of the given element.
+     *
+     * @param element {Element} element to query
+     * @return {Map} map containing the content width and height of the element
+     */
+    getContentSize : function(element){
+
+      return {
+        width : this.getContentWidth(element),
+        height : this.getContentHeight(element)
+      };
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Sebastian Werner (wpbasti)
+
+   ======================================================================
+
+   This class contains code based on the following work:
+
+   * Prototype JS
+     http://www.prototypejs.org/
+     Version 1.5
+
+     Copyright:
+       (c) 2006-2007, Prototype Core Team
+
+     License:
+       MIT: http://www.opensource.org/licenses/mit-license.php
+
+     Authors:
+       * Prototype Core Team
+
+   ----------------------------------------------------------------------
+
+     Copyright (c) 2005-2008 Sam Stephenson
+
+     Permission is hereby granted, free of charge, to any person
+     obtaining a copy of this software and associated documentation
+     files (the "Software"), to deal in the Software without restriction,
+     including without limitation the rights to use, copy, modify, merge,
+     publish, distribute, sublicense, and/or sell copies of the Software,
+     and to permit persons to whom the Software is furnished to do so,
+     subject to the following conditions:
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+     DEALINGS IN THE SOFTWARE.
+
+************************************************************************ */
+/**
+ * Methods to operate on nodes and elements on a DOM tree. This contains
+ * special getters to query for child nodes, siblings, etc. This class also
+ * supports to operate on one element and reorganize the content with
+ * the insertion of new HTML or nodes.
+ */
+qx.Bootstrap.define("qx.dom.Hierarchy", {
+  statics : {
+    /**
+     * Returns the DOM index of the given node
+     *
+     * @param node {Node} Node to look for
+     * @return {Integer} The DOM index
+     */
+    getNodeIndex : function(node){
+
+      var index = 0;
+      while(node && (node = node.previousSibling)){
+
+        index++;
+      };
+      return index;
+    },
+    /**
+     * Returns the DOM index of the given element (ignoring non-elements)
+     *
+     * @param element {Element} Element to look for
+     * @return {Integer} The DOM index
+     */
+    getElementIndex : function(element){
+
+      var index = 0;
+      var type = qx.dom.Node.ELEMENT;
+      while(element && (element = element.previousSibling)){
+
+        if(element.nodeType == type){
+
+          index++;
+        };
+      };
+      return index;
+    },
+    /**
+     * Return the next element to the supplied element
+     *
+     * "nextSibling" is not good enough as it might return a text or comment element
+     *
+     * @param element {Element} Starting element node
+     * @return {Element | null} Next element node
+     */
+    getNextElementSibling : function(element){
+
+      while(element && (element = element.nextSibling) && !qx.dom.Node.isElement(element)){
+
+        continue;
+      };
+      return element || null;
+    },
+    /**
+     * Return the previous element to the supplied element
+     *
+     * "previousSibling" is not good enough as it might return a text or comment element
+     *
+     * @param element {Element} Starting element node
+     * @return {Element | null} Previous element node
+     */
+    getPreviousElementSibling : function(element){
+
+      while(element && (element = element.previousSibling) && !qx.dom.Node.isElement(element)){
+
+        continue;
+      };
+      return element || null;
+    },
+    /**
+     * Whether the first element contains the second one
+     *
+     * Uses native non-standard contains() in Internet Explorer,
+     * Opera and Webkit (supported since Safari 3.0 beta)
+     *
+     * @param element {Element} Parent element
+     * @param target {Node} Child node
+     * @return {Boolean}
+     */
+    contains : function(element, target){
+
+      if(qx.core.Environment.get("html.element.contains")){
+
+        if(qx.dom.Node.isDocument(element)){
+
+          var doc = qx.dom.Node.getDocument(target);
+          return element && doc == element;
+        } else if(qx.dom.Node.isDocument(target)){
+
+          return false;
+        } else {
+
+          return element.contains(target);
+        };
+      } else if(qx.core.Environment.get("html.element.compareDocumentPosition")){
+
+        // https://developer.mozilla.org/en-US/docs/DOM:Node.compareDocumentPosition
+        return !!(element.compareDocumentPosition(target) & 16);
+      } else {
+
+        while(target){
+
+          if(element == target){
+
+            return true;
+          };
+          target = target.parentNode;
+        };
+        return false;
+      };
+    },
+    /**
+     * Whether the element is inserted into the document
+     * for which it was created.
+     *
+     * @param element {Element} DOM element to check
+     * @return {Boolean} <code>true</code> when the element is inserted
+     *    into the document.
+     */
+    isRendered : function(element){
+
+      var doc = element.ownerDocument || element.document;
+      if(qx.core.Environment.get("html.element.contains")){
+
+        // Fast check for all elements which are not in the DOM
+        if(!element.parentNode){
+
+          return false;
+        };
+        return doc.body.contains(element);
+      } else if(qx.core.Environment.get("html.element.compareDocumentPosition")){
+
+        // Gecko way, DOM3 method
+        return !!(doc.compareDocumentPosition(element) & 16);
+      } else {
+
+        while(element){
+
+          if(element == doc.body){
+
+            return true;
+          };
+          element = element.parentNode;
+        };
+        return false;
+      };
+    },
+    /**
+     * Checks if <code>element</code> is a descendant of <code>ancestor</code>.
+     *
+     * @param element {Element} first element
+     * @param ancestor {Element} second element
+     * @return {Boolean} Element is a descendant of ancestor
+     */
+    isDescendantOf : function(element, ancestor){
+
+      return this.contains(ancestor, element);
+    },
+    /**
+     * Get the common parent element of two given elements. Returns
+     * <code>null</code> when no common element has been found.
+     *
+     * Uses native non-standard contains() in Opera and Internet Explorer
+     *
+     * @param element1 {Element} First element
+     * @param element2 {Element} Second element
+     * @return {Element} the found parent, if none was found <code>null</code>
+     */
+    getCommonParent : function(element1, element2){
+
+      if(element1 === element2){
+
+        return element1;
+      };
+      if(qx.core.Environment.get("html.element.contains")){
+
+        while(element1 && qx.dom.Node.isElement(element1)){
+
+          if(element1.contains(element2)){
+
+            return element1;
+          };
+          element1 = element1.parentNode;
+        };
+        return null;
+      } else {
+
+        var known = [];
+        while(element1 || element2){
+
+          if(element1){
+
+            if(qx.lang.Array.contains(known, element1)){
+
+              return element1;
+            };
+            known.push(element1);
+            element1 = element1.parentNode;
+          };
+          if(element2){
+
+            if(qx.lang.Array.contains(known, element2)){
+
+              return element2;
+            };
+            known.push(element2);
+            element2 = element2.parentNode;
+          };
+        };
+        return null;
+      };
+    },
+    /**
+     * Collects all of element's ancestors and returns them as an array of
+     * elements.
+     *
+     * @param element {Element} DOM element to query for ancestors
+     * @return {Array} list of all parents
+     */
+    getAncestors : function(element){
+
+      return this._recursivelyCollect(element, "parentNode");
+    },
+    /**
+     * Returns element's children.
+     *
+     * @param element {Element} DOM element to query for child elements
+     * @return {Array} list of all child elements
+     */
+    getChildElements : function(element){
+
+      element = element.firstChild;
+      if(!element){
+
+        return [];
+      };
+      var arr = this.getNextSiblings(element);
+      if(element.nodeType === 1){
+
+        arr.unshift(element);
+      };
+      return arr;
+    },
+    /**
+     * Collects all of element's descendants (deep) and returns them as an array
+     * of elements.
+     *
+     * @param element {Element} DOM element to query for child elements
+     * @return {Array} list of all found elements
+     */
+    getDescendants : function(element){
+
+      return qx.lang.Array.fromCollection(element.getElementsByTagName("*"));
+    },
+    /**
+     * Returns the first child that is an element. This is opposed to firstChild DOM
+     * property which will return any node (whitespace in most usual cases).
+     *
+     * @param element {Element} DOM element to query for first descendant
+     * @return {Element} the first descendant
+     */
+    getFirstDescendant : function(element){
+
+      element = element.firstChild;
+      while(element && element.nodeType != 1){
+
+        element = element.nextSibling;
+      };
+      return element;
+    },
+    /**
+     * Returns the last child that is an element. This is opposed to lastChild DOM
+     * property which will return any node (whitespace in most usual cases).
+     *
+     * @param element {Element} DOM element to query for last descendant
+     * @return {Element} the last descendant
+     */
+    getLastDescendant : function(element){
+
+      element = element.lastChild;
+      while(element && element.nodeType != 1){
+
+        element = element.previousSibling;
+      };
+      return element;
+    },
+    /**
+     * Collects all of element's previous siblings and returns them as an array of elements.
+     *
+     * @param element {Element} DOM element to query for previous siblings
+     * @return {Array} list of found DOM elements
+     */
+    getPreviousSiblings : function(element){
+
+      return this._recursivelyCollect(element, "previousSibling");
+    },
+    /**
+     * Collects all of element's next siblings and returns them as an array of
+     * elements.
+     *
+     * @param element {Element} DOM element to query for next siblings
+     * @return {Array} list of found DOM elements
+     */
+    getNextSiblings : function(element){
+
+      return this._recursivelyCollect(element, "nextSibling");
+    },
+    /**
+     * Recursively collects elements whose relationship is specified by
+     * property.  <code>property</code> has to be a property (a method won't
+     * do!) of element that points to a single DOM node. Returns an array of
+     * elements.
+     *
+     * @param element {Element} DOM element to start with
+     * @param property {String} property to look for
+     * @return {Array} result list
+     */
+    _recursivelyCollect : function(element, property){
+
+      var list = [];
+      while(element = element[property]){
+
+        if(element.nodeType == 1){
+
+          list.push(element);
+        };
+      };
+      return list;
+    },
+    /**
+     * Collects all of element's siblings and returns them as an array of elements.
+     *
+     * @param element {var} DOM element to start with
+     * @return {Array} list of all found siblings
+     */
+    getSiblings : function(element){
+
+      return this.getPreviousSiblings(element).reverse().concat(this.getNextSiblings(element));
+    },
+    /**
+     * Whether the given element is empty.
+     * Inspired by Base2 (Dean Edwards)
+     *
+     * @param element {Element} The element to check
+     * @return {Boolean} true when the element is empty
+     */
+    isEmpty : function(element){
+
+      element = element.firstChild;
+      while(element){
+
+        if(element.nodeType === qx.dom.Node.ELEMENT || element.nodeType === qx.dom.Node.TEXT){
+
+          return false;
+        };
+        element = element.nextSibling;
+      };
+      return true;
+    },
+    /**
+     * Removes all of element's text nodes which contain only whitespace
+     *
+     * @param element {Element} Element to cleanup
+     */
+    cleanWhitespace : function(element){
+
+      var node = element.firstChild;
+      while(node){
+
+        var nextNode = node.nextSibling;
+        if(node.nodeType == 3 && !/\S/.test(node.nodeValue)){
+
+          element.removeChild(node);
+        };
+        node = nextNode;
+      };
+    }
   }
 });
 
@@ -28258,6 +31685,19 @@ qx.Bootstrap.define("qx.bom.client.Css", {
       return qx.bom.Style.getPropertyName("userModify");
     },
     /**
+     * Returns the vendor-specific name of the <code>float</code> style property
+     *
+     * @return {String|null} <code>cssFloat</code> for standards-compliant
+     * browsers, <code>styleFloat</code> for legacy IEs, <code>null</code> if
+     * the client supports neither property.
+     * @internal
+     */
+    getFloat : function(){
+
+      var style = document.documentElement.style;
+      return style.cssFloat !== undefined ? "cssFloat" : style.styleFloat !== undefined ? "styleFloat" : null;
+    },
+    /**
      * Returns the (possibly vendor-prefixed) name this client uses for
      * <code>linear-gradient</code>.
      * http://dev.w3.org/csswg/css3-images/#linear-gradients
@@ -28547,6 +31987,7 @@ qx.Bootstrap.define("qx.bom.client.Css", {
     qx.core.Environment.add("css.userselect", statics.getUserSelect);
     qx.core.Environment.add("css.userselect.none", statics.getUserSelectNone);
     qx.core.Environment.add("css.appearance", statics.getAppearance);
+    qx.core.Environment.add("css.float", statics.getFloat);
     qx.core.Environment.add("css.boxsizing", statics.getBoxSizing);
     qx.core.Environment.add("css.inlineblock", statics.getInlineBlock);
     qx.core.Environment.add("css.opacity", statics.getOpacity);
@@ -28662,6 +32103,7 @@ qx.Bootstrap.define("qx.bom.element.Style", {
         "userSelect" : qx.core.Environment.get("css.userselect"),
         "textOverflow" : qx.core.Environment.get("css.textoverflow"),
         "borderImage" : qx.core.Environment.get("css.borderimage"),
+        "float" : qx.core.Environment.get("css.float"),
         "userModify" : qx.core.Environment.get("css.usermodify"),
         "boxSizing" : qx.core.Environment.get("css.boxsizing")
       };
@@ -28674,7 +32116,13 @@ qx.Bootstrap.define("qx.bom.element.Style", {
           delete styleNames[key];
         } else {
 
-          this.__cssNames[key] = qx.bom.Style.getCssName(styleNames[key]);
+          if(key === 'float'){
+
+            this.__cssNames['cssFloat'] = key;
+          } else {
+
+            this.__cssNames[key] = qx.bom.Style.getCssName(styleNames[key]);
+          };
         };
       };
       this.__styleNames = styleNames;
@@ -28748,7 +32196,7 @@ qx.Bootstrap.define("qx.bom.element.Style", {
           continue;
         };
         // normalize name
-        name = this.__styleNames[name] || this.__getStyleName(name) || name;
+        name = this.__cssNames[name] || name;
         // process special properties
         if(special[name]){
 
@@ -29031,954 +32479,6 @@ qx.Bootstrap.define("qx.bom.element.Style", {
   defer : function(statics){
 
     statics.__detectVendorProperties();
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Sebastian Werner (wpbasti)
-
-   ======================================================================
-
-   This class contains code based on the following work:
-
-   * Base2
-     http://code.google.com/p/base2/
-     Version 0.9
-
-     Copyright:
-       (c) 2006-2007, Dean Edwards
-
-     License:
-       MIT: http://www.opensource.org/licenses/mit-license.php
-
-     Authors:
-       * Dean Edwards
-
-************************************************************************ */
-/**
- * CSS class name support for HTML elements. Supports multiple class names
- * for each element. Can query and apply class names to HTML elements.
- */
-qx.Bootstrap.define("qx.bom.element.Class", {
-  /*
-  *****************************************************************************
-     STATICS
-  *****************************************************************************
-  */
-  statics : {
-    /** @type {RegExp} Regular expressions to split class names */
-    __splitter : /\s+/g,
-    /** @type {RegExp} String trim regular expression. */
-    __trim : /^\s+|\s+$/g,
-    /**
-     * Adds a className to the given element
-     * If successfully added the given className will be returned
-     *
-     * @signature function(element, name)
-     * @param element {Element} The element to modify
-     * @param name {String} The class name to add
-     * @return {String} The added classname (if so)
-     */
-    add : {
-      "native" : function(element, name){
-
-        element.classList.add(name);
-        return name;
-      },
-      "default" : function(element, name){
-
-        if(!this.has(element, name)){
-
-          element.className += (element.className ? " " : "") + name;
-        };
-        return name;
-      }
-    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
-    /**
-     * Adds multiple classes to the given element
-     *
-     * @signature function(element, classes)
-     * @param element {Element} DOM element to modify
-     * @param classes {String[]} List of classes to add.
-     * @return {String} The resulting class name which was applied
-     */
-    addClasses : {
-      "native" : function(element, classes){
-
-        for(var i = 0;i < classes.length;i++){
-
-          element.classList.add(classes[i]);
-        };
-        return element.className;
-      },
-      "default" : function(element, classes){
-
-        var keys = {
-        };
-        var result;
-        var old = element.className;
-        if(old){
-
-          result = old.split(this.__splitter);
-          for(var i = 0,l = result.length;i < l;i++){
-
-            keys[result[i]] = true;
-          };
-          for(var i = 0,l = classes.length;i < l;i++){
-
-            if(!keys[classes[i]]){
-
-              result.push(classes[i]);
-            };
-          };
-        } else {
-
-          result = classes;
-        };
-        return element.className = result.join(" ");
-      }
-    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
-    /**
-     * Gets the classname of the given element
-     *
-     * @param element {Element} The element to query
-     * @return {String} The retrieved classname
-     */
-    get : function(element){
-
-      var className = element.className;
-      if(typeof className.split !== 'function'){
-
-        if(typeof className === 'object'){
-
-          if(qx.Bootstrap.getClass(className) == 'SVGAnimatedString'){
-
-            className = className.baseVal;
-          } else {
-
-            {
-
-              qx.log.Logger.warn(this, "className for element " + element + " cannot be determined");
-            };
-            className = '';
-          };
-        };
-        if(typeof className === 'undefined'){
-
-          {
-
-            qx.log.Logger.warn(this, "className for element " + element + " is undefined");
-          };
-          className = '';
-        };
-      };
-      return className;
-    },
-    /**
-     * Whether the given element has the given className.
-     *
-     * @signature function(element, name)
-     * @param element {Element} The DOM element to check
-     * @param name {String} The class name to check for
-     * @return {Boolean} true when the element has the given classname
-     */
-    has : {
-      "native" : function(element, name){
-
-        return element.classList.contains(name);
-      },
-      "default" : function(element, name){
-
-        var regexp = new RegExp("(^|\\s)" + name + "(\\s|$)");
-        return regexp.test(element.className);
-      }
-    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
-    /**
-     * Removes a className from the given element
-     *
-     * @signature function(element, name)
-     * @param element {Element} The DOM element to modify
-     * @param name {String} The class name to remove
-     * @return {String} The removed class name
-     */
-    remove : {
-      "native" : function(element, name){
-
-        element.classList.remove(name);
-        return name;
-      },
-      "default" : function(element, name){
-
-        var regexp = new RegExp("(^|\\s)" + name + "(\\s|$)");
-        element.className = element.className.replace(regexp, "$2");
-        return name;
-      }
-    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
-    /**
-     * Removes multiple classes from the given element
-     *
-     * @signature function(element, classes)
-     * @param element {Element} DOM element to modify
-     * @param classes {String[]} List of classes to remove.
-     * @return {String} The resulting class name which was applied
-     */
-    removeClasses : {
-      "native" : function(element, classes){
-
-        for(var i = 0;i < classes.length;i++){
-
-          element.classList.remove(classes[i]);
-        };
-        return element.className;
-      },
-      "default" : function(element, classes){
-
-        var reg = new RegExp("\\b" + classes.join("\\b|\\b") + "\\b", "g");
-        return element.className = element.className.replace(reg, "").replace(this.__trim, "").replace(this.__splitter, " ");
-      }
-    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
-    /**
-     * Replaces the first given class name with the second one
-     *
-     * @param element {Element} The DOM element to modify
-     * @param oldName {String} The class name to remove
-     * @param newName {String} The class name to add
-     * @return {String} The added class name
-     */
-    replace : function(element, oldName, newName){
-
-      if(!this.has(element, oldName)){
-
-        return "";
-      };
-      this.remove(element, oldName);
-      return this.add(element, newName);
-    },
-    /**
-     * Toggles a className of the given element
-     *
-     * @signature function(element, name, toggle)
-     * @param element {Element} The DOM element to modify
-     * @param name {String} The class name to toggle
-     * @param toggle {Boolean?null} Whether to switch class on/off. Without
-     *    the parameter an automatic toggling would happen.
-     * @return {String} The class name
-     */
-    toggle : {
-      "native" : function(element, name, toggle){
-
-        if(toggle === undefined){
-
-          element.classList.toggle(name);
-        } else {
-
-          toggle ? this.add(element, name) : this.remove(element, name);
-        };
-        return name;
-      },
-      "default" : function(element, name, toggle){
-
-        if(toggle == null){
-
-          toggle = !this.has(element, name);
-        };
-        toggle ? this.add(element, name) : this.remove(element, name);
-        return name;
-      }
-    }[qx.core.Environment.get("html.classlist") ? "native" : "default"]
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2009 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Sebastian Werner (wpbasti)
-     * Fabian Jakobs (fjakobs)
-
-************************************************************************ */
-/**
- * Contains support for calculating dimensions of HTML elements.
- *
- * We differ between the box (or border) size which is available via
- * {@link #getWidth} and {@link #getHeight} and the content or scroll
- * sizes which are available via {@link #getContentWidth} and
- * {@link #getContentHeight}.
- */
-qx.Bootstrap.define("qx.bom.element.Dimension", {
-  /*
-  *****************************************************************************
-     STATICS
-  *****************************************************************************
-  */
-  statics : {
-    /**
-     * Returns the rendered width of the given element.
-     *
-     * This is the visible width of the object, which need not to be identical
-     * to the width configured via CSS. This highly depends on the current
-     * box-sizing for the document and maybe even for the element.
-     *
-     * @signature function(element)
-     * @param element {Element} element to query
-     * @return {Integer} width of the element
-     */
-    getWidth : function(element){
-
-      var rect = this._getBoundingClientRect(element);
-      return Math.round(rect.right - rect.left);
-    },
-    /**
-     * Returns the rendered height of the given element.
-     *
-     * This is the visible height of the object, which need not to be identical
-     * to the height configured via CSS. This highly depends on the current
-     * box-sizing for the document and maybe even for the element.
-     *
-     * @signature function(element)
-     * @param element {Element} element to query
-     * @return {Integer} height of the element
-     */
-    getHeight : function(element){
-
-      var rect = this._getBoundingClientRect(element);
-      return Math.round(rect.bottom - rect.top);
-    },
-    /**
-     * Helper function to return the value of native .getBoundingClientRect().
-     * As IE11 returns bogus values for .getBoundingClientRect() inside an
-     * iframe where an element is displayed full screen, we need to correct the
-     * values.
-     *
-     * @param element {Element} element to query
-     *
-     * @return {Map} Map of client rectangle properties
-     */
-    _getBoundingClientRect : function(element){
-
-      var rect = element.getBoundingClientRect();
-      // To be able to fix IE11 bug multiply all properties with 100
-      if(qx.core.Environment.get("browser.documentmode") === 11 && !!document.msFullscreenElement && window !== window.top && this.__isChildOfFullScreenElement(element)){
-
-        // store corrected values in a new object, because ClientRect object
-        // of IE11 is read only
-        var tmp = {
-        };
-        for(var property in rect){
-
-          tmp[property] = rect[property] * 100;
-        };
-        rect = tmp;
-      };
-      return rect;
-    },
-    /**
-     * Helper function to check if element is self or child of element who is
-     * currently in full screen.
-     *
-     * @param element {Element} element to query
-     *
-     * @return {Boolean} True if element if self or child of full screen element
-     */
-    __isChildOfFullScreenElement : function(element){
-
-      if(document.msFullscreenElement === element){
-
-        return true;
-      };
-      return qx.dom.Hierarchy.contains(document.msFullscreenElement, element);
-    },
-    /**
-     * Returns the rendered size of the given element.
-     *
-     * @param element {Element} element to query
-     * @return {Map} map containing the width and height of the element
-     */
-    getSize : function(element){
-
-      return {
-        width : this.getWidth(element),
-        height : this.getHeight(element)
-      };
-    },
-    /** @type {Map} Contains all overflow values where scrollbars are invisible */
-    __hiddenScrollbars : {
-      visible : true,
-      hidden : true
-    },
-    /**
-     * Returns the content width.
-     *
-     * The content width is basically the maximum
-     * width used or the maximum width which can be used by the content. This
-     * excludes all kind of styles of the element like borders, paddings, margins,
-     * and even scrollbars.
-     *
-     * Please note that with visible scrollbars the content width returned
-     * may be larger than the box width returned via {@link #getWidth}.
-     *
-     * @param element {Element} element to query
-     * @return {Integer} Computed content width
-     */
-    getContentWidth : function(element){
-
-      var Style = qx.bom.element.Style;
-      var overflowX = qx.bom.element.Style.get(element, "overflowX");
-      var paddingLeft = parseInt(Style.get(element, "paddingLeft") || "0px", 10);
-      var paddingRight = parseInt(Style.get(element, "paddingRight") || "0px", 10);
-      if(this.__hiddenScrollbars[overflowX]){
-
-        var contentWidth = element.clientWidth;
-        if((qx.core.Environment.get("engine.name") == "opera") || qx.dom.Node.isBlockNode(element)){
-
-          contentWidth = contentWidth - paddingLeft - paddingRight;
-        };
-        // IE seems to return 0 on clientWidth if the element is 0px
-        // in height so we use the offsetWidth instead
-        if(qx.core.Environment.get("engine.name") == "mshtml"){
-
-          if(contentWidth === 0 && element.offsetHeight === 0){
-
-            return element.offsetWidth;
-          };
-        };
-        return contentWidth;
-      } else {
-
-        if(element.clientWidth >= element.scrollWidth){
-
-          // Scrollbars visible, but not needed? We need to substract both paddings
-          return Math.max(element.clientWidth, element.scrollWidth) - paddingLeft - paddingRight;
-        } else {
-
-          // Scrollbars visible and needed. We just remove the left padding,
-          // as the right padding is not respected in rendering.
-          var width = element.scrollWidth - paddingLeft;
-          // IE renders the paddingRight as well with scrollbars on
-          if(qx.core.Environment.get("engine.name") == "mshtml"){
-
-            width -= paddingRight;
-          };
-          return width;
-        };
-      };
-    },
-    /**
-     * Returns the content height.
-     *
-     * The content height is basically the maximum
-     * height used or the maximum height which can be used by the content. This
-     * excludes all kind of styles of the element like borders, paddings, margins,
-     * and even scrollbars.
-     *
-     * Please note that with visible scrollbars the content height returned
-     * may be larger than the box height returned via {@link #getHeight}.
-     *
-     * @param element {Element} element to query
-     * @return {Integer} Computed content height
-     */
-    getContentHeight : function(element){
-
-      var Style = qx.bom.element.Style;
-      var overflowY = qx.bom.element.Style.get(element, "overflowY");
-      var paddingTop = parseInt(Style.get(element, "paddingTop") || "0px", 10);
-      var paddingBottom = parseInt(Style.get(element, "paddingBottom") || "0px", 10);
-      if(this.__hiddenScrollbars[overflowY]){
-
-        return element.clientHeight - paddingTop - paddingBottom;
-      } else {
-
-        if(element.clientHeight >= element.scrollHeight){
-
-          // Scrollbars visible, but not needed? We need to substract both paddings
-          return Math.max(element.clientHeight, element.scrollHeight) - paddingTop - paddingBottom;
-        } else {
-
-          // Scrollbars visible and needed. We just remove the top padding,
-          // as the bottom padding is not respected in rendering.
-          return element.scrollHeight - paddingTop;
-        };
-      };
-    },
-    /**
-     * Returns the rendered content size of the given element.
-     *
-     * @param element {Element} element to query
-     * @return {Map} map containing the content width and height of the element
-     */
-    getContentSize : function(element){
-
-      return {
-        width : this.getContentWidth(element),
-        height : this.getContentHeight(element)
-      };
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Sebastian Werner (wpbasti)
-
-   ======================================================================
-
-   This class contains code based on the following work:
-
-   * Prototype JS
-     http://www.prototypejs.org/
-     Version 1.5
-
-     Copyright:
-       (c) 2006-2007, Prototype Core Team
-
-     License:
-       MIT: http://www.opensource.org/licenses/mit-license.php
-
-     Authors:
-       * Prototype Core Team
-
-   ----------------------------------------------------------------------
-
-     Copyright (c) 2005-2008 Sam Stephenson
-
-     Permission is hereby granted, free of charge, to any person
-     obtaining a copy of this software and associated documentation
-     files (the "Software"), to deal in the Software without restriction,
-     including without limitation the rights to use, copy, modify, merge,
-     publish, distribute, sublicense, and/or sell copies of the Software,
-     and to permit persons to whom the Software is furnished to do so,
-     subject to the following conditions:
-
-     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-     DEALINGS IN THE SOFTWARE.
-
-************************************************************************ */
-/**
- * Methods to operate on nodes and elements on a DOM tree. This contains
- * special getters to query for child nodes, siblings, etc. This class also
- * supports to operate on one element and reorganize the content with
- * the insertion of new HTML or nodes.
- */
-qx.Bootstrap.define("qx.dom.Hierarchy", {
-  statics : {
-    /**
-     * Returns the DOM index of the given node
-     *
-     * @param node {Node} Node to look for
-     * @return {Integer} The DOM index
-     */
-    getNodeIndex : function(node){
-
-      var index = 0;
-      while(node && (node = node.previousSibling)){
-
-        index++;
-      };
-      return index;
-    },
-    /**
-     * Returns the DOM index of the given element (ignoring non-elements)
-     *
-     * @param element {Element} Element to look for
-     * @return {Integer} The DOM index
-     */
-    getElementIndex : function(element){
-
-      var index = 0;
-      var type = qx.dom.Node.ELEMENT;
-      while(element && (element = element.previousSibling)){
-
-        if(element.nodeType == type){
-
-          index++;
-        };
-      };
-      return index;
-    },
-    /**
-     * Return the next element to the supplied element
-     *
-     * "nextSibling" is not good enough as it might return a text or comment element
-     *
-     * @param element {Element} Starting element node
-     * @return {Element | null} Next element node
-     */
-    getNextElementSibling : function(element){
-
-      while(element && (element = element.nextSibling) && !qx.dom.Node.isElement(element)){
-
-        continue;
-      };
-      return element || null;
-    },
-    /**
-     * Return the previous element to the supplied element
-     *
-     * "previousSibling" is not good enough as it might return a text or comment element
-     *
-     * @param element {Element} Starting element node
-     * @return {Element | null} Previous element node
-     */
-    getPreviousElementSibling : function(element){
-
-      while(element && (element = element.previousSibling) && !qx.dom.Node.isElement(element)){
-
-        continue;
-      };
-      return element || null;
-    },
-    /**
-     * Whether the first element contains the second one
-     *
-     * Uses native non-standard contains() in Internet Explorer,
-     * Opera and Webkit (supported since Safari 3.0 beta)
-     *
-     * @param element {Element} Parent element
-     * @param target {Node} Child node
-     * @return {Boolean}
-     */
-    contains : function(element, target){
-
-      if(qx.core.Environment.get("html.element.contains")){
-
-        if(qx.dom.Node.isDocument(element)){
-
-          var doc = qx.dom.Node.getDocument(target);
-          return element && doc == element;
-        } else if(qx.dom.Node.isDocument(target)){
-
-          return false;
-        } else {
-
-          return element.contains(target);
-        };
-      } else if(qx.core.Environment.get("html.element.compareDocumentPosition")){
-
-        // https://developer.mozilla.org/en-US/docs/DOM:Node.compareDocumentPosition
-        return !!(element.compareDocumentPosition(target) & 16);
-      } else {
-
-        while(target){
-
-          if(element == target){
-
-            return true;
-          };
-          target = target.parentNode;
-        };
-        return false;
-      };
-    },
-    /**
-     * Whether the element is inserted into the document
-     * for which it was created.
-     *
-     * @param element {Element} DOM element to check
-     * @return {Boolean} <code>true</code> when the element is inserted
-     *    into the document.
-     */
-    isRendered : function(element){
-
-      var doc = element.ownerDocument || element.document;
-      if(qx.core.Environment.get("html.element.contains")){
-
-        // Fast check for all elements which are not in the DOM
-        if(!element.parentNode){
-
-          return false;
-        };
-        return doc.body.contains(element);
-      } else if(qx.core.Environment.get("html.element.compareDocumentPosition")){
-
-        // Gecko way, DOM3 method
-        return !!(doc.compareDocumentPosition(element) & 16);
-      } else {
-
-        while(element){
-
-          if(element == doc.body){
-
-            return true;
-          };
-          element = element.parentNode;
-        };
-        return false;
-      };
-    },
-    /**
-     * Checks if <code>element</code> is a descendant of <code>ancestor</code>.
-     *
-     * @param element {Element} first element
-     * @param ancestor {Element} second element
-     * @return {Boolean} Element is a descendant of ancestor
-     */
-    isDescendantOf : function(element, ancestor){
-
-      return this.contains(ancestor, element);
-    },
-    /**
-     * Get the common parent element of two given elements. Returns
-     * <code>null</code> when no common element has been found.
-     *
-     * Uses native non-standard contains() in Opera and Internet Explorer
-     *
-     * @param element1 {Element} First element
-     * @param element2 {Element} Second element
-     * @return {Element} the found parent, if none was found <code>null</code>
-     */
-    getCommonParent : function(element1, element2){
-
-      if(element1 === element2){
-
-        return element1;
-      };
-      if(qx.core.Environment.get("html.element.contains")){
-
-        while(element1 && qx.dom.Node.isElement(element1)){
-
-          if(element1.contains(element2)){
-
-            return element1;
-          };
-          element1 = element1.parentNode;
-        };
-        return null;
-      } else {
-
-        var known = [];
-        while(element1 || element2){
-
-          if(element1){
-
-            if(qx.lang.Array.contains(known, element1)){
-
-              return element1;
-            };
-            known.push(element1);
-            element1 = element1.parentNode;
-          };
-          if(element2){
-
-            if(qx.lang.Array.contains(known, element2)){
-
-              return element2;
-            };
-            known.push(element2);
-            element2 = element2.parentNode;
-          };
-        };
-        return null;
-      };
-    },
-    /**
-     * Collects all of element's ancestors and returns them as an array of
-     * elements.
-     *
-     * @param element {Element} DOM element to query for ancestors
-     * @return {Array} list of all parents
-     */
-    getAncestors : function(element){
-
-      return this._recursivelyCollect(element, "parentNode");
-    },
-    /**
-     * Returns element's children.
-     *
-     * @param element {Element} DOM element to query for child elements
-     * @return {Array} list of all child elements
-     */
-    getChildElements : function(element){
-
-      element = element.firstChild;
-      if(!element){
-
-        return [];
-      };
-      var arr = this.getNextSiblings(element);
-      if(element.nodeType === 1){
-
-        arr.unshift(element);
-      };
-      return arr;
-    },
-    /**
-     * Collects all of element's descendants (deep) and returns them as an array
-     * of elements.
-     *
-     * @param element {Element} DOM element to query for child elements
-     * @return {Array} list of all found elements
-     */
-    getDescendants : function(element){
-
-      return qx.lang.Array.fromCollection(element.getElementsByTagName("*"));
-    },
-    /**
-     * Returns the first child that is an element. This is opposed to firstChild DOM
-     * property which will return any node (whitespace in most usual cases).
-     *
-     * @param element {Element} DOM element to query for first descendant
-     * @return {Element} the first descendant
-     */
-    getFirstDescendant : function(element){
-
-      element = element.firstChild;
-      while(element && element.nodeType != 1){
-
-        element = element.nextSibling;
-      };
-      return element;
-    },
-    /**
-     * Returns the last child that is an element. This is opposed to lastChild DOM
-     * property which will return any node (whitespace in most usual cases).
-     *
-     * @param element {Element} DOM element to query for last descendant
-     * @return {Element} the last descendant
-     */
-    getLastDescendant : function(element){
-
-      element = element.lastChild;
-      while(element && element.nodeType != 1){
-
-        element = element.previousSibling;
-      };
-      return element;
-    },
-    /**
-     * Collects all of element's previous siblings and returns them as an array of elements.
-     *
-     * @param element {Element} DOM element to query for previous siblings
-     * @return {Array} list of found DOM elements
-     */
-    getPreviousSiblings : function(element){
-
-      return this._recursivelyCollect(element, "previousSibling");
-    },
-    /**
-     * Collects all of element's next siblings and returns them as an array of
-     * elements.
-     *
-     * @param element {Element} DOM element to query for next siblings
-     * @return {Array} list of found DOM elements
-     */
-    getNextSiblings : function(element){
-
-      return this._recursivelyCollect(element, "nextSibling");
-    },
-    /**
-     * Recursively collects elements whose relationship is specified by
-     * property.  <code>property</code> has to be a property (a method won't
-     * do!) of element that points to a single DOM node. Returns an array of
-     * elements.
-     *
-     * @param element {Element} DOM element to start with
-     * @param property {String} property to look for
-     * @return {Array} result list
-     */
-    _recursivelyCollect : function(element, property){
-
-      var list = [];
-      while(element = element[property]){
-
-        if(element.nodeType == 1){
-
-          list.push(element);
-        };
-      };
-      return list;
-    },
-    /**
-     * Collects all of element's siblings and returns them as an array of elements.
-     *
-     * @param element {var} DOM element to start with
-     * @return {Array} list of all found siblings
-     */
-    getSiblings : function(element){
-
-      return this.getPreviousSiblings(element).reverse().concat(this.getNextSiblings(element));
-    },
-    /**
-     * Whether the given element is empty.
-     * Inspired by Base2 (Dean Edwards)
-     *
-     * @param element {Element} The element to check
-     * @return {Boolean} true when the element is empty
-     */
-    isEmpty : function(element){
-
-      element = element.firstChild;
-      while(element){
-
-        if(element.nodeType === qx.dom.Node.ELEMENT || element.nodeType === qx.dom.Node.TEXT){
-
-          return false;
-        };
-        element = element.nextSibling;
-      };
-      return true;
-    },
-    /**
-     * Removes all of element's text nodes which contain only whitespace
-     *
-     * @param element {Element} Element to cleanup
-     */
-    cleanWhitespace : function(element){
-
-      var node = element.firstChild;
-      while(node){
-
-        var nextNode = node.nextSibling;
-        if(node.nodeType == 3 && !/\S/.test(node.nodeValue)){
-
-          element.removeChild(node);
-        };
-        node = nextNode;
-      };
-    }
   }
 });
 
@@ -30382,7 +32882,6 @@ qx.Bootstrap.define("qx.bom.element.Location", {
 
    Copyright:
      2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
-     2006 STZ-IDA, Germany, http://www.stz-ida.de
 
    License:
      LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -30391,403 +32890,348 @@ qx.Bootstrap.define("qx.bom.element.Location", {
 
    Authors:
      * Sebastian Werner (wpbasti)
-     * Andreas Ecker (ecker)
-     * Andreas Junghans (lucidcake)
+
+   ======================================================================
+
+   This class contains code based on the following work:
+
+   * Base2
+     http://code.google.com/p/base2/
+     Version 0.9
+
+     Copyright:
+       (c) 2006-2007, Dean Edwards
+
+     License:
+       MIT: http://www.opensource.org/licenses/mit-license.php
+
+     Authors:
+       * Dean Edwards
 
 ************************************************************************ */
 /**
- * Cross-browser wrapper to work with CSS stylesheets.
+ * CSS class name support for HTML elements. Supports multiple class names
+ * for each element. Can query and apply class names to HTML elements.
  */
-qx.Bootstrap.define("qx.bom.Stylesheet", {
+qx.Bootstrap.define("qx.bom.element.Class", {
   /*
   *****************************************************************************
      STATICS
   *****************************************************************************
   */
   statics : {
+    /** @type {RegExp} Regular expressions to split class names */
+    __splitter : /\s+/g,
+    /** @type {RegExp} String trim regular expression. */
+    __trim : /^\s+|\s+$/g,
     /**
-     * Include a CSS file
+     * Adds a className to the given element
+     * If successfully added the given className will be returned
      *
-     * <em>Note:</em> Using a resource ID as the <code>href</code> parameter
-     * will no longer be supported. Call
-     * <code>qx.util.ResourceManager.getInstance().toUri(href)</code> to get
-     * valid URI to be used with this method.
-     *
-     * @param href {String} Href value
-     * @param doc {Document?} Document to modify
+     * @signature function(element, name)
+     * @param element {Element} The element to modify
+     * @param name {String} The class name to add
+     * @return {String} The added classname (if so)
      */
-    includeFile : function(href, doc){
+    add : {
+      "native" : function(element, name){
 
-      if(!doc){
+        if(name.length > 0){
 
-        doc = document;
-      };
-      var el = doc.createElement("link");
-      el.type = "text/css";
-      el.rel = "stylesheet";
-      el.href = href;
-      var head = doc.getElementsByTagName("head")[0];
-      head.appendChild(el);
-    },
-    /**
-     * Create a new Stylesheet node and append it to the document
-     *
-     * @param text {String?} optional string of css rules
-     * @return {Stylesheet} the generates stylesheet element
-     */
-    createElement : function(text){
-
-      if(qx.core.Environment.get("html.stylesheet.createstylesheet")){
-
-        var sheet = document.createStyleSheet();
-        if(text){
-
-          sheet.cssText = text;
+          element.classList.add(name);
         };
-        return sheet;
-      } else {
+        return name;
+      },
+      "default" : function(element, name){
 
-        var elem = document.createElement("style");
-        elem.type = "text/css";
-        if(text){
+        if(!this.has(element, name)){
 
-          elem.appendChild(document.createTextNode(text));
+          element.className += (element.className ? " " : "") + name;
         };
-        document.getElementsByTagName("head")[0].appendChild(elem);
-        return elem.sheet;
-      };
-    },
+        return name;
+      }
+    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
     /**
-     * Insert a new CSS rule into a given Stylesheet
+     * Adds multiple classes to the given element
      *
-     * @param sheet {Object} the target Stylesheet object
-     * @param selector {String} the selector
-     * @param entry {String} style rule
+     * @signature function(element, classes)
+     * @param element {Element} DOM element to modify
+     * @param classes {String[]} List of classes to add.
+     * @return {String} The resulting class name which was applied
      */
-    addRule : function(sheet, selector, entry){
+    addClasses : {
+      "native" : function(element, classes){
 
-      {
+        for(var i = 0;i < classes.length;i++){
 
-        var msg = "qx.bom.Stylesheet.addRule: The rule '" + entry + "' for the selector '" + selector + "' must not be enclosed in braces";
-        qx.core.Assert.assertFalse(/^\s*?\{.*?\}\s*?$/.test(entry), msg);
-      };
-      if(qx.core.Environment.get("html.stylesheet.insertrule")){
+          if(classes[i].length > 0){
 
-        sheet.insertRule(selector + "{" + entry + "}", sheet.cssRules.length);
-      } else {
-
-        sheet.addRule(selector, entry);
-      };
-    },
-    /**
-     * Remove a CSS rule from a stylesheet
-     *
-     * @param sheet {Object} the Stylesheet
-     * @param selector {String} the Selector of the rule to remove
-     */
-    removeRule : function(sheet, selector){
-
-      if(qx.core.Environment.get("html.stylesheet.deleterule")){
-
-        var rules = sheet.cssRules;
-        var len = rules.length;
-        for(var i = len - 1;i >= 0;--i){
-
-          if(rules[i].selectorText == selector){
-
-            sheet.deleteRule(i);
+            element.classList.add(classes[i]);
           };
         };
-      } else {
+        return element.className;
+      },
+      "default" : function(element, classes){
 
-        var rules = sheet.rules;
-        var len = rules.length;
-        for(var i = len - 1;i >= 0;--i){
+        var keys = {
+        };
+        var result;
+        var old = element.className;
+        if(old){
 
-          if(rules[i].selectorText == selector){
+          result = old.split(this.__splitter);
+          for(var i = 0,l = result.length;i < l;i++){
 
-            sheet.removeRule(i);
+            keys[result[i]] = true;
           };
-        };
-      };
-    },
-    /**
-     * Remove the given sheet from its owner.
-     * @param sheet {Object} the stylesheet object
-     */
-    removeSheet : function(sheet){
+          for(var i = 0,l = classes.length;i < l;i++){
 
-      var owner = sheet.ownerNode ? sheet.ownerNode : sheet.owningElement;
-      qx.dom.Element.removeChild(owner, owner.parentNode);
-    },
-    /**
-     * Remove all CSS rules from a stylesheet
-     *
-     * @param sheet {Object} the stylesheet object
-     */
-    removeAllRules : function(sheet){
+            if(!keys[classes[i]]){
 
-      if(qx.core.Environment.get("html.stylesheet.deleterule")){
-
-        var rules = sheet.cssRules;
-        var len = rules.length;
-        for(var i = len - 1;i >= 0;i--){
-
-          sheet.deleteRule(i);
-        };
-      } else {
-
-        var rules = sheet.rules;
-        var len = rules.length;
-        for(var i = len - 1;i >= 0;i--){
-
-          sheet.removeRule(i);
-        };
-      };
-    },
-    /**
-     * Add an import of an external CSS file to a stylesheet
-     *
-     * @param sheet {Object} the stylesheet object
-     * @param url {String} URL of the external stylesheet file
-     */
-    addImport : function(sheet, url){
-
-      if(qx.core.Environment.get("html.stylesheet.addimport")){
-
-        sheet.addImport(url);
-      } else {
-
-        sheet.insertRule('@import "' + url + '";', sheet.cssRules.length);
-      };
-    },
-    /**
-     * Removes an import from a stylesheet
-     *
-     * @param sheet {Object} the stylesheet object
-     * @param url {String} URL of the imported CSS file
-     */
-    removeImport : function(sheet, url){
-
-      if(qx.core.Environment.get("html.stylesheet.removeimport")){
-
-        var imports = sheet.imports;
-        var len = imports.length;
-        for(var i = len - 1;i >= 0;i--){
-
-          if(imports[i].href == url || imports[i].href == qx.util.Uri.getAbsolute(url)){
-
-            sheet.removeImport(i);
-          };
-        };
-      } else {
-
-        var rules = sheet.cssRules;
-        var len = rules.length;
-        for(var i = len - 1;i >= 0;i--){
-
-          if(rules[i].href == url){
-
-            sheet.deleteRule(i);
-          };
-        };
-      };
-    },
-    /**
-     * Remove all imports from a stylesheet
-     *
-     * @param sheet {Object} the stylesheet object
-     */
-    removeAllImports : function(sheet){
-
-      if(qx.core.Environment.get("html.stylesheet.removeimport")){
-
-        var imports = sheet.imports;
-        var len = imports.length;
-        for(var i = len - 1;i >= 0;i--){
-
-          sheet.removeImport(i);
-        };
-      } else {
-
-        var rules = sheet.cssRules;
-        var len = rules.length;
-        for(var i = len - 1;i >= 0;i--){
-
-          if(rules[i].type == rules[i].IMPORT_RULE){
-
-            sheet.deleteRule(i);
-          };
-        };
-      };
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Tristan Koch (tristankoch)
-
-************************************************************************ */
-/**
- * Static helpers for parsing and modifying URIs.
- */
-qx.Bootstrap.define("qx.util.Uri", {
-  statics : {
-    /**
-     * Split URL
-     *
-     * Code taken from:
-     *   parseUri 1.2.2
-     *   (c) Steven Levithan <stevenlevithan.com>
-     *   MIT License
-     *
-     *
-     * @param str {String} String to parse as URI
-     * @param strict {Boolean} Whether to parse strictly by the rules
-     * @return {Object} Map with parts of URI as properties
-     */
-    parseUri : function(str, strict){
-
-      var options = {
-        key : ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
-        q : {
-          name : "queryKey",
-          parser : /(?:^|&)([^&=]*)=?([^&]*)/g
-        },
-        parser : {
-          strict : /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-          loose : /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-        }
-      };
-      var o = options,m = options.parser[strict ? "strict" : "loose"].exec(str),uri = {
-      },i = 14;
-      while(i--){
-
-        uri[o.key[i]] = m[i] || "";
-      };
-      uri[o.q.name] = {
-      };
-      uri[o.key[12]].replace(o.q.parser, function($0, $1, $2){
-
-        if($1){
-
-          uri[o.q.name][$1] = $2;
-        };
-      });
-      return uri;
-    },
-    /**
-     * Append string to query part of URL. Respects existing query.
-     *
-     * @param url {String} URL to append string to.
-     * @param params {String} Parameters to append to URL.
-     * @return {String} URL with string appended in query part.
-     */
-    appendParamsToUrl : function(url, params){
-
-      if(params === undefined){
-
-        return url;
-      };
-      {
-
-        if(!(qx.lang.Type.isString(params) || qx.lang.Type.isObject(params))){
-
-          throw new Error("params must be either string or object");
-        };
-      };
-      if(qx.lang.Type.isObject(params)){
-
-        params = qx.util.Uri.toParameter(params);
-      };
-      if(!params){
-
-        return url;
-      };
-      return url += /\?/.test(url) ? "&" + params : "?" + params;
-    },
-    /**
-     * Serializes an object to URI parameters (also known as query string).
-     *
-     * Escapes characters that have a special meaning in URIs as well as
-     * umlauts. Uses the global function encodeURIComponent, see
-     * https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/encodeURIComponent
-     *
-     * Note: For URI parameters that are to be sent as
-     * application/x-www-form-urlencoded (POST), spaces should be encoded
-     * with "+".
-     *
-     * @param obj {Object}   Object to serialize.
-     * @param post {Boolean} Whether spaces should be encoded with "+".
-     * @return {String}      Serialized object. Safe to append to URIs or send as
-     *                       URL encoded string.
-     */
-    toParameter : function(obj, post){
-
-      var key,parts = [];
-      for(key in obj){
-
-        if(obj.hasOwnProperty(key)){
-
-          var value = obj[key];
-          if(value instanceof Array){
-
-            for(var i = 0;i < value.length;i++){
-
-              this.__toParameterPair(key, value[i], parts, post);
+              result.push(classes[i]);
             };
+          };
+        } else {
+
+          result = classes;
+        };
+        return element.className = result.join(" ");
+      }
+    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
+    /**
+     * Gets the classname of the given element
+     *
+     * @param element {Element} The element to query
+     * @return {String} The retrieved classname
+     */
+    get : function(element){
+
+      var className = element.className;
+      if(typeof className.split !== 'function'){
+
+        if(typeof className === 'object'){
+
+          if(qx.Bootstrap.getClass(className) == 'SVGAnimatedString'){
+
+            className = className.baseVal;
           } else {
 
-            this.__toParameterPair(key, value, parts, post);
+            {
+
+              qx.log.Logger.warn(this, "className for element " + element + " cannot be determined");
+            };
+            className = '';
           };
         };
+        if(typeof className === 'undefined'){
+
+          {
+
+            qx.log.Logger.warn(this, "className for element " + element + " is undefined");
+          };
+          className = '';
+        };
       };
-      return parts.join("&");
+      return className;
     },
     /**
-     * Encodes key/value to URI safe string and pushes to given array.
+     * Whether the given element has the given className.
      *
-     * @param key {String} Key.
-     * @param value {String} Value.
-     * @param parts {Array} Array to push to.
-     * @param post {Boolean} Whether spaces should be encoded with "+".
+     * @signature function(element, name)
+     * @param element {Element} The DOM element to check
+     * @param name {String} The class name to check for
+     * @return {Boolean} true when the element has the given classname
      */
-    __toParameterPair : function(key, value, parts, post){
+    has : {
+      "native" : function(element, name){
 
-      var encode = window.encodeURIComponent;
-      if(post){
+        return element.classList.contains(name);
+      },
+      "default" : function(element, name){
 
-        parts.push(encode(key).replace(/%20/g, "+") + "=" + encode(value).replace(/%20/g, "+"));
-      } else {
+        var regexp = new RegExp("(^|\\s)" + name + "(\\s|$)");
+        return regexp.test(element.className);
+      }
+    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
+    /**
+     * Removes a className from the given element
+     *
+     * @signature function(element, name)
+     * @param element {Element} The DOM element to modify
+     * @param name {String} The class name to remove
+     * @return {String} The removed class name
+     */
+    remove : {
+      "native" : function(element, name){
 
-        parts.push(encode(key) + "=" + encode(value));
+        element.classList.remove(name);
+        return name;
+      },
+      "default" : function(element, name){
+
+        var regexp = new RegExp("(^|\\s)" + name + "(\\s|$)");
+        element.className = element.className.replace(regexp, "$2");
+        return name;
+      }
+    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
+    /**
+     * Removes multiple classes from the given element
+     *
+     * @signature function(element, classes)
+     * @param element {Element} DOM element to modify
+     * @param classes {String[]} List of classes to remove.
+     * @return {String} The resulting class name which was applied
+     */
+    removeClasses : {
+      "native" : function(element, classes){
+
+        for(var i = 0;i < classes.length;i++){
+
+          element.classList.remove(classes[i]);
+        };
+        return element.className;
+      },
+      "default" : function(element, classes){
+
+        var reg = new RegExp("\\b" + classes.join("\\b|\\b") + "\\b", "g");
+        return element.className = element.className.replace(reg, "").replace(this.__trim, "").replace(this.__splitter, " ");
+      }
+    }[qx.core.Environment.get("html.classlist") ? "native" : "default"],
+    /**
+     * Replaces the first given class name with the second one
+     *
+     * @param element {Element} The DOM element to modify
+     * @param oldName {String} The class name to remove
+     * @param newName {String} The class name to add
+     * @return {String} The added class name
+     */
+    replace : function(element, oldName, newName){
+
+      if(!this.has(element, oldName)){
+
+        return "";
       };
+      this.remove(element, oldName);
+      return this.add(element, newName);
     },
     /**
-     * Takes a relative URI and returns an absolute one.
+     * Toggles a className of the given element
      *
-     * @param uri {String} relative URI
-     * @return {String} absolute URI
+     * @signature function(element, name, toggle)
+     * @param element {Element} The DOM element to modify
+     * @param name {String} The class name to toggle
+     * @param toggle {Boolean?null} Whether to switch class on/off. Without
+     *    the parameter an automatic toggling would happen.
+     * @return {String} The class name
      */
-    getAbsolute : function(uri){
+    toggle : {
+      "native" : function(element, name, toggle){
 
-      var div = document.createElement("div");
-      div.innerHTML = '<a href="' + uri + '">0</a>';
-      return div.firstChild.href;
+        if(toggle === undefined){
+
+          element.classList.toggle(name);
+        } else {
+
+          toggle ? this.add(element, name) : this.remove(element, name);
+        };
+        return name;
+      },
+      "default" : function(element, name, toggle){
+
+        if(toggle == null){
+
+          toggle = !this.has(element, name);
+        };
+        toggle ? this.add(element, name) : this.remove(element, name);
+        return name;
+      }
+    }[qx.core.Environment.get("html.classlist") ? "native" : "default"]
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2009 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Fabian Jakobs (fjakobs)
+     * Christian Hagendorn (chris_schmidt)
+
+************************************************************************ */
+/**
+ * Abstract class to compute the position of an object on one axis.
+ */
+qx.Bootstrap.define("qx.util.placement.AbstractAxis", {
+  extend : Object,
+  statics : {
+    /**
+     * Computes the start of the object on the axis
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param areaSize {Integer} Size of the axis.
+     * @param position {String} Alignment of the object on the target. Valid values are
+     *   <ul>
+     *   <li><code>edge-start</code> The object is placed before the target</li>
+     *   <li><code>edge-end</code> The object is placed after the target</li>
+     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
+     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
+     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
+     *   </ul>
+     * @return {Integer} The computed start position of the object.
+     * @abstract
+     */
+    computeStart : function(size, target, offsets, areaSize, position){
+
+      throw new Error("abstract method call!");
+    },
+    /**
+     * Computes the start of the object by taking only the attachment and
+     * alignment into account. The object by be not fully visible.
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param position {String} Accepts the same values as the <code> position</code>
+     *   argument of {@link #computeStart}.
+     * @return {Integer} The computed start position of the object.
+     */
+    _moveToEdgeAndAlign : function(size, target, offsets, position){
+
+      switch(position){case "edge-start":
+      return target.start - offsets.end - size;case "edge-end":
+      return target.end + offsets.start;case "align-start":
+      return target.start + offsets.start;case "align-center":
+      return target.start + parseInt((target.end - target.start - size) / 2, 10) + offsets.start;case "align-end":
+      return target.end - offsets.end - size;};
+    },
+    /**
+     * Whether the object specified by <code>start</code> and <code>size</code>
+     * is completely inside of the axis' range..
+     *
+     * @param start {Integer} Computed start position of the object
+     * @param size {Integer} Size of the object
+     * @param areaSize {Integer} The size of the axis
+     * @return {Boolean} Whether the object is inside of the axis' range
+     */
+    _isInRange : function(start, size, areaSize){
+
+      return start >= 0 && start + size <= areaSize;
     }
   }
 });
@@ -30799,7 +33243,7 @@ qx.Bootstrap.define("qx.util.Uri", {
    http://qooxdoo.org
 
    Copyright:
-     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+     2009 1&1 Internet AG, Germany, http://www.1und1.de
 
    License:
      LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -30807,97 +33251,524 @@ qx.Bootstrap.define("qx.util.Uri", {
      See the LICENSE file in the project's top-level directory for details.
 
    Authors:
-     * Daniel Wagner (d_wagner)
+     * Fabian Jakobs (fjakobs)
+     * Christian Hagendorn (chris_schmidt)
 
 ************************************************************************ */
 /**
- * Internal class which contains the checks used by {@link qx.core.Environment}.
- * All checks in here are marked as internal which means you should never use
- * them directly.
- *
- * This class contains checks related to Stylesheet objects.
- *
- * @internal
+ * Places the object directly at the specified position. It is not moved if
+ * parts of the object are outside of the axis' range.
  */
-qx.Bootstrap.define("qx.bom.client.Stylesheet", {
+qx.Bootstrap.define("qx.util.placement.DirectAxis", {
   statics : {
     /**
-     * Returns a stylesheet to be used for feature checks
+     * Computes the start of the object by taking only the attachment and
+     * alignment into account. The object by be not fully visible.
      *
-     * @return {Stylesheet} Stylesheet element
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param position {String} Accepts the same values as the <code> position</code>
+     *   argument of {@link #computeStart}.
+     * @return {Integer} The computed start position of the object.
      */
-    __getStylesheet : function(){
+    _moveToEdgeAndAlign : qx.util.placement.AbstractAxis._moveToEdgeAndAlign,
+    /**
+     * Computes the start of the object on the axis
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param areaSize {Integer} Size of the axis.
+     * @param position {String} Alignment of the object on the target. Valid values are
+     *   <ul>
+     *   <li><code>edge-start</code> The object is placed before the target</li>
+     *   <li><code>edge-end</code> The object is placed after the target</li>
+     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
+     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
+     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
+     *   </ul>
+     * @return {Integer} The computed start position of the object.
+     */
+    computeStart : function(size, target, offsets, areaSize, position){
 
-      if(!qx.bom.client.Stylesheet.__stylesheet){
+      return this._moveToEdgeAndAlign(size, target, offsets, position);
+    }
+  }
+});
 
-        qx.bom.client.Stylesheet.__stylesheet = qx.bom.Stylesheet.createElement();
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2009 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Fabian Jakobs (fjakobs)
+     * Christian Hagendorn (chris_schmidt)
+
+************************************************************************ */
+/**
+ * Places the object to the target. If parts of the object are outside of the
+ * range this class places the object at the best "edge", "alignment"
+ * combination so that the overlap between object and range is maximized.
+ */
+qx.Bootstrap.define("qx.util.placement.KeepAlignAxis", {
+  statics : {
+    /**
+     * Computes the start of the object by taking only the attachment and
+     * alignment into account. The object by be not fully visible.
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param position {String} Accepts the same values as the <code> position</code>
+     *   argument of {@link #computeStart}.
+     * @return {Integer} The computed start position of the object.
+     */
+    _moveToEdgeAndAlign : qx.util.placement.AbstractAxis._moveToEdgeAndAlign,
+    /**
+     * Whether the object specified by <code>start</code> and <code>size</code>
+     * is completely inside of the axis' range..
+     *
+     * @param start {Integer} Computed start position of the object
+     * @param size {Integer} Size of the object
+     * @param areaSize {Integer} The size of the axis
+     * @return {Boolean} Whether the object is inside of the axis' range
+     */
+    _isInRange : qx.util.placement.AbstractAxis._isInRange,
+    /**
+     * Computes the start of the object on the axis
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param areaSize {Integer} Size of the axis.
+     * @param position {String} Alignment of the object on the target. Valid values are
+     *   <ul>
+     *   <li><code>edge-start</code> The object is placed before the target</li>
+     *   <li><code>edge-end</code> The object is placed after the target</li>
+     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
+     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
+     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
+     *   </ul>
+     * @return {Integer} The computed start position of the object.
+     */
+    computeStart : function(size, target, offsets, areaSize, position){
+
+      var start = this._moveToEdgeAndAlign(size, target, offsets, position);
+      var range1End,range2Start;
+      if(this._isInRange(start, size, areaSize)){
+
+        return start;
       };
-      return qx.bom.client.Stylesheet.__stylesheet;
+      if(position == "edge-start" || position == "edge-end"){
+
+        range1End = target.start - offsets.end;
+        range2Start = target.end + offsets.start;
+      } else {
+
+        range1End = target.end - offsets.end;
+        range2Start = target.start + offsets.start;
+      };
+      if(range1End > areaSize - range2Start){
+
+        start = Math.max(0, range1End - size);
+      } else {
+
+        start = range2Start;
+      };
+      return start;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2009 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Fabian Jakobs (fjakobs)
+     * Christian Hagendorn (chris_schmidt)
+
+************************************************************************ */
+/**
+ * Places the object according to the target. If parts of the object are outside
+ * of the axis' range the object's start is adjusted so that the overlap between
+ * the object and the axis is maximized.
+ */
+qx.Bootstrap.define("qx.util.placement.BestFitAxis", {
+  statics : {
+    /**
+     * Whether the object specified by <code>start</code> and <code>size</code>
+     * is completely inside of the axis' range..
+     *
+     * @param start {Integer} Computed start position of the object
+     * @param size {Integer} Size of the object
+     * @param areaSize {Integer} The size of the axis
+     * @return {Boolean} Whether the object is inside of the axis' range
+     */
+    _isInRange : qx.util.placement.AbstractAxis._isInRange,
+    /**
+     * Computes the start of the object by taking only the attachment and
+     * alignment into account. The object by be not fully visible.
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param position {String} Accepts the same values as the <code> position</code>
+     *   argument of {@link #computeStart}.
+     * @return {Integer} The computed start position of the object.
+     */
+    _moveToEdgeAndAlign : qx.util.placement.AbstractAxis._moveToEdgeAndAlign,
+    /**
+     * Computes the start of the object on the axis
+     *
+     * @param size {Integer} Size of the object to align
+     * @param target {Map} Location of the object to align the object to. This map
+     *   should have the keys <code>start</code> and <code>end</code>.
+     * @param offsets {Map} Map with all offsets on each side.
+     *   Comes with the keys <code>start</code> and <code>end</code>.
+     * @param areaSize {Integer} Size of the axis.
+     * @param position {String} Alignment of the object on the target. Valid values are
+     *   <ul>
+     *   <li><code>edge-start</code> The object is placed before the target</li>
+     *   <li><code>edge-end</code> The object is placed after the target</li>
+     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
+     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
+     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
+     *   </ul>
+     * @return {Integer} The computed start position of the object.
+     */
+    computeStart : function(size, target, offsets, areaSize, position){
+
+      var start = this._moveToEdgeAndAlign(size, target, offsets, position);
+      if(this._isInRange(start, size, areaSize)){
+
+        return start;
+      };
+      if(start < 0){
+
+        start = Math.min(0, areaSize - size);
+      };
+      if(start + size > areaSize){
+
+        start = Math.max(0, areaSize - size);
+      };
+      return start;
+    }
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2012 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Daniel Wagner (danielwagner)
+
+************************************************************************ */
+/**
+ * The Placement module provides a convenient way to align two elements relative
+ * to each other using various pre-defined algorithms.
+ *
+ * @require(qx.util.placement.KeepAlignAxis#computeStart)
+ * @require(qx.util.placement.BestFitAxis#computeStart)
+ * @require(qx.util.placement.DirectAxis#computeStart)
+ */
+qxWeb.define("qx.module.Placement", {
+  statics : {
+    /**
+     * Returns the appropriate axis implementation for the given placement
+     * mode
+     *
+     * @param mode {String} Placement mode
+     * @return {Object} Placement axis class
+     */
+    _getAxis : function(mode){
+
+      switch(mode){case "keep-align":
+      return qx.util.placement.KeepAlignAxis;case "best-fit":
+      return qx.util.placement.BestFitAxis;case "direct":default:
+      return qx.util.placement.DirectAxis;};
     },
     /**
-     * Check for IE's non-standard document.createStyleSheet function.
-     * In IE9 (standards mode), the typeof check returns "function" so false is
-     * returned. This is intended since IE9 supports the DOM-standard
-     * createElement("style") which should be used instead.
+     * Returns the computed coordinates for the element to be placed
      *
-     * @internal
-     * @return {Boolean} <code>true</code> if the browser supports
-     * document.createStyleSheet
+     * @param axes {Map} Map with the keys <code>x</code> and <code>y</code>. Values
+     * are the axis implementations
+     * @param size {Map} Map with the keys <code>width</code> and <code>height</code>
+     * containing the size of the placement target
+     * @param area {Map} Map with the keys <code>width</code> and <code>height</code>
+     * containing the size of the two elements' common parent (available space for
+     * placement)
+     * @param target {Map} Location of the object to align the object to. This map
+     * should have the keys <code>left</code>, <code>top</code>, <code>right</code>
+     * and <code>bottom</code>
+     * @param offsets {Map} Map of offsets (top, right, bottom, left)
+     * @param position {Map} Map with the keys <code>x</code> and <code>y</code>,
+     * containing the type of positioning for each axis
+     * @return {Map} Map with the keys <code>left</code> and <code>top</code>
+     * containing the computed coordinates to which the element should be moved
      */
-    getCreateStyleSheet : function(){
+    _computePlacement : function(axes, size, area, target, offsets, position){
 
-      return typeof document.createStyleSheet === "object";
+      var left = axes.x.computeStart(size.width, {
+        start : target.left,
+        end : target.right
+      }, {
+        start : offsets.left,
+        end : offsets.right
+      }, area.width, position.x);
+      var top = axes.y.computeStart(size.height, {
+        start : target.top,
+        end : target.bottom
+      }, {
+        start : offsets.top,
+        end : offsets.bottom
+      }, area.height, position.y);
+      return {
+        left : left,
+        top : top
+      };
     },
     /**
-     * Check for stylesheet.insertRule. Legacy IEs do not support this.
+     * Returns the X axis positioning type for the given edge and alignment
+     * values
      *
-     * @internal
-     * @return {Boolean} <code>true</code> if insertRule is supported
+     * @param edge {String} edge value
+     * @param align {String} align value
+     * @return {String} X positioning type
      */
-    getInsertRule : function(){
+    _getPositionX : function(edge, align){
 
-      return typeof qx.bom.client.Stylesheet.__getStylesheet().insertRule === "function";
+      if(edge == "left"){
+
+        return "edge-start";
+      } else if(edge == "right"){
+
+        return "edge-end";
+      } else if(align == "left"){
+
+        return "align-start";
+      } else if(align == "center"){
+
+        return "align-center";
+      } else if(align == "right"){
+
+        return "align-end";
+      };;;;
     },
     /**
-     * Check for stylesheet.deleteRule. Legacy IEs do not support this.
+     * Returns the Y axis positioning type for the given edge and alignment
+     * values
      *
-     * @internal
-     * @return {Boolean} <code>true</code> if deleteRule is supported
+     * @param edge {String} edge value
+     * @param align {String} align value
+     * @return {String} Y positioning type
      */
-    getDeleteRule : function(){
+    _getPositionY : function(edge, align){
 
-      return typeof qx.bom.client.Stylesheet.__getStylesheet().deleteRule === "function";
-    },
+      if(edge == "top"){
+
+        return "edge-start";
+      } else if(edge == "bottom"){
+
+        return "edge-end";
+      } else if(align == "top"){
+
+        return "align-start";
+      } else if(align == "middle"){
+
+        return "align-center";
+      } else if(align == "bottom"){
+
+        return "align-end";
+      };;;;
+    }
+  },
+  members : {
     /**
-     * Decides whether to use the legacy IE-only stylesheet.addImport or the
-     * DOM-standard stylesheet.insertRule('@import [...]')
+     * Moves the first element in the collection, aligning it with the given
+     * target.
      *
-     * @internal
-     * @return {Boolean} <code>true</code> if stylesheet.addImport is supported
-     */
-    getAddImport : function(){
-
-      return (typeof qx.bom.client.Stylesheet.__getStylesheet().addImport === "object");
-    },
-    /**
-     * Decides whether to use the legacy IE-only stylesheet.removeImport or the
-     * DOM-standard stylesheet.deleteRule('@import [...]')
+     * <div>
+     * <strong>NOTE:</strong> The <code>placeTo</code> method also works for hidden
+     * elements. However, the visibility / display styles are only manipulated during
+     * the placement operation. As a result a previously hidden element <strong>stays hidden</strong>
+     * </div>
      *
-     * @internal
-     * @return {Boolean} <code>true</code> if stylesheet.removeImport is supported
+     * <div>
+     * <strong>NOTE:</strong> If the target is changing its position due e.g. a DOM manipulation the
+     * placed element <strong>is not</strong> updated automatically. You have to call <code>placeTo</code>
+     * again to place the element to the target. The element is <strong>always</strong> positioned by using
+     * <code>position:absolute</code> independently on the chosen <code>position</code> and <code>mode</code>.
+     * </div>
+     *
+     * @attach{qxWeb}
+     * @param target {Element} Placement target
+     * @param position {String} Alignment of the object with the target, any of
+     * <code>"top-left"</code>, <code>"top-center"</code>, <code>"top-right"</code>,
+     * <code>"bottom-left"</code>, <code>"bottom-center"</code>, <code>"bottom-right"</code>,
+     * <code>"left-top"</code>, <code>"left-middle"</code>, <code>"left-bottom"</code>,
+     * <code>"right-top"</code>, <code>"right-middle"</code>, <code>"right-bottom"</code>
+     * @param offsets {Map?null} Map with the desired offsets between the two elements.
+     * Must contain the keys <code>left</code>, <code>top</code>,
+     * <code>right</code> and <code>bottom</code>
+     * @param modeX {String?"direct"} Horizontal placement mode. Valid values are:
+     *   <ul>
+     *   <li><code>direct</code>: place the element directly at the given
+     *   location.</li>
+     *   <li><code>keep-align</code>: if the element is partially outside of the
+     *   visible area, it is moved to the best fitting 'edge' and 'alignment' of
+     *   the target.
+     *   It is guaranteed the the new position attaches the object to one of the
+     *   target edges and that it is aligned with a target edge.</li>
+     *   <li><code>best-fit</code>: If the element is partially outside of the visible
+     *   area, it is moved into the view port, ignoring any offset and position
+     *   values.</li>
+     *   </ul>
+     * @param modeY {String?"direct"} Vertical placement mode. Accepts the same values as
+     *   the 'modeX' argument.
+     * @return {qxWeb} The collection for chaining
      */
-    getRemoveImport : function(){
+    placeTo : function(target, position, offsets, modeX, modeY){
 
-      return (typeof qx.bom.client.Stylesheet.__getStylesheet().removeImport === "object");
+      if(!this[0] || !target){
+
+        return this;
+      };
+      target = qxWeb(target);
+      // make sure the DOM elements are rendered so we can get the size of them.
+      // It's not necessary to move them out of the viewport - just out of the
+      // layout flow.
+      var visible = this.isRendered() && this[0].offsetWidth > 0 && this[0].offsetHeight > 0;
+      var displayStyleValue = null;
+      var visibilityStyleValue = null;
+      if(!visible){
+
+        // do not use the computed style value otherwise we will mess up the styles
+        // when resetting them, since these styles might also be set via a CSS class.
+        displayStyleValue = this[0].style.display;
+        visibilityStyleValue = this[0].style.visibility;
+        this.setStyles({
+          position : "absolute",
+          visibility : "hidden",
+          display : "block"
+        });
+      };
+      var axes = {
+        x : qx.module.Placement._getAxis(modeX),
+        y : qx.module.Placement._getAxis(modeY)
+      };
+      var size = {
+        width : this.getWidth(),
+        height : this.getHeight()
+      };
+      var parent = this.getParents();
+      var area = {
+        width : parent.getWidth(),
+        height : parent.getHeight()
+      };
+      offsets = offsets || {
+        top : 0,
+        right : 0,
+        bottom : 0,
+        left : 0
+      };
+      var split = position.split("-");
+      var edge = split[0];
+      var align = split[1];
+      var newPosition = {
+        x : qx.module.Placement._getPositionX(edge, align),
+        y : qx.module.Placement._getPositionY(edge, align)
+      };
+      var targetLocation;
+      var parentPositioning = parent.getStyle("position");
+      if(parentPositioning == "relative" || parentPositioning == "static"){
+
+        targetLocation = target.getOffset();
+      } else {
+
+        var targetPos = target.getPosition();
+        targetLocation = {
+          top : targetPos.top,
+          bottom : targetPos.top + target.getHeight(),
+          left : targetPos.left,
+          right : targetPos.left + target.getWidth()
+        };
+      };
+      var newLocation = qx.module.Placement._computePlacement(axes, size, area, targetLocation, offsets, newPosition);
+      while(parent.length > 0){
+
+        if(parent.getStyle("position") == "relative"){
+
+          var offset = parent.getOffset();
+          var borderTop = parseInt(parent.getStyle("border-top-width")) || 0;
+          var borderLeft = parseInt(parent.getStyle("border-left-width")) || 0;
+          newLocation.left -= (offset.left + borderLeft);
+          newLocation.top -= (offset.top + borderTop);
+          parent = [];
+        } else {
+
+          parent = parent.getParents();
+        };
+      };
+      // Reset the styles to hide the element if it was previously hidden
+      if(!visible){
+
+        this[0].style.display = displayStyleValue;
+        this[0].style.visibility = visibilityStyleValue;
+      };
+      this.setStyles({
+        position : "absolute",
+        left : newLocation.left + "px",
+        top : newLocation.top + "px"
+      });
+      return this;
     }
   },
   defer : function(statics){
 
-    qx.core.Environment.add("html.stylesheet.createstylesheet", statics.getCreateStyleSheet);
-    qx.core.Environment.add("html.stylesheet.insertrule", statics.getInsertRule);
-    qx.core.Environment.add("html.stylesheet.deleterule", statics.getDeleteRule);
-    qx.core.Environment.add("html.stylesheet.addimport", statics.getAddImport);
-    qx.core.Environment.add("html.stylesheet.removeimport", statics.getRemoveImport);
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -31515,1402 +34386,6 @@ qx.Bootstrap.define("qx.module.Messaging", {
 
 ************************************************************************ */
 /**
- * Creates a gesture handler that fires high-level events such as "swipe"
- * based on low-level event sequences on the given element
- *
- * @require(qx.module.Event)
- * @require(qx.module.event.PointerHandler)
- *
- * @group (Event_Normalization)
- */
-qx.Bootstrap.define("qx.module.event.GestureHandler", {
-  statics : {
-    TYPES : ["tap", "longtap", "swipe", "dbltap", "track", "trackstart", "trackend", "roll", "rotate", "pinch"],
-    /**
-     * Creates a gesture handler for the given element when a gesture event listener
-     * is attached to it
-     *
-     * @param element {Element} DOM element
-     * @param type {String} event type
-     */
-    register : function(element, type){
-
-      if(!element.$$gestureHandler){
-
-        if(!qx.core.Environment.get("event.dispatchevent")){
-
-          if(!element.$$emitter){
-
-            element.$$emitter = new qx.event.Emitter();
-          };
-        };
-        element.$$gestureHandler = new qx.event.handler.GestureCore(element, element.$$emitter);
-      };
-    },
-    /**
-     * Removes the gesture event handler from the element if there are no more
-     * gesture event listeners attached to it
-     * @param element {Element} DOM element
-     */
-    unregister : function(element){
-
-      // check if there are any registered listeners left
-      if(element.$$gestureHandler){
-
-        var listeners = element.$$emitter.getListeners();
-        for(var type in listeners){
-
-          if(qx.module.event.GestureHandler.TYPES.indexOf(type) !== -1){
-
-            if(listeners[type].length > 0){
-
-              return;
-            };
-          };
-        };
-        // no more listeners, get rid of the handler
-        element.$$gestureHandler.dispose();
-        element.$$gestureHandler = undefined;
-      };
-    }
-  },
-  defer : function(statics){
-
-    qxWeb.$registerEventHook(statics.TYPES, statics.register, statics.unregister);
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2014 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Christopher Zuendorf (czuendorf)
-     * Daniel Wagner (danielwagner)
-
-************************************************************************ */
-/**
- * Listens for (native or synthetic) pointer events and fires events
- * for gestures like "tap" or "swipe"
- */
-qx.Bootstrap.define("qx.event.handler.GestureCore", {
-  extend : Object,
-  statics : {
-    TYPES : ["tap", "swipe", "longtap", "dbltap", "track", "trackstart", "trackend", "rotate", "pinch", "roll"],
-    GESTURE_EVENTS : ["gesturebegin", "gesturefinish", "gesturemove", "gesturecancel"],
-    TAP_MAX_DISTANCE : {
-      "touch" : 40,
-      "mouse" : 50,
-      "pen" : 20
-    },
-    // values are educated guesses
-    /** @type {Map} The direction of a swipe relative to the axis */
-    SWIPE_DIRECTION : {
-      x : ["left", "right"],
-      y : ["up", "down"]
-    },
-    /**
-     * @type {Integer} The time delta in milliseconds to fire a long tap event.
-     */
-    LONGTAP_TIME : 500,
-    /**
-     * @type {Integer} Maximum time between two tap events that will still trigger a
-     * dbltap event.
-     */
-    DOUBLETAP_TIME : 500,
-    /**
-     * @type {Integer} Factor which is used for adapting the delta of the mouse wheel
-     * event to the roll events,
-     */
-    ROLL_FACTOR : 18
-  },
-  /**
-   * @param target {Element} DOM Element that should fire gesture events
-   * @param emitter {qx.event.Emitter?} Event emitter (used if dispatchEvent
-   * is not supported, e.g. in IE8)
-   */
-  construct : function(target, emitter){
-
-    this.__defaultTarget = target;
-    this.__emitter = emitter;
-    this.__gesture = {
-    };
-    this.__lastTap = {
-    };
-    this.__stopMomentum = {
-    };
-    this._initObserver();
-  },
-  members : {
-    __defaultTarget : null,
-    __emitter : null,
-    __gesture : null,
-    __eventName : null,
-    __primaryTarget : null,
-    __isMultiPointerGesture : null,
-    __initialAngle : null,
-    __lastTap : null,
-    __rollImpulseId : null,
-    __stopMomentum : null,
-    __initialDistance : null,
-    /**
-     * Register pointer event listeners
-     */
-    _initObserver : function(){
-
-      // force qx.bom.Event.supportsEvent to return true for this type so we
-      // can use the native addEventListener (synthetic gesture events use the
-      // native dispatchEvent).
-      qx.event.handler.GestureCore.TYPES.forEach(function(type){
-
-        if(!this.__defaultTarget["on" + type]){
-
-          this.__defaultTarget["on" + type] = true;
-        };
-      }.bind(this));
-      qx.event.handler.GestureCore.GESTURE_EVENTS.forEach(function(gestureType){
-
-        qxWeb(this.__defaultTarget).on(gestureType, this.checkAndFireGesture, this);
-      }.bind(this));
-      if(qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") < 9){
-
-        qxWeb(this.__defaultTarget).on("dblclick", this._onDblClick, this);
-      };
-      // list to wheel events
-      var data = qx.core.Environment.get("event.mousewheel");
-      qxWeb(data.target).on(data.type, this._fireRoll, this);
-    },
-    /**
-     * Remove native pointer event listeners.
-     */
-    _stopObserver : function(){
-
-      qx.event.handler.GestureCore.GESTURE_EVENTS.forEach(function(pointerType){
-
-        qxWeb(this.__defaultTarget).off(pointerType, this.checkAndFireGesture, this);
-      }.bind(this));
-      if(qx.core.Environment.get("engine.name") == "mshtml" && qx.core.Environment.get("browser.documentmode") < 9){
-
-        qxWeb(this.__defaultTarget).off("dblclick", this._onDblClick, this);
-      };
-      var data = qx.core.Environment.get("event.mousewheel");
-      qxWeb(data.target).off(data.type, this._fireRoll, this);
-    },
-    /**
-     * Checks if a gesture was made and fires the gesture event.
-     *
-     * @param domEvent {Event} DOM event
-     * @param type {String ? null} type of the event
-     * @param target {Element ? null} event target
-     */
-    checkAndFireGesture : function(domEvent, type, target){
-
-      if(!type){
-
-        type = domEvent.type;
-      };
-      if(!target){
-
-        target = qx.bom.Event.getTarget(domEvent);
-      };
-      if(type == "gesturebegin"){
-
-        this.gestureBegin(domEvent, target);
-      } else if(type == "gesturemove"){
-
-        this.gestureMove(domEvent, target);
-      } else if(type == "gesturefinish"){
-
-        this.gestureFinish(domEvent, target);
-      } else if(type == "gesturecancel"){
-
-        this.gestureCancel(domEvent.pointerId);
-      };;;
-    },
-    /**
-     * Helper method for gesture start.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    gestureBegin : function(domEvent, target){
-
-      if(this.__gesture[domEvent.pointerId]){
-
-        this.__stopLongTapTimer(this.__gesture[domEvent.pointerId]);
-        delete this.__gesture[domEvent.pointerId];
-      };
-      this.__gesture[domEvent.pointerId] = {
-        "startTime" : new Date().getTime(),
-        "lastEventTime" : new Date().getTime(),
-        "startX" : domEvent.clientX,
-        "startY" : domEvent.clientY,
-        "clientX" : domEvent.clientX,
-        "clientY" : domEvent.clientY,
-        "velocityX" : 0,
-        "velocityY" : 0,
-        "target" : target,
-        "isTap" : true,
-        "isPrimary" : domEvent.isPrimary,
-        "longTapTimer" : window.setTimeout(this.__fireLongTap.bind(this, domEvent, target), qx.event.handler.GestureCore.LONGTAP_TIME)
-      };
-      if(domEvent.isPrimary){
-
-        this.__isMultiPointerGesture = false;
-        this.__primaryTarget = target;
-        this.__fireTrack("trackstart", domEvent, target);
-      } else {
-
-        this.__isMultiPointerGesture = true;
-        if(Object.keys(this.__gesture).length === 2){
-
-          this.__initialAngle = this._calcAngle();
-          this.__initialDistance = this._calcDistance();
-        };
-      };
-    },
-    /**
-     * Helper method for gesture move.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    gestureMove : function(domEvent, target){
-
-      var gesture = this.__gesture[domEvent.pointerId];
-      if(gesture){
-
-        var oldClientX = gesture.clientX;
-        var oldClientY = gesture.clientY;
-        gesture.clientX = domEvent.clientX;
-        gesture.clientY = domEvent.clientY;
-        gesture.lastEventTime = new Date().getTime();
-        if(oldClientX){
-
-          gesture.velocityX = gesture.clientX - oldClientX;
-        };
-        if(oldClientY){
-
-          gesture.velocityY = gesture.clientY - oldClientY;
-        };
-        if(Object.keys(this.__gesture).length === 2){
-
-          this.__fireRotate(domEvent, gesture.target);
-          this.__firePinch(domEvent, gesture.target);
-        };
-        if(!this.__isMultiPointerGesture){
-
-          this.__fireTrack("track", domEvent, gesture.target);
-          this._fireRoll(domEvent, "touch", gesture.target);
-        };
-        // abort long tap timer if the distance is too big
-        if(gesture.isTap){
-
-          gesture.isTap = this._isBelowTapMaxDistance(domEvent);
-          if(!gesture.isTap){
-
-            this.__stopLongTapTimer(gesture);
-          };
-        };
-      };
-    },
-    /**
-     * Checks if a DOM element located between the target of a gesture
-     * event and the element this handler is attached to has a gesture
-     * handler of its own.
-     *
-     * @param target {Element} The gesture event's target
-     * @return {Boolean}
-     */
-    _hasIntermediaryHandler : function(target){
-
-      while(target && target !== this.__defaultTarget){
-
-        if(target.$$gestureHandler){
-
-          return true;
-        };
-        target = target.parentNode;
-      };
-      return false;
-    },
-    /**
-     * Helper method for gesture end.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    gestureFinish : function(domEvent, target){
-
-      // If no start position is available for this pointerup event, cancel gesture recognition.
-      if(!this.__gesture[domEvent.pointerId]){
-
-        return;
-      };
-      var gesture = this.__gesture[domEvent.pointerId];
-      // delete the long tap
-      this.__stopLongTapTimer(gesture);
-      /*
-        If the dom event's target or one of its ancestors have
-        a gesture handler, we don't need to fire the gesture again
-        since it bubbles.
-       */
-      if(this._hasIntermediaryHandler(target)){
-
-        return;
-      };
-      // always start the roll impulse on the original target
-      this.__handleRollImpulse(gesture.velocityX, gesture.velocityY, domEvent, gesture.target);
-      this.__fireTrack("trackend", domEvent, gesture.target);
-      if(gesture.isTap){
-
-        if(target !== gesture.target){
-
-          delete this.__gesture[domEvent.pointerId];
-          return;
-        };
-        this._fireEvent(domEvent, "tap", domEvent.target || target);
-        var isDblTap = false;
-        if(Object.keys(this.__lastTap).length > 0){
-
-          // delete old tap entries
-          var limit = Date.now() - qx.event.handler.GestureCore.DOUBLETAP_TIME;
-          for(var time in this.__lastTap){
-
-            if(time < limit){
-
-              delete this.__lastTap[time];
-            } else {
-
-              var lastTap = this.__lastTap[time];
-              var isBelowDoubleTapDistance = this.__isBelowDoubleTapDistance(lastTap.x, lastTap.y, domEvent.clientX, domEvent.clientY, domEvent.getPointerType());
-              var isSameTarget = lastTap.target === (domEvent.target || target);
-              var isSameButton = lastTap.button === domEvent.button;
-              if(isBelowDoubleTapDistance && isSameButton && isSameTarget){
-
-                isDblTap = true;
-                delete this.__lastTap[time];
-                this._fireEvent(domEvent, "dbltap", domEvent.target || target);
-              };
-            };
-          };
-        };
-        if(!isDblTap){
-
-          this.__lastTap[Date.now()] = {
-            x : domEvent.clientX,
-            y : domEvent.clientY,
-            target : domEvent.target || target,
-            button : domEvent.button
-          };
-        };
-      } else if(!this._isBelowTapMaxDistance(domEvent)){
-
-        var swipe = this.__getSwipeGesture(domEvent, target);
-        if(swipe){
-
-          domEvent.swipe = swipe;
-          this._fireEvent(domEvent, "swipe", gesture.target || target);
-        };
-      };
-      delete this.__gesture[domEvent.pointerId];
-    },
-    /**
-     * Stops the momentum scrolling currently running.
-     *
-     * @param id {Integer} The timeoutId of a 'roll' event
-     */
-    stopMomentum : function(id){
-
-      this.__stopMomentum[id] = true;
-    },
-    /**
-     * Cancels the gesture if running.
-     * @param id {Number} The pointer Id.
-     */
-    gestureCancel : function(id){
-
-      if(this.__gesture[id]){
-
-        this.__stopLongTapTimer(this.__gesture[id]);
-        delete this.__gesture[id];
-      };
-    },
-    /**
-     * Update the target of a running gesture. This is used in virtual widgets
-     * when the DOM element changes.
-     *
-     * @param id {String} The pointer id.
-     * @param target {Element} The new target element.
-     * @internal
-     */
-    updateGestureTarget : function(id, target){
-
-      this.__gesture[id].target = target;
-    },
-    /**
-     * Method which will be called recursively to provide a momentum scrolling.
-     * @param deltaX {Number} The last offset in X direction
-     * @param deltaY {Number} The last offset in Y direction
-     * @param domEvent {Event} The original gesture event
-     * @param target {Element} The target of the momentum roll events
-     * @param time {Number ?} The time in ms between the last two calls
-     */
-    __handleRollImpulse : function(deltaX, deltaY, domEvent, target, time){
-
-      var oldTimeoutId = domEvent.timeoutId;
-      // do nothing if we don't need to scroll
-      if((Math.abs(deltaY) < 1 && Math.abs(deltaX) < 1) || this.__stopMomentum[oldTimeoutId]){
-
-        delete this.__stopMomentum[oldTimeoutId];
-        return;
-      };
-      if(!time){
-
-        time = 1;
-        var startFactor = 2.8;
-        deltaY = deltaY / startFactor;
-        deltaX = deltaX / startFactor;
-      };
-      time += 0.0006;
-      deltaY = deltaY / time;
-      deltaX = deltaX / time;
-      // set up a new timer with the new delta
-      var timeoutId = qx.bom.AnimationFrame.request(qx.lang.Function.bind(function(deltaX, deltaY, domEvent, target, time){
-
-        this.__handleRollImpulse(deltaX, deltaY, domEvent, target, time);
-      }, this, deltaX, deltaY, domEvent, target, time));
-      deltaX = Math.round(deltaX * 100) / 100;
-      deltaY = Math.round(deltaY * 100) / 100;
-      // scroll the desired new delta
-      domEvent.delta = {
-        x : -deltaX,
-        y : -deltaY
-      };
-      domEvent.momentum = true;
-      domEvent.timeoutId = timeoutId;
-      this._fireEvent(domEvent, "roll", domEvent.target || target);
-    },
-    /**
-    * Calculates the angle of the primary and secondary pointer.
-    * @return {Number} the rotation angle of the 2 pointers.
-    */
-    _calcAngle : function(){
-
-      var pointerA = null;
-      var pointerB = null;
-      for(var pointerId in this.__gesture){
-
-        var gesture = this.__gesture[pointerId];
-        if(pointerA === null){
-
-          pointerA = gesture;
-        } else {
-
-          pointerB = gesture;
-        };
-      };
-      var x = pointerA.clientX - pointerB.clientX;
-      var y = pointerA.clientY - pointerB.clientY;
-      return (360 + Math.atan2(y, x) * (180 / Math.PI)) % 360;
-    },
-    /**
-     * Calculates the scaling distance between two pointers.
-     * @return {Number} the calculated distance.
-     */
-    _calcDistance : function(){
-
-      var pointerA = null;
-      var pointerB = null;
-      for(var pointerId in this.__gesture){
-
-        var gesture = this.__gesture[pointerId];
-        if(pointerA === null){
-
-          pointerA = gesture;
-        } else {
-
-          pointerB = gesture;
-        };
-      };
-      var scale = Math.sqrt(Math.pow(pointerA.clientX - pointerB.clientX, 2) + Math.pow(pointerA.clientY - pointerB.clientY, 2));
-      return scale;
-    },
-    /**
-     * Checks if the distance between the x/y coordinates of DOM event
-     * exceeds TAP_MAX_DISTANCE and returns the result.
-     *
-     * @param domEvent {Event} The DOM event from the browser.
-     * @return {Boolean|null} true if distance is below TAP_MAX_DISTANCE.
-     */
-    _isBelowTapMaxDistance : function(domEvent){
-
-      var delta = this._getDeltaCoordinates(domEvent);
-      var maxDistance = qx.event.handler.GestureCore.TAP_MAX_DISTANCE[domEvent.getPointerType()];
-      if(!delta){
-
-        return null;
-      };
-      return (Math.abs(delta.x) <= maxDistance && Math.abs(delta.y) <= maxDistance);
-    },
-    /**
-     * Checks if the distance between the x1/y1 and x2/y2 is
-     * below the TAP_MAX_DISTANCE and returns the result.
-     *
-     * @param x1 {Number} The x position of point one.
-     * @param y1 {Number} The y position of point one.
-     * @param x2 {Number} The x position of point two.
-     * @param y2 {Number} The y position of point two.
-     * @param type {String} The pointer type e.g. "mouse"
-     * @return {Boolean} <code>true</code>, if points are in range
-     */
-    __isBelowDoubleTapDistance : function(x1, y1, x2, y2, type){
-
-      var clazz = qx.event.handler.GestureCore;
-      var inX = Math.abs(x1 - x2) < clazz.TAP_MAX_DISTANCE[type];
-      var inY = Math.abs(y1 - y2) < clazz.TAP_MAX_DISTANCE[type];
-      return inX && inY;
-    },
-    /**
-    * Calculates the delta coordinates in relation to the position on <code>pointerstart</code> event.
-    * @param domEvent {Event} The DOM event from the browser.
-    * @return {Map} containing the deltaX as x, and deltaY as y.
-    */
-    _getDeltaCoordinates : function(domEvent){
-
-      var gesture = this.__gesture[domEvent.pointerId];
-      if(!gesture){
-
-        return null;
-      };
-      var deltaX = domEvent.clientX - gesture.startX;
-      var deltaY = domEvent.clientY - gesture.startY;
-      var axis = "x";
-      if(Math.abs(deltaX / deltaY) < 1){
-
-        axis = "y";
-      };
-      return {
-        "x" : deltaX,
-        "y" : deltaY,
-        "axis" : axis
-      };
-    },
-    /**
-     * Fire a gesture event with the given parameters
-     *
-     * @param domEvent {Event} DOM event
-     * @param type {String} type of the event
-     * @param target {Element ? null} event target
-     */
-    _fireEvent : function(domEvent, type, target){
-
-      // The target may have been removed, e.g. menu hide on tap
-      if(!this.__defaultTarget){
-
-        return;
-      };
-      var evt;
-      if(qx.core.Environment.get("event.dispatchevent")){
-
-        evt = new qx.event.type.dom.Custom(type, domEvent, {
-          bubbles : true,
-          swipe : domEvent.swipe,
-          scale : domEvent.scale,
-          angle : domEvent.angle,
-          delta : domEvent.delta,
-          pointerType : domEvent.pointerType,
-          momentum : domEvent.momentum
-        });
-        target.dispatchEvent(evt);
-      } else if(this.__emitter){
-
-        evt = new qx.event.type.dom.Custom(type, domEvent, {
-          target : this.__defaultTarget,
-          currentTarget : this.__defaultTarget,
-          srcElement : this.__defaultTarget,
-          swipe : domEvent.swipe,
-          scale : domEvent.scale,
-          angle : domEvent.angle,
-          delta : domEvent.delta,
-          pointerType : domEvent.pointerType,
-          momentum : domEvent.momentum
-        });
-        this.__emitter.emit(type, domEvent);
-      };
-    },
-    /**
-     * Fire "tap" and "dbltap" events after a native "dblclick"
-     * event to fix IE 8's broken mouse event sequence.
-     *
-     * @param domEvent {Event} dblclick event
-     */
-    _onDblClick : function(domEvent){
-
-      var target = qx.bom.Event.getTarget(domEvent);
-      this._fireEvent(domEvent, "tap", target);
-      this._fireEvent(domEvent, "dbltap", target);
-    },
-    /**
-     * Returns the swipe gesture when the user performed a swipe.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     * @return {Map|null} returns the swipe data when the user performed a swipe, null if the gesture was no swipe.
-     */
-    __getSwipeGesture : function(domEvent, target){
-
-      var gesture = this.__gesture[domEvent.pointerId];
-      if(!gesture){
-
-        return null;
-      };
-      var clazz = qx.event.handler.GestureCore;
-      var deltaCoordinates = this._getDeltaCoordinates(domEvent);
-      var duration = new Date().getTime() - gesture.startTime;
-      var axis = (Math.abs(deltaCoordinates.x) >= Math.abs(deltaCoordinates.y)) ? "x" : "y";
-      var distance = deltaCoordinates[axis];
-      var direction = clazz.SWIPE_DIRECTION[axis][distance < 0 ? 0 : 1];
-      var velocity = (duration !== 0) ? distance / duration : 0;
-      var swipe = {
-        startTime : gesture.startTime,
-        duration : duration,
-        axis : axis,
-        direction : direction,
-        distance : distance,
-        velocity : velocity
-      };
-      return swipe;
-    },
-    /**
-     * Fires a track event.
-     *
-     * @param type {String} the track type
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    __fireTrack : function(type, domEvent, target){
-
-      domEvent.delta = this._getDeltaCoordinates(domEvent);
-      this._fireEvent(domEvent, type, domEvent.target || target);
-    },
-    /**
-     * Fires a roll event.
-     *
-     * @param domEvent {Event} DOM event
-     * @param type {String} The type of the dom event
-     * @param target {Element} event target
-     */
-    _fireRoll : function(domEvent, type, target){
-
-      if(domEvent.type === qx.core.Environment.get("event.mousewheel").type){
-
-        domEvent.delta = {
-          x : qx.util.Wheel.getDelta(domEvent, "x") * qx.event.handler.GestureCore.ROLL_FACTOR,
-          y : qx.util.Wheel.getDelta(domEvent, "y") * qx.event.handler.GestureCore.ROLL_FACTOR
-        };
-        domEvent.delta.axis = Math.abs(domEvent.delta.x / domEvent.delta.y) < 1 ? "y" : "x";
-        domEvent.pointerType = "wheel";
-      } else {
-
-        var gesture = this.__gesture[domEvent.pointerId];
-        domEvent.delta = {
-          x : -gesture.velocityX,
-          y : -gesture.velocityY,
-          axis : Math.abs(gesture.velocityX / gesture.velocityY) < 1 ? "y" : "x"
-        };
-      };
-      this._fireEvent(domEvent, "roll", domEvent.target || target);
-    },
-    /**
-     * Fires a rotate event.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    __fireRotate : function(domEvent, target){
-
-      if(!domEvent.isPrimary){
-
-        var angle = this._calcAngle();
-        domEvent.angle = Math.round((angle - this.__initialAngle) % 360);
-        this._fireEvent(domEvent, "rotate", this.__primaryTarget);
-      };
-    },
-    /**
-     * Fires a pinch event.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    __firePinch : function(domEvent, target){
-
-      if(!domEvent.isPrimary){
-
-        var distance = this._calcDistance();
-        var scale = distance / this.__initialDistance;
-        domEvent.scale = (Math.round(scale * 100) / 100);
-        this._fireEvent(domEvent, "pinch", this.__primaryTarget);
-      };
-    },
-    /**
-     * Fires the long tap event.
-     *
-     * @param domEvent {Event} DOM event
-     * @param target {Element} event target
-     */
-    __fireLongTap : function(domEvent, target){
-
-      var gesture = this.__gesture[domEvent.pointerId];
-      if(gesture){
-
-        this._fireEvent(domEvent, "longtap", domEvent.target || target);
-        gesture.longTapTimer = null;
-        gesture.isTap = false;
-      };
-    },
-    /**
-     * Stops the time for the long tap event.
-     * @param gesture {Map} Data may representing the gesture.
-     */
-    __stopLongTapTimer : function(gesture){
-
-      if(gesture.longTapTimer){
-
-        window.clearTimeout(gesture.longTapTimer);
-        gesture.longTapTimer = null;
-      };
-    },
-    /**
-     * Checks if the distance between the x/y coordinates of touchstart/mousedown and touchmove/mousemove event
-     * exceeds TAP_MAX_DISTANCE and returns the result.
-     *
-     * @param event {Event} The event from the browser.
-     * @return {Boolean} true if distance is below TAP_MAX_DISTANCE.
-     */
-    isBelowTapMaxDistance : function(event){
-
-      var deltaCoordinates = this._calcDelta(event);
-      var clazz = qx.event.handler.GestureCore;
-      return (Math.abs(deltaCoordinates.x) <= clazz.TAP_MAX_DISTANCE && Math.abs(deltaCoordinates.y) <= clazz.TAP_MAX_DISTANCE);
-    },
-    /**
-     * Dispose the current instance
-     */
-    dispose : function(){
-
-      for(var gesture in this.__gesture){
-
-        this.__stopLongTapTimer(gesture);
-      };
-      this._stopObserver();
-      this.__defaultTarget = this.__emitter = null;
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Martin Wittemann (wittemann)
-
-************************************************************************ */
-/**
- * This is a cross browser wrapper for requestAnimationFrame. For further
- * information about the feature, take a look at spec:
- * http://www.w3.org/TR/animation-timing/
- *
- * This class offers two ways of using this feature. First, the plain
- * API the spec describes.
- *
- * Here is a sample usage:
- * <pre class='javascript'>var start = +(new Date());
- * var clb = function(time) {
- *   if (time >= start + duration) {
- *     // ... do some last tasks
- *   } else {
- *     var timePassed = time - start;
- *     // ... calculate the current step and apply it
- *     qx.bom.AnimationFrame.request(clb, this);
- *   }
- * };
- * qx.bom.AnimationFrame.request(clb, this);
- * </pre>
- *
- * Another way of using it is to use it as an instance emitting events.
- *
- * Here is a sample usage of that API:
- * <pre class='javascript'>var frame = new qx.bom.AnimationFrame();
- * frame.on("end", function() {
- *   // ... do some last tasks
- * }, this);
- * frame.on("frame", function(timePassed) {
- *   // ... calculate the current step and apply it
- * }, this);
- * frame.startSequence(duration);
- * </pre>
- *
- * @require(qx.lang.normalize.Date)
- */
-qx.Bootstrap.define("qx.bom.AnimationFrame", {
-  extend : qx.event.Emitter,
-  events : {
-    /** Fired as soon as the animation has ended. */
-    "end" : undefined,
-    /**
-     * Fired on every frame having the passed time as value
-     * (might be a float for higher precision).
-     */
-    "frame" : "Number"
-  },
-  members : {
-    __canceled : false,
-    /**
-     * Method used to start a series of animation frames. The series will end as
-     * soon as the given duration is over.
-     *
-     * @param duration {Number} The duration the sequence should take.
-     */
-    startSequence : function(duration){
-
-      this.__canceled = false;
-      var start = +(new Date());
-      var clb = function(time){
-
-        if(this.__canceled){
-
-          this.id = null;
-          return;
-        };
-        // final call
-        if(time >= start + duration){
-
-          this.emit("end");
-          this.id = null;
-        } else {
-
-          var timePassed = Math.max(time - start, 0);
-          this.emit("frame", timePassed);
-          this.id = qx.bom.AnimationFrame.request(clb, this);
-        };
-      };
-      this.id = qx.bom.AnimationFrame.request(clb, this);
-    },
-    /**
-     * Cancels a started sequence of frames. It will do nothing if no
-     * sequence is running.
-     */
-    cancelSequence : function(){
-
-      this.__canceled = true;
-    }
-  },
-  statics : {
-    /**
-     * The default time in ms the timeout fallback implementation uses.
-     */
-    TIMEOUT : 30,
-    /**
-     * Calculation of the predefined timing functions. Approximation of the real
-     * bezier curves has been used for easier calculation. This is good and close
-     * enough for the predefined functions like <code>ease</code> or
-     * <code>linear</code>.
-     *
-     * @param func {String} The defined timing function. One of the following values:
-     *   <code>"ease-in"</code>, <code>"ease-out"</code>, <code>"linear"</code>,
-     *   <code>"ease-in-out"</code>, <code>"ease"</code>.
-     * @param x {Integer} The percent value of the function.
-     * @return {Integer} The calculated value
-     */
-    calculateTiming : function(func, x){
-
-      if(func == "ease-in"){
-
-        var a = [3.1223e-7, 0.0757, 1.2646, -0.167, -0.4387, 0.2654];
-      } else if(func == "ease-out"){
-
-        var a = [-7.0198e-8, 1.652, -0.551, -0.0458, 0.1255, -0.1807];
-      } else if(func == "linear"){
-
-        return x;
-      } else if(func == "ease-in-out"){
-
-        var a = [2.482e-7, -0.2289, 3.3466, -1.0857, -1.7354, 0.7034];
-      } else {
-
-        // default is 'ease'
-        var a = [-0.0021, 0.2472, 9.8054, -21.6869, 17.7611, -5.1226];
-      };;;
-      // A 6th grade polynomial has been used as approximation of the original
-      // bezier curves  described in the transition spec
-      // http://www.w3.org/TR/css3-transitions/#transition-timing-function_tag
-      // (the same is used for animations as well)
-      var y = 0;
-      for(var i = 0;i < a.length;i++){
-
-        y += a[i] * Math.pow(x, i);
-      };
-      return y;
-    },
-    /**
-     * Request for an animation frame. If the native <code>requestAnimationFrame</code>
-     * method is supported, it will be used. Otherwise, we use timeouts with a
-     * 30ms delay. The HighResolutionTime will be used if supported but the time given
-     * to the callback will still be a timestamp starting at 1 January 1970 00:00:00 UTC.
-     *
-     * @param callback {Function} The callback function which will get the current
-     *   time as argument (which could be a float for higher precision).
-     * @param context {var} The context of the callback.
-     * @return {Number} The id of the request.
-     */
-    request : function(callback, context){
-
-      var req = qx.core.Environment.get("css.animation.requestframe");
-      var clb = function(time){
-
-        // check for high resolution time
-        if(time < 1e10){
-
-          time = this.__start + time;
-        };
-        time = time || +(new Date());
-        callback.call(context, time);
-      };
-      if(req){
-
-        return window[req](clb);
-      } else {
-
-        // make sure to use an indirection because setTimeout passes a
-        // number as first argument as well
-        return window.setTimeout(function(){
-
-          clb();
-        }, qx.bom.AnimationFrame.TIMEOUT);
-      };
-    }
-  },
-  /**
-   * @ignore(performance.timing.*)
-   */
-  defer : function(statics){
-
-    // check and use the high resolution start time if available
-    statics.__start = window.performance && performance.timing && performance.timing.navigationStart;
-    // if not, simply use the current time
-    if(!statics.__start){
-
-      statics.__start = Date.now();
-    };
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Martin Wittemann (wittemann)
-
-************************************************************************ */
-/**
- * Responsible for checking all relevant animation properties.
- *
- * Spec: http://www.w3.org/TR/css3-animations/
- *
- * @require(qx.bom.Stylesheet)
- * @internal
- */
-qx.Bootstrap.define("qx.bom.client.CssAnimation", {
-  statics : {
-    /**
-     * Main check method which returns an object if CSS animations are
-     * supported. This object contains all necessary keys to work with CSS
-     * animations.
-     * <ul>
-     *  <li><code>name</code> The name of the css animation style</li>
-     *  <li><code>play-state</code> The name of the play-state style</li>
-     *  <li><code>start-event</code> The name of the start event</li>
-     *  <li><code>iternation-event</code> The name of the iternation event</li>
-     *  <li><code>end-event</code> The name of the end event</li>
-     *  <li><code>fill-mode</code> The fill-mode style</li>
-     *  <li><code>keyframes</code> The name of the keyframes selector.</li>
-     * </ul>
-     *
-     * @internal
-     * @return {Object|null} The described object or null, if animations are
-     *   not supported.
-     */
-    getSupport : function(){
-
-      var name = qx.bom.client.CssAnimation.getName();
-      if(name != null){
-
-        return {
-          "name" : name,
-          "play-state" : qx.bom.client.CssAnimation.getPlayState(),
-          "start-event" : qx.bom.client.CssAnimation.getAnimationStart(),
-          "iteration-event" : qx.bom.client.CssAnimation.getAnimationIteration(),
-          "end-event" : qx.bom.client.CssAnimation.getAnimationEnd(),
-          "fill-mode" : qx.bom.client.CssAnimation.getFillMode(),
-          "keyframes" : qx.bom.client.CssAnimation.getKeyFrames()
-        };
-      };
-      return null;
-    },
-    /**
-     * Checks for the 'animation-fill-mode' CSS style.
-     * @internal
-     * @return {String|null} The name of the style or null, if the style is
-     *   not supported.
-     */
-    getFillMode : function(){
-
-      return qx.bom.Style.getPropertyName("AnimationFillMode");
-    },
-    /**
-     * Checks for the 'animation-play-state' CSS style.
-     * @internal
-     * @return {String|null} The name of the style or null, if the style is
-     *   not supported.
-     */
-    getPlayState : function(){
-
-      return qx.bom.Style.getPropertyName("AnimationPlayState");
-    },
-    /**
-     * Checks for the style name used for animations.
-     * @internal
-     * @return {String|null} The name of the style or null, if the style is
-     *   not supported.
-     */
-    getName : function(){
-
-      return qx.bom.Style.getPropertyName("animation");
-    },
-    /**
-     * Checks for the event name of animation start.
-     * @internal
-     * @return {String} The name of the event.
-     */
-    getAnimationStart : function(){
-
-      var mapping = {
-        "msAnimation" : "MSAnimationStart",
-        "WebkitAnimation" : "webkitAnimationStart",
-        "MozAnimation" : "animationstart",
-        "OAnimation" : "oAnimationStart",
-        "animation" : "animationstart"
-      };
-      return mapping[this.getName()];
-    },
-    /**
-     * Checks for the event name of animation end.
-     * @internal
-     * @return {String} The name of the event.
-     */
-    getAnimationIteration : function(){
-
-      var mapping = {
-        "msAnimation" : "MSAnimationIteration",
-        "WebkitAnimation" : "webkitAnimationIteration",
-        "MozAnimation" : "animationiteration",
-        "OAnimation" : "oAnimationIteration",
-        "animation" : "animationiteration"
-      };
-      return mapping[this.getName()];
-    },
-    /**
-     * Checks for the event name of animation end.
-     * @internal
-     * @return {String} The name of the event.
-     */
-    getAnimationEnd : function(){
-
-      var mapping = {
-        "msAnimation" : "MSAnimationEnd",
-        "WebkitAnimation" : "webkitAnimationEnd",
-        "MozAnimation" : "animationend",
-        "OAnimation" : "oAnimationEnd",
-        "animation" : "animationend"
-      };
-      return mapping[this.getName()];
-    },
-    /**
-     * Checks what selector should be used to add keyframes to stylesheets.
-     * @internal
-     * @return {String|null} The name of the selector or null, if the selector
-     *   is not supported.
-     */
-    getKeyFrames : function(){
-
-      var prefixes = qx.bom.Style.VENDOR_PREFIXES;
-      var keyFrames = [];
-      for(var i = 0;i < prefixes.length;i++){
-
-        var key = "@" + qx.bom.Style.getCssName(prefixes[i]) + "-keyframes";
-        keyFrames.push(key);
-      };
-      keyFrames.unshift("@keyframes");
-      var sheet = qx.bom.Stylesheet.createElement();
-      for(var i = 0;i < keyFrames.length;i++){
-
-        try{
-
-          qx.bom.Stylesheet.addRule(sheet, keyFrames[i] + " name", "");
-          return keyFrames[i];
-        } catch(e) {
-        };
-      };
-      return null;
-    },
-    /**
-     * Checks for the requestAnimationFrame method and return the prefixed name.
-     * @internal
-     * @return {String|null} A string the method name or null, if the method
-     *   is not supported.
-     */
-    getRequestAnimationFrame : function(){
-
-      var choices = ["requestAnimationFrame", "msRequestAnimationFrame", "webkitRequestAnimationFrame", "mozRequestAnimationFrame", "oRequestAnimationFrame"];
-      for(var i = 0;i < choices.length;i++){
-
-        if(window[choices[i]] != undefined){
-
-          return choices[i];
-        };
-      };
-      return null;
-    }
-  },
-  defer : function(statics){
-
-    qx.core.Environment.add("css.animation", statics.getSupport);
-    qx.core.Environment.add("css.animation.requestframe", statics.getRequestAnimationFrame);
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2014 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Martin Wittemann (martinwittemann)
-
- ************************************************************************ */
-/**
- * Util for mouse wheel normalization.
- */
-qx.Bootstrap.define("qx.util.Wheel", {
-  statics : {
-    /**
-     * The maximal measured scroll wheel delta.
-     * @internal
-     */
-    MAXSCROLL : null,
-    /**
-     * The minimal measured scroll wheel delta.
-     * @internal
-     */
-    MINSCROLL : null,
-    /**
-     * The normalization factor for the speed calculation.
-     * @internal
-     */
-    FACTOR : 1,
-    /**
-     * Get the amount the wheel has been scrolled
-     *
-     * @param domEvent {Event} The native wheel event.
-     * @param axis {String?} Optional parameter which defines the scroll axis.
-     *   The value can either be <code>"x"</code> or <code>"y"</code>.
-     * @return {Integer} Scroll wheel movement for the given axis. If no axis
-     *   is given, the y axis is used.
-     */
-    getDelta : function(domEvent, axis){
-
-      // default case
-      if(axis === undefined){
-
-        // default case
-        var delta = 0;
-        if(domEvent.wheelDelta !== undefined){
-
-          delta = -domEvent.wheelDelta;
-        } else if(domEvent.detail !== 0){
-
-          delta = domEvent.detail;
-        } else if(domEvent.deltaY !== undefined){
-
-          // use deltaY as default for firefox
-          delta = domEvent.deltaY;
-        };;
-        return this.__normalize(delta);
-      };
-      // get the x scroll delta
-      if(axis === "x"){
-
-        var x = 0;
-        if(domEvent.wheelDelta !== undefined){
-
-          if(domEvent.wheelDeltaX !== undefined){
-
-            x = domEvent.wheelDeltaX ? this.__normalize(-domEvent.wheelDeltaX) : 0;
-          };
-        } else {
-
-          if(domEvent.axis && domEvent.axis == domEvent.HORIZONTAL_AXIS && (domEvent.detail !== undefined) && (domEvent.detail > 0)){
-
-            x = this.__normalize(domEvent.detail);
-          } else if(domEvent.deltaX !== undefined){
-
-            x = this.__normalize(domEvent.deltaX);
-          };
-        };
-        return x;
-      };
-      // get the y scroll delta
-      if(axis === "y"){
-
-        var y = 0;
-        if(domEvent.wheelDelta !== undefined){
-
-          if(domEvent.wheelDeltaY !== undefined){
-
-            y = domEvent.wheelDeltaY ? this.__normalize(-domEvent.wheelDeltaY) : 0;
-          } else {
-
-            y = this.__normalize(-domEvent.wheelDelta);
-          };
-        } else {
-
-          if(!(domEvent.axis && domEvent.axis == domEvent.HORIZONTAL_AXIS) && (domEvent.detail !== undefined) && (domEvent.detail > 0)){
-
-            y = this.__normalize(domEvent.detail);
-          } else if(domEvent.deltaY !== undefined){
-
-            y = this.__normalize(domEvent.deltaY);
-          };
-        };
-        return y;
-      };
-      // default case, return 0
-      return 0;
-    },
-    /**
-     * Normalizer for the mouse wheel data.
-     *
-     * @param delta {Number} The mouse delta.
-     * @return {Number} The normalized delta value
-     */
-    __normalize : function(delta){
-
-      var absDelta = Math.abs(delta);
-      // store the min value
-      if(qx.util.Wheel.MINSCROLL == null || qx.util.Wheel.MINSCROLL > absDelta){
-
-        qx.util.Wheel.MINSCROLL = absDelta;
-        this.__recalculateMultiplicator();
-      };
-      // store the max value
-      if(qx.util.Wheel.MAXSCROLL == null || qx.util.Wheel.MAXSCROLL < absDelta){
-
-        qx.util.Wheel.MAXSCROLL = absDelta;
-        this.__recalculateMultiplicator();
-      };
-      // special case for systems not speeding up
-      if(qx.util.Wheel.MAXSCROLL === absDelta && qx.util.Wheel.MINSCROLL === absDelta){
-
-        return 2 * (delta / absDelta);
-      };
-      var range = qx.util.Wheel.MAXSCROLL - qx.util.Wheel.MINSCROLL;
-      var ret = (delta / range) * Math.log(range) * qx.util.Wheel.FACTOR;
-      // return at least 1 or -1
-      return ret < 0 ? Math.min(ret, -1) : Math.max(ret, 1);
-    },
-    /**
-     * Recalculates the factor with which the calculated delta is normalized.
-     */
-    __recalculateMultiplicator : function(){
-
-      var max = qx.util.Wheel.MAXSCROLL || 0;
-      var min = qx.util.Wheel.MINSCROLL || max;
-      if(max <= min){
-
-        return;
-      };
-      var range = max - min;
-      var maxRet = (max / range) * Math.log(range);
-      if(maxRet == 0){
-
-        maxRet = 1;
-      };
-      qx.util.Wheel.FACTOR = 6 / maxRet;
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2014 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Daniel Wagner (danielwagner)
-
-************************************************************************ */
-/**
  * Normalization for the rotate gesture.
  *
  * @require(qx.module.Event)
@@ -32963,84 +34438,6 @@ qx.Bootstrap.define("qx.module.event.Rotate", {
   defer : function(statics){
 
     qxWeb.$registerEventNormalization(qx.module.event.Rotate.TYPES, statics.normalize);
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2014 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Daniel Wagner (danielwagner)
-
-************************************************************************ */
-/**
- * Normalization for the track gesture. This gesture is based on <a href="#Pointer">Pointer events</a>,
- * meaning that it's available on all devices, no matter which input device type is used (e.g. mouse or
- * touchscreen).
- *
- * @require(qx.module.Event)
- *
- * @group (Event_Normalization)
- */
-qx.Bootstrap.define("qx.module.event.Track", {
-  statics : {
-    /**
-     * List of event types to be normalized
-     */
-    TYPES : ["track"],
-    BIND_METHODS : ["getDelta"],
-    /**
-     * Returns a map with the calculated delta coordinates and axis,
-     * relative to the position on <code>trackstart</code> event.
-     *
-     * @return {Map} a map with contains the delta as <code>x</code> and
-     * <code>y</code> and the movement axis as <code>axis</code>.
-     */
-    getDelta : function(){
-
-      return this._original.delta;
-    },
-    /**
-     * Manipulates the native event object, adding methods if they're not
-     * already present
-     *
-     * @param event {Event} Native event object
-     * @param element {Element} DOM element the listener was attached to
-     * @return {Event} Normalized event object
-     * @internal
-     */
-    normalize : function(event, element){
-
-      if(!event){
-
-        return event;
-      };
-      // apply mouse event normalizations
-      var bindMethods = qx.module.event.Track.BIND_METHODS;
-      for(var i = 0,l = bindMethods.length;i < l;i++){
-
-        if(typeof event[bindMethods[i]] != "function"){
-
-          event[bindMethods[i]] = qx.module.event.Track[bindMethods[i]].bind(event);
-        };
-      };
-      return event;
-    }
-  },
-  defer : function(statics){
-
-    qxWeb.$registerEventNormalization(qx.module.event.Track.TYPES, statics.normalize);
   }
 });
 
@@ -34069,6 +35466,361 @@ qx.Bootstrap.define("qx.module.Traversing", {
      */
     EQUALITY_ATTRIBUTES : ["nodeType", "nodeName", "localName", "namespaceURI", "prefix", "nodeValue"],
     /**
+     * Internal helper for getAncestors and getAncestorsUntil
+     *
+     * @attach {qxWeb}
+     * @param selector {String} Selector that indicates where to stop including
+     * ancestor elements
+     * @param filter {String?null} Optional selector to match
+     * @return {qxWeb} Collection containing the ancestor elements
+     * @internal
+     */
+    __getAncestors : function(selector, filter){
+
+      var ancestors = [];
+      for(var i = 0;i < this.length;i++){
+
+        var parent = qx.dom.Element.getParentElement(this[i]);
+        while(parent){
+
+          var found = [parent];
+          if(selector && qx.bom.Selector.matches(selector, found).length > 0){
+
+            break;
+          };
+          if(filter){
+
+            found = qx.bom.Selector.matches(filter, found);
+          };
+          ancestors = ancestors.concat(found);
+          parent = qx.dom.Element.getParentElement(parent);
+        };
+      };
+      return qxWeb.$init(ancestors, qxWeb);
+    },
+    /**
+     * Helper which returns the element from the given argument. If it's a collection,
+     * it returns it's first child. If it's a string, it tries to use the string
+     * as selector and returns the first child of the new collection.
+     * @param arg {Node|String|qxWeb} The element.
+     * @return {Node|var} If a node can be extracted, the node element will be return.
+     *   If not, at given argument will be returned.
+     */
+    __getElementFromArgument : function(arg){
+
+      if(arg instanceof qxWeb){
+
+        return arg[0];
+      } else if(qx.Bootstrap.isString(arg)){
+
+        return qxWeb(arg)[0];
+      };
+      return arg;
+    },
+    /**
+     * Helper that attempts to convert the given argument into a DOM node
+     * @param arg {var} object to convert
+     * @return {Node|null} DOM node or null if the conversion failed
+     */
+    __getNodeFromArgument : function(arg){
+
+      if(typeof arg == "string"){
+
+        arg = qxWeb(arg);
+      };
+      if(arg instanceof Array || arg instanceof qxWeb){
+
+        arg = arg[0];
+      };
+      return qxWeb.isNode(arg) ? arg : null;
+    },
+    /**
+     * Returns a map containing the given DOM node's attribute names
+     * and values
+     *
+     * @param node {Node} DOM node
+     * @return {Map} Map of attribute names/values
+     */
+    __getAttributes : function(node){
+
+      var attributes = {
+      };
+      for(var attr in node.attributes){
+
+        if(attr == "length"){
+
+          continue;
+        };
+        var name = node.attributes[attr].name;
+        var value = node.attributes[attr].value;
+        attributes[name] = value;
+      };
+      return attributes;
+    },
+    /**
+     * Helper function that iterates over a set of items and applies the given
+     * qx.dom.Hierarchy method to each entry, storing the results in a new Array.
+     * Duplicates are removed and the items are filtered if a selector is
+     * provided.
+     *
+     * @attach{qxWeb}
+     * @param collection {Array} Collection to iterate over (any Array-like object)
+     * @param method {String} Name of the qx.dom.Hierarchy method to apply
+     * @param selector {String?} Optional selector that elements to be included
+     * must match
+     * @return {Array} Result array
+     * @internal
+     */
+    __hierarchyHelper : function(collection, method, selector){
+
+      // Iterate ourself, as we want to directly combine the result
+      var all = [];
+      var Hierarchy = qx.dom.Hierarchy;
+      for(var i = 0,l = collection.length;i < l;i++){
+
+        all.push.apply(all, Hierarchy[method](collection[i]));
+      };
+      // Remove duplicates
+      var ret = qx.lang.Array.unique(all);
+      // Post reduce result by selector
+      if(selector){
+
+        ret = qx.bom.Selector.matches(selector, ret);
+      };
+      return ret;
+    },
+    /**
+     * Checks if the given object is a DOM element
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Object|String|qxWeb} Object to check
+     * @return {Boolean} <code>true</code> if the object is a DOM element
+     */
+    isElement : function(selector){
+
+      return qx.dom.Node.isElement(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Checks if the given object is a DOM node
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|String|qxWeb} Object to check
+     * @return {Boolean} <code>true</code> if the object is a DOM node
+     */
+    isNode : function(selector){
+
+      return qx.dom.Node.isNode(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Whether the node has the given node name
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|String|qxWeb} the node to check
+     * @param  nodeName {String} the node name to check for
+     * @return {Boolean} <code>true</code> if the node has the given name
+     */
+    isNodeName : function(selector, nodeName){
+
+      return qx.dom.Node.isNodeName(qx.module.Traversing.__getElementFromArgument(selector), nodeName);
+    },
+    /**
+     * Checks if the given object is a DOM document object
+     *
+     * @attachStatic{qxWeb}
+     * @param node {Object|qxWeb} Object to check. If the value is a qxWeb
+     * collection, isDocument will check the first item.
+     * @return {Boolean} <code>true</code> if the object is a DOM document
+     */
+    isDocument : function(node){
+
+      if(node instanceof qxWeb){
+
+        node = node[0];
+      };
+      return qx.dom.Node.isDocument(node);
+    },
+    /**
+     * Checks if the given object is a DOM document fragment object
+     *
+     * @attachStatic{qxWeb}
+     * @param node {Object|qxWeb} Object to check. If the value is a qxWeb
+     * collection, isDocumentFragment will check the first item.
+     * @return {Boolean} <code>true</code> if the object is a DOM document fragment
+     */
+    isDocumentFragment : function(node){
+
+      if(node instanceof qxWeb){
+
+        node = node[0];
+      };
+      return qx.dom.Node.isDocumentFragment(node);
+    },
+    /**
+     * Returns the DOM2 <code>defaultView</code> (window) for the given node.
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|Document|Window|String|qxWeb} Node to inspect
+     * @return {Window} the <code>defaultView</code> for the given node
+     */
+    getWindow : function(selector){
+
+      return qx.dom.Node.getWindow(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Checks whether the given object is a DOM text node
+     *
+     * @attachStatic{qxWeb}
+     * @param obj {Object} the object to be tested
+     * @return {Boolean} <code>true</code> if the object is a textNode
+     */
+    isTextNode : function(obj){
+
+      return qx.dom.Node.isText(obj);
+    },
+    /**
+     * Check whether the given object is a browser window object.
+     *
+     * @attachStatic{qxWeb}
+     * @param obj {Object|qxWeb} the object to be tested. If the value
+     * is a qxWeb collection, isDocument will check the first item.
+     * @return {Boolean} <code>true</code> if the object is a window object
+     */
+    isWindow : function(obj){
+
+      if(obj instanceof qxWeb){
+
+        obj = obj[0];
+      };
+      return qx.dom.Node.isWindow(obj);
+    },
+    /**
+     * Returns the owner document of the given node
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|String|qxWeb} Node to get the document for
+     * @return {Document|null} The document of the given DOM node
+     */
+    getDocument : function(selector){
+
+      return qx.dom.Node.getDocument(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Get the DOM node's name as a lowercase string
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|String|qxWeb} DOM Node
+     * @return {String} node name
+     */
+    getNodeName : function(selector){
+
+      return qx.dom.Node.getName(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Returns the text content of a node where the node type may be one of
+     * NODE_ELEMENT, NODE_ATTRIBUTE, NODE_TEXT, NODE_CDATA
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|String|qxWeb} the node from where the search should start. If the
+     * node has subnodes the text contents are recursively retreived and joined
+     * @return {String} the joined text content of the given node or null if not
+     * appropriate.
+     */
+    getNodeText : function(selector){
+
+      return qx.dom.Node.getText(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Checks if the given node is a block node
+     *
+     * @attachStatic{qxWeb}
+     * @param selector {Node|String|qxWeb} the node to check
+     * @return {Boolean} <code>true</code> if the node is a block node
+     */
+    isBlockNode : function(selector){
+
+      return qx.dom.Node.isBlockNode(qx.module.Traversing.__getElementFromArgument(selector));
+    },
+    /**
+     * Determines if two DOM nodes are equal as defined in the
+     * <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-isEqualNode">DOM Level 3 isEqualNode spec</a>.
+     * Also works in legacy browsers without native <em>isEqualNode</em> support.
+     *
+     * @attachStatic{qxWeb}
+     * @param node1 {String|Element|Element[]|qxWeb} first object to compare
+     * @param node2 {String|Element|Element[]|qxWeb} second object to compare
+     * @return {Boolean} <code>true</code> if the nodes are equal
+     */
+    equalNodes : function(node1, node2){
+
+      node1 = qx.module.Traversing.__getNodeFromArgument(node1);
+      node2 = qx.module.Traversing.__getNodeFromArgument(node2);
+      if(!node1 || !node2){
+
+        return false;
+      };
+      if(qx.core.Environment.get("html.node.isequalnode")){
+
+        return node1.isEqualNode(node2);
+      } else {
+
+        if(node1 === node2){
+
+          return true;
+        };
+        // quick attributes length check
+        var hasAttributes = node1.attributes && node2.attributes;
+        if(hasAttributes && node1.attributes.length !== node2.attributes.length){
+
+          return false;
+        };
+        var hasChildNodes = node1.childNodes && node2.childNodes;
+        // quick childNodes length check
+        if(hasChildNodes && node1.childNodes.length !== node2.childNodes.length){
+
+          return false;
+        };
+        // string attribute check
+        var domAttributes = qx.module.Traversing.EQUALITY_ATTRIBUTES;
+        for(var i = 0,l = domAttributes.length;i < l;i++){
+
+          var domAttrib = domAttributes[i];
+          if(node1[domAttrib] !== node2[domAttrib]){
+
+            return false;
+          };
+        };
+        // attribute values
+        if(hasAttributes){
+
+          var node1Attributes = qx.module.Traversing.__getAttributes(node1);
+          var node2Attributes = qx.module.Traversing.__getAttributes(node2);
+          for(var attr in node1Attributes){
+
+            if(node1Attributes[attr] !== node2Attributes[attr]){
+
+              return false;
+            };
+          };
+        };
+        // child nodes
+        if(hasChildNodes){
+
+          for(var j = 0,m = node1.childNodes.length;j < m;j++){
+
+            var child1 = node1.childNodes[j];
+            var child2 = node2.childNodes[j];
+            if(!qx.module.Traversing.equalNodes(child1, child2)){
+
+              return false;
+            };
+          };
+        };
+        return true;
+      };
+    }
+  },
+  members : {
+    /**
      * Adds an element to the collection
      *
      * @attach {qxWeb}
@@ -34217,39 +35969,6 @@ qx.Bootstrap.define("qx.module.Traversing", {
     getAncestorsUntil : function(selector, filter){
 
       return this.__getAncestors(selector, filter);
-    },
-    /**
-     * Internal helper for getAncestors and getAncestorsUntil
-     *
-     * @attach {qxWeb}
-     * @param selector {String} Selector that indicates where to stop including
-     * ancestor elements
-     * @param filter {String?null} Optional selector to match
-     * @return {qxWeb} Collection containing the ancestor elements
-     * @internal
-     */
-    __getAncestors : function(selector, filter){
-
-      var ancestors = [];
-      for(var i = 0;i < this.length;i++){
-
-        var parent = qx.dom.Element.getParentElement(this[i]);
-        while(parent){
-
-          var found = [parent];
-          if(selector && qx.bom.Selector.matches(selector, found).length > 0){
-
-            break;
-          };
-          if(filter){
-
-            found = qx.bom.Selector.matches(filter, found);
-          };
-          ancestors = ancestors.concat(found);
-          parent = qx.dom.Element.getParentElement(parent);
-        };
-      };
-      return qxWeb.$init(ancestors, qxWeb);
     },
     /**
      * Gets a set containing the closest matching ancestor for each item in
@@ -34607,362 +36326,14 @@ qx.Bootstrap.define("qx.module.Traversing", {
         return false;
       };
       return qx.dom.Hierarchy.isRendered(this[0]);
-    },
-    /**
-     * Helper which returns the element from the given argument. If it's a collection,
-     * it returns it's first child. If it's a string, it tries to use the string
-     * as selector and returns the first child of the new collection.
-     * @param arg {Node|String|qxWeb} The element.
-     * @return {Node|var} If a node can be extracted, the node element will be return.
-     *   If not, at given argument will be returned.
-     */
-    __getElementFromArgument : function(arg){
-
-      if(arg instanceof qxWeb){
-
-        return arg[0];
-      } else if(qx.Bootstrap.isString(arg)){
-
-        return qxWeb(arg)[0];
-      };
-      return arg;
-    },
-    /**
-     * Checks if the given object is a DOM element
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Object|String|qxWeb} Object to check
-     * @return {Boolean} <code>true</code> if the object is a DOM element
-     */
-    isElement : function(selector){
-
-      return qx.dom.Node.isElement(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Checks if the given object is a DOM node
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|String|qxWeb} Object to check
-     * @return {Boolean} <code>true</code> if the object is a DOM node
-     */
-    isNode : function(selector){
-
-      return qx.dom.Node.isNode(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Whether the node has the given node name
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|String|qxWeb} the node to check
-     * @param  nodeName {String} the node name to check for
-     * @return {Boolean} <code>true</code> if the node has the given name
-     */
-    isNodeName : function(selector, nodeName){
-
-      return qx.dom.Node.isNodeName(qx.module.Traversing.__getElementFromArgument(selector), nodeName);
-    },
-    /**
-     * Checks if the given object is a DOM document object
-     *
-     * @attachStatic{qxWeb}
-     * @param node {Object} Object to check
-     * @return {Boolean} <code>true</code> if the object is a DOM document
-     */
-    isDocument : function(node){
-
-      return qx.dom.Node.isDocument(node);
-    },
-    /**
-     * Checks if the given object is a DOM document fragment object
-     *
-     * @attachStatic{qxWeb}
-     * @param node {Object} Object to check
-     * @return {Boolean} <code>true</code> if the object is a DOM document fragment
-     */
-    isDocumentFragment : function(node){
-
-      return qx.dom.Node.isDocumentFragment(node);
-    },
-    /**
-     * Returns the DOM2 <code>defaultView</code> (window) for the given node.
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|Document|Window|String|qxWeb} Node to inspect
-     * @return {Window} the <code>defaultView</code> for the given node
-     */
-    getWindow : function(selector){
-
-      return qx.dom.Node.getWindow(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Checks whether the given object is a DOM text node
-     *
-     * @attachStatic{qxWeb}
-     * @param obj {Object} the object to be tested
-     * @return {Boolean} <code>true</code> if the object is a textNode
-     */
-    isTextNode : function(obj){
-
-      return qx.dom.Node.isText(obj);
-    },
-    /**
-     * Check whether the given object is a browser window object.
-     *
-     * @attachStatic{qxWeb}
-     * @param obj {Object|qxWeb} the object to be tested
-     * @return {Boolean} <code>true</code> if the object is a window object
-     */
-    isWindow : function(obj){
-
-      if(obj instanceof qxWeb){
-
-        obj = obj[0];
-      };
-      return qx.dom.Node.isWindow(obj);
-    },
-    /**
-     * Returns the owner document of the given node
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|String|qxWeb} Node to get the document for
-     * @return {Document|null} The document of the given DOM node
-     */
-    getDocument : function(selector){
-
-      return qx.dom.Node.getDocument(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Get the DOM node's name as a lowercase string
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|String|qxWeb} DOM Node
-     * @return {String} node name
-     */
-    getNodeName : function(selector){
-
-      return qx.dom.Node.getName(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Returns the text content of a node where the node type may be one of
-     * NODE_ELEMENT, NODE_ATTRIBUTE, NODE_TEXT, NODE_CDATA
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|String|qxWeb} the node from where the search should start. If the
-     * node has subnodes the text contents are recursively retreived and joined
-     * @return {String} the joined text content of the given node or null if not
-     * appropriate.
-     */
-    getNodeText : function(selector){
-
-      return qx.dom.Node.getText(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Checks if the given node is a block node
-     *
-     * @attachStatic{qxWeb}
-     * @param selector {Node|String|qxWeb} the node to check
-     * @return {Boolean} <code>true</code> if the node is a block node
-     */
-    isBlockNode : function(selector){
-
-      return qx.dom.Node.isBlockNode(qx.module.Traversing.__getElementFromArgument(selector));
-    },
-    /**
-     * Determines if two DOM nodes are equal as defined in the
-     * <a href="http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-isEqualNode">DOM Level 3 isEqualNode spec</a>.
-     * Also works in legacy browsers without native <em>isEqualNode</em> support.
-     *
-     * @attachStatic{qxWeb}
-     * @param node1 {String|Element|Element[]|qxWeb} first object to compare
-     * @param node2 {String|Element|Element[]|qxWeb} second object to compare
-     * @return {Boolean} <code>true</code> if the nodes are equal
-     */
-    equalNodes : function(node1, node2){
-
-      node1 = qx.module.Traversing.__getNodeFromArgument(node1);
-      node2 = qx.module.Traversing.__getNodeFromArgument(node2);
-      if(!node1 || !node2){
-
-        return false;
-      };
-      if(qx.core.Environment.get("html.node.isequalnode")){
-
-        return node1.isEqualNode(node2);
-      } else {
-
-        if(node1 === node2){
-
-          return true;
-        };
-        // quick attributes length check
-        var hasAttributes = node1.attributes && node2.attributes;
-        if(hasAttributes && node1.attributes.length !== node2.attributes.length){
-
-          return false;
-        };
-        var hasChildNodes = node1.childNodes && node2.childNodes;
-        // quick childNodes length check
-        if(hasChildNodes && node1.childNodes.length !== node2.childNodes.length){
-
-          return false;
-        };
-        // string attribute check
-        var domAttributes = qx.module.Traversing.EQUALITY_ATTRIBUTES;
-        for(var i = 0,l = domAttributes.length;i < l;i++){
-
-          var domAttrib = domAttributes[i];
-          if(node1[domAttrib] !== node2[domAttrib]){
-
-            return false;
-          };
-        };
-        // attribute values
-        if(hasAttributes){
-
-          var node1Attributes = qx.module.Traversing.__getAttributes(node1);
-          var node2Attributes = qx.module.Traversing.__getAttributes(node2);
-          for(var attr in node1Attributes){
-
-            if(node1Attributes[attr] !== node2Attributes[attr]){
-
-              return false;
-            };
-          };
-        };
-        // child nodes
-        if(hasChildNodes){
-
-          for(var j = 0,m = node1.childNodes.length;j < m;j++){
-
-            var child1 = node1.childNodes[j];
-            var child2 = node2.childNodes[j];
-            if(!qx.module.Traversing.equalNodes(child1, child2)){
-
-              return false;
-            };
-          };
-        };
-        return true;
-      };
-    },
-    /**
-     * Helper that attempts to convert the given argument into a DOM node
-     * @param arg {var} object to convert
-     * @return {Node|null} DOM node or null if the conversion failed
-     */
-    __getNodeFromArgument : function(arg){
-
-      if(typeof arg == "string"){
-
-        arg = qxWeb(arg);
-      };
-      if(arg instanceof Array || arg instanceof qxWeb){
-
-        arg = arg[0];
-      };
-      return qxWeb.isNode(arg) ? arg : null;
-    },
-    /**
-     * Returns a map containing the given DOM node's attribute names
-     * and values
-     *
-     * @param node {Node} DOM node
-     * @return {Map} Map of attribute names/values
-     */
-    __getAttributes : function(node){
-
-      var attributes = {
-      };
-      for(var attr in node.attributes){
-
-        if(attr == "length"){
-
-          continue;
-        };
-        var name = node.attributes[attr].name;
-        var value = node.attributes[attr].value;
-        attributes[name] = value;
-      };
-      return attributes;
-    },
-    /**
-     * Helper function that iterates over a set of items and applies the given
-     * qx.dom.Hierarchy method to each entry, storing the results in a new Array.
-     * Duplicates are removed and the items are filtered if a selector is
-     * provided.
-     *
-     * @attach{qxWeb}
-     * @param collection {Array} Collection to iterate over (any Array-like object)
-     * @param method {String} Name of the qx.dom.Hierarchy method to apply
-     * @param selector {String?} Optional selector that elements to be included
-     * must match
-     * @return {Array} Result array
-     * @internal
-     */
-    __hierarchyHelper : function(collection, method, selector){
-
-      // Iterate ourself, as we want to directly combine the result
-      var all = [];
-      var Hierarchy = qx.dom.Hierarchy;
-      for(var i = 0,l = collection.length;i < l;i++){
-
-        all.push.apply(all, Hierarchy[method](collection[i]));
-      };
-      // Remove duplicates
-      var ret = qx.lang.Array.unique(all);
-      // Post reduce result by selector
-      if(selector){
-
-        ret = qx.bom.Selector.matches(selector, ret);
-      };
-      return ret;
     }
   },
   defer : function(statics){
 
+    qxWeb.$attachAll(this);
+    // manually attach private method which is ignored by attachAll
     qxWeb.$attach({
-      "add" : statics.add,
-      "getChildren" : statics.getChildren,
-      "forEach" : statics.forEach,
-      "getParents" : statics.getParents,
-      "getAncestors" : statics.getAncestors,
-      "getAncestorsUntil" : statics.getAncestorsUntil,
-      "__getAncestors" : statics.__getAncestors,
-      "getClosest" : statics.getClosest,
-      "find" : statics.find,
-      "getContents" : statics.getContents,
-      "is" : statics.is,
-      "eq" : statics.eq,
-      "getFirst" : statics.getFirst,
-      "getLast" : statics.getLast,
-      "has" : statics.has,
-      "getNext" : statics.getNext,
-      "getNextAll" : statics.getNextAll,
-      "getNextUntil" : statics.getNextUntil,
-      "getPrev" : statics.getPrev,
-      "getPrevAll" : statics.getPrevAll,
-      "getPrevUntil" : statics.getPrevUntil,
-      "getSiblings" : statics.getSiblings,
-      "not" : statics.not,
-      "getOffsetParent" : statics.getOffsetParent,
-      "isRendered" : statics.isRendered,
-      "isChildOf" : statics.isChildOf,
-      "contains" : statics.contains
-    });
-    qxWeb.$attachStatic({
-      "isElement" : statics.isElement,
-      "isNode" : statics.isNode,
-      "isNodeName" : statics.isNodeName,
-      "isDocument" : statics.isDocument,
-      "isDocumentFragment" : statics.isDocumentFragment,
-      "getDocument" : statics.getDocument,
-      "getWindow" : statics.getWindow,
-      "isWindow" : statics.isWindow,
-      "isBlockNode" : statics.isBlockNode,
-      "getNodeName" : statics.getNodeName,
-      "getNodeText" : statics.getNodeText,
-      "isTextNode" : statics.isTextNode,
-      "equalNodes" : statics.equalNodes
+      "__getAncestors" : statics.__getAncestors
     });
   }
 });
@@ -35215,12 +36586,6 @@ qx.Bootstrap.define("qx.module.Rest", {
      *  with the properties <code>method</code> and <code>url</code>.
      *  <code>check</code> is optional. Also see {@link qx.bom.rest.Resource#map}.
      *
-     * For example:
-     *
-     * <pre class="javascript">
-     * { get: {method: "GET", url: "/photos/{id}", check: { id: /\d+/ } }
-     * </pre>
-     *
      * @attachStatic {qxWeb, rest.resource}
      * @return {qx.bom.rest.Resource} The resource object.
      */
@@ -35231,11 +36596,7 @@ qx.Bootstrap.define("qx.module.Rest", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "rest" : {
-        "resource" : statics.resource
-      }
-    });
+    qxWeb.$attachAll(this, "rest");
   }
 });
 
@@ -35263,7 +36624,7 @@ qx.Bootstrap.define("qx.module.Rest", {
  * Each instance represents a resource in terms of REST. A number of actions
  * (usually HTTP methods) unique to the resource can be defined and invoked.
  * A resource with its actions is configured declaratively by passing a resource
- * description to the constructor, or programatically using {@link #map}.
+ * description to the constructor, or programmatically using {@link #map}.
  *
  * Each action is associated to a route. A route is a combination of method,
  * URL pattern and optional parameter constraints.
@@ -35277,78 +36638,15 @@ qx.Bootstrap.define("qx.module.Rest", {
  * route, is passed the URL parameters, request body data, and finally send.
  * What kind of request is send can be configured by overwriting {@link #_getRequest}.
  *
- * No contraints on the action's name or the scope of the URLs are imposed. However,
+ * No constraints on the action's name or the scope of the URLs are imposed. However,
  * if you want to follow RESTful design patterns it is recommended to name actions
  * the same as the HTTP action.
- *
- * <pre class="javascript">
- * var description = {
- *  "get": { method: "GET", url: "/photo/{id}" },
- *  "put": { method: "PUT", url: "/photo/{id}"},
- *  "post": { method: "POST", url: "/photos/"}
- * };
- * var photo = new qx.bom.rest.Resource(description);
- * // Can also be written: photo.invoke("get", {id: 1});
- * photo.get({id: 1});
- *
- * // Additionally sets request data (provide it as string or set the content type)
- * // In a RESTful environment this creates a new resource with the given 'id'
- * photo.configureRequest(function(req) {
- *  req.setRequestHeader("Content-Type", "application/json");
- * });
- * photo.put({id: 1}, {title: "Monkey"});
- *
- * // Additionally sets request data (provide it as string or set the content type)
- * // In a RESTful environment this adds a new resource to the resource collection 'photos'
- * photo.configureRequest(function(req) {
- *  req.setRequestHeader("Content-Type", "application/json");
- * });
- * photo.post(null, {title: "Monkey"});
- * </pre>
- *
- * To check for existence of URL parameters or constrain them to a certain format, you
- * can add a <code>check</code> property to the description. See {@link #map} for details.
- *
- * <pre class="javascript">
- * var description = {
- *  "get": { method: "GET", url: "/photo/{id}", check: { id: /\d+/ } }
- * };
- * var photo = new qx.bom.rest.Resource(description);
- * // photo.get({id: "FAIL"});
- * // -- Error: "Parameter 'id' is invalid"
- * </pre>
- *
- * If your description happens to use the same action more than once, consider
- * defining another resource.
- *
- * <pre class="javascript">
- * var description = {
- *  "get": { method: "GET", url: "/photos"},
- * };
- * // Distinguish "photo" (singular) and "photos" (plural) resource
- * var photos = new qx.bom.rest.Resource(description);
- * photos.get();
- * </pre>
- *
- * Basically, all routes of a resource should point to the same URL (resource in
- * terms of HTTP). One acceptable exception of this constraint are resources where
- * required parameters are part of the URL (<code>/photos/1/</code>) or filter
- * resources. For instance:
- *
- * <pre class="javascript">
- * var description = {
- *  "get": { method: "GET", url: "/photos/{tag}" }
- * };
- * var photos = new qx.bom.rest.Resource(description);
- * photos.get();
- * photos.get({tag: "wildlife"})
- * </pre>
  *
  * Strictly speaking, the <code>photos</code> instance represents two distinct resources
  * and could therefore just as well mapped to two distinct resources (for instance,
  * named photos and photosTagged). What style to choose depends on the kind of data
  * returned. For instance, it seems sensible to stick with one resource if the filter
- * only limits the result set (i.e. the invidual results have the same properties).
+ * only limits the result set (i.e. the individual results have the same properties).
  *
  * In order to respond to successful (or erroneous) invocations of actions,
  * either listen to the generic "success" or "error" event and get the action
@@ -35366,12 +36664,6 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
    *  <code>action</code> name. The value associated to the key must be a map
    *  with the properties <code>method</code> and <code>url</code>.
    *  <code>check</code> is optional. Also see {@link #map}.
-   *
-   * For example:
-   *
-   * <pre class="javascript">
-   * { get: {method: "GET", url: "/photos/{id}", check: { id: /\d+/ }} }
-   * </pre>
    *
    * @see qx.bom.rest
    * @see qx.io.rest
@@ -35433,7 +36725,30 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
      *
      * For example, "indexError" is fired when <code>index()</code> failed.
      */
-    "actionError" : "qx.bom.rest.Resource"
+    "actionError" : "qx.bom.rest.Resource",
+    /**
+     * Fired when a request is sent to the given endpoint.
+     */
+    "sent" : "qx.bom.rest.Resource",
+    /**
+     * Fired when any request associated to action is sent to the given endpoint.
+     *
+     * For example, "indexSent" is fired when <code>index()</code> was
+     * called.
+     */
+    "actionSent" : "qx.bom.rest.Resource",
+    /**
+     * Fired when a request is started to the given endpoint. This moment is right after the request
+     * was opened and send.
+     */
+    "started" : "qx.bom.rest.Resource",
+    /**
+     * Fired when any request associated to action is started to the given endpoint. This moment is 
+     * right after the request was opened and send.
+     *
+     * For example, "indexStarted" is fired when <code>index()</code> was called.
+     */
+    "actionStarted" : "qx.bom.rest.Resource"
   },
   statics : {
     /**
@@ -35502,25 +36817,6 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
      *
      * @param handler {Map} Map defining callbacks and their context.
      *
-     * For example:
-     *
-     * <pre class="javascript">
-     * {
-     *   onsuccess: {
-     *    callback: function(req, action) { ... },
-     *    context: obj
-     *   }
-     *   onfail: {
-     *    callback: function(req, action) { ... },
-     *    context: obj
-     *   }
-     *   onloadend: {
-     *    callback: function(req, action) { ... },
-     *    context: obj
-     *   }
-     * }
-     * </pre>
-     *
      * @internal
      */
     setRequestHandler : function(handler){
@@ -35531,25 +36827,6 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
      * Provides the request callbacks for 'onsuccess', 'onfail' and 'onloadend'.
      *
      * @return {Map} Map defining callbacks and their context.
-     *
-     * For example:
-     *
-     * <pre class="javascript">
-     * {
-     *   onsuccess: {
-     *    callback: function(req, action) { ... },
-     *    context: obj
-     *   }
-     *   onfail: {
-     *    callback: function(req, action) { ... },
-     *    context: obj
-     *   }
-     *   onloadend: {
-     *    callback: function(req, action) { ... },
-     *    context: obj
-     *   }
-     * }
-     * </pre>
      */
     _getRequestHandler : function(){
 
@@ -35593,7 +36870,40 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
 
             return function(){
 
-              req.dispose();
+              // [#8315] // dispose asynchronous to work with Sinon.js
+              window.setTimeout(function(){
+
+                req.dispose();
+              }, 0);
+            };
+          },
+          context : this
+        },
+        onreadystatechange : {
+          callback : function(req, action){
+
+            return function(){
+
+              if(req.getTransport().readyState === qx.bom.request.Xhr.HEADERS_RECEIVED){
+
+                var response = {
+                  "id" : parseInt(req.toHashCode(), 10),
+                  "request" : req,
+                  "action" : action
+                };
+                this.emit(action + "Sent", response);
+                this.emit("sent", response);
+              };
+              if(req.getTransport().readyState === qx.bom.request.Xhr.OPENED){
+
+                var payload = {
+                  "id" : parseInt(req.toHashCode(), 10),
+                  "request" : req,
+                  "action" : action
+                };
+                this.emit(action + "Started", payload);
+                this.emit("started", payload);
+              };
             };
           },
           context : this
@@ -35618,14 +36928,6 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
      *
      * @param callback {Function} Function called before request is send.
      *   Receives request, action, params and data.
-     *
-     * <pre class="javascript">
-     * res.configureRequest(function(req, action, params, data) {
-     *   if (action === "index") {
-     *     req.setRequestHeader("Accept", "application/json");
-     *   }
-     * });
-     * </pre>
      */
     configureRequest : function(callback){
 
@@ -35662,13 +36964,6 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
     //
     /**
      * Map action to combination of method and URL pattern.
-     *
-     * <pre class="javascript">
-     *   res.map("get", "GET", "/photos/{id}", {id: /\d+/});
-     *
-     *   // GET /photos/123
-     *   res.get({id: "123"});
-     * </pre>
      *
      * @param action {String} Action to associate to request.
      * @param method {String} Method to configure request with.
@@ -35747,6 +37042,10 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
       req.addListenerOnce("fail", reqHandler.onfail.callback(req, action), reqHandler.onfail.context);
       // Handle loadend (Note that loadEnd is fired after "success")
       req.addListenerOnce("loadEnd", reqHandler.onloadend.callback(req, action), reqHandler.onloadend.context);
+      if(reqHandler.hasOwnProperty("onreadystatechange")){
+
+        req.addListener("readystatechange", reqHandler.onreadystatechange.callback(req, action), reqHandler.onreadystatechange.context);
+      };
       req.send();
       return parseInt(req.toHashCode(), 10);
     },
@@ -35853,19 +37152,6 @@ qx.Bootstrap.define("qx.bom.rest.Resource", {
     },
     /**
      * Abort action.
-     *
-     * Example:
-     *
-     * <pre class="javascript">
-     *   // Abort all invocations of action
-     *   res.get({id: 1});
-     *   res.get({id: 2});
-     *   res.abort("get");
-     *
-     *   // Abort specific invocation of action (by id)
-     *   var actionId = res.get({id: 1});
-     *   res.abort(actionId);
-     * </pre>
      *
      * @param varargs {String|Number} Action of which all invocations to abort
      *  (when string), or a single invocation of an action to abort (when number)
@@ -36376,6 +37662,1191 @@ qx.Bootstrap.define("qx.util.Request", {
    http://qooxdoo.org
 
    Copyright:
+     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Tristan Koch (tristankoch)
+
+************************************************************************ */
+/**
+ * A wrapper of the XMLHttpRequest host object (or equivalent). The interface is
+ * similar to <a href="http://www.w3.org/TR/XMLHttpRequest/">XmlHttpRequest</a>.
+ *
+ * Hides browser inconsistencies and works around bugs found in popular
+ * implementations.
+ *
+ * <div class="desktop">
+ * Example:
+ *
+ * <pre class="javascript">
+ *  var req = new qx.bom.request.Xhr();
+ *  req.onload = function() {
+ *    // Handle data received
+ *    req.responseText;
+ *  }
+ *
+ *  req.open("GET", url);
+ *  req.send();
+ * </pre>
+ * </div>
+ *
+ * @ignore(XDomainRequest)
+ * @ignore(qx.event, qx.event.GlobalError.*)
+ *
+ * @require(qx.bom.request.Xhr#open)
+ * @require(qx.bom.request.Xhr#send)
+ * @require(qx.bom.request.Xhr#on)
+ * @require(qx.bom.request.Xhr#onreadystatechange)
+ * @require(qx.bom.request.Xhr#onload)
+ * @require(qx.bom.request.Xhr#onloadend)
+ * @require(qx.bom.request.Xhr#onerror)
+ * @require(qx.bom.request.Xhr#onabort)
+ * @require(qx.bom.request.Xhr#ontimeout)
+ * @require(qx.bom.request.Xhr#setRequestHeader)
+ * @require(qx.bom.request.Xhr#getAllResponseHeaders)
+ * @require(qx.bom.request.Xhr#getRequest)
+ * @require(qx.bom.request.Xhr#overrideMimeType)
+ * @require(qx.bom.request.Xhr#dispose)
+ * @require(qx.bom.request.Xhr#isDisposed)
+ *
+ * @group (IO)
+ */
+qx.Bootstrap.define("qx.bom.request.Xhr", {
+  extend : Object,
+  construct : function(){
+
+    var boundFunc = qx.Bootstrap.bind(this.__onNativeReadyStateChange, this);
+    // GlobalError shouldn't be included in qx.Website builds so use it
+    // if it's available but otherwise ignore it (see ignore stated above).
+    if(qx.event && qx.event.GlobalError && qx.event.GlobalError.observeMethod){
+
+      this.__onNativeReadyStateChangeBound = qx.event.GlobalError.observeMethod(boundFunc);
+    } else {
+
+      this.__onNativeReadyStateChangeBound = boundFunc;
+    };
+    this.__onNativeAbortBound = qx.Bootstrap.bind(this.__onNativeAbort, this);
+    this.__onTimeoutBound = qx.Bootstrap.bind(this.__onTimeout, this);
+    this.__initNativeXhr();
+    this._emitter = new qx.event.Emitter();
+    // BUGFIX: IE
+    // IE keeps connections alive unless aborted on unload
+    if(window.attachEvent){
+
+      this.__onUnloadBound = qx.Bootstrap.bind(this.__onUnload, this);
+      window.attachEvent("onunload", this.__onUnloadBound);
+    };
+  },
+  statics : {
+    UNSENT : 0,
+    OPENED : 1,
+    HEADERS_RECEIVED : 2,
+    LOADING : 3,
+    DONE : 4
+  },
+  events : {
+    /** Fired at ready state changes. */
+    "readystatechange" : "qx.bom.request.Xhr",
+    /** Fired on error. */
+    "error" : "qx.bom.request.Xhr",
+    /** Fired at loadend. */
+    "loadend" : "qx.bom.request.Xhr",
+    /** Fired on timeouts. */
+    "timeout" : "qx.bom.request.Xhr",
+    /** Fired when the request is aborted. */
+    "abort" : "qx.bom.request.Xhr",
+    /** Fired on successful retrieval. */
+    "load" : "qx.bom.request.Xhr"
+  },
+  members : {
+    /*
+    ---------------------------------------------------------------------------
+      PUBLIC
+    ---------------------------------------------------------------------------
+    */
+    /**
+     * @type {Number} Ready state.
+     *
+     * States can be:
+     * UNSENT:           0,
+     * OPENED:           1,
+     * HEADERS_RECEIVED: 2,
+     * LOADING:          3,
+     * DONE:             4
+     */
+    readyState : 0,
+    /**
+     * @type {String} The response of the request as text.
+     */
+    responseText : "",
+    /**
+     * @type {Object} The response of the request as a Document object.
+     */
+    responseXML : null,
+    /**
+     * @type {Number} The HTTP status code.
+     */
+    status : 0,
+    /**
+     * @type {String} The HTTP status text.
+     */
+    statusText : "",
+    /**
+     * @type {Number} Timeout limit in milliseconds.
+     *
+     * 0 (default) means no timeout. Not supported for synchronous requests.
+     */
+    timeout : 0,
+    /**
+     * Initializes (prepares) request.
+     *
+     * @ignore(XDomainRequest)
+     *
+     * @param method {String?"GET"}
+     *  The HTTP method to use.
+     * @param url {String}
+     *  The URL to which to send the request.
+     * @param async {Boolean?true}
+     *  Whether or not to perform the operation asynchronously.
+     * @param user {String?null}
+     *  Optional user name to use for authentication purposes.
+     * @param password {String?null}
+     *  Optional password to use for authentication purposes.
+     */
+    open : function(method, url, async, user, password){
+
+      this.__checkDisposed();
+      // Mimick native behavior
+      if(typeof url === "undefined"){
+
+        throw new Error("Not enough arguments");
+      } else if(typeof method === "undefined"){
+
+        method = "GET";
+      };
+      // Reset flags that may have been set on previous request
+      this.__abort = false;
+      this.__send = false;
+      this.__conditional = false;
+      // Store URL for later checks
+      this.__url = url;
+      if(typeof async == "undefined"){
+
+        async = true;
+      };
+      this.__async = async;
+      // BUGFIX
+      // IE < 9 and FF < 3.5 cannot reuse the native XHR to issue many requests
+      if(!this.__supportsManyRequests() && this.readyState > qx.bom.request.Xhr.UNSENT){
+
+        // XmlHttpRequest Level 1 requires open() to abort any pending requests
+        // associated to the object. Since we're dealing with a new object here,
+        // we have to emulate this behavior. Moreover, allow old native XHR to be garbage collected
+        //
+        // Dispose and abort.
+        //
+        this.dispose();
+        // Replace the underlying native XHR with a new one that can
+        // be used to issue new requests.
+        this.__initNativeXhr();
+      };
+      // Restore handler in case it was removed before
+      this.__nativeXhr.onreadystatechange = this.__onNativeReadyStateChangeBound;
+      try{
+
+        {
+        };
+        this.__nativeXhr.open(method, url, async, user, password);
+      } catch(OpenError) {
+
+        // Only work around exceptions caused by cross domain request attempts
+        if(!qx.util.Request.isCrossDomain(url)){
+
+          // Is same origin
+          throw OpenError;
+        };
+        if(!this.__async){
+
+          this.__openError = OpenError;
+        };
+        if(this.__async){
+
+          // Try again with XDomainRequest
+          // (Success case not handled on purpose)
+          // - IE 9
+          if(window.XDomainRequest){
+
+            this.readyState = 4;
+            this.__nativeXhr = new XDomainRequest();
+            this.__nativeXhr.onerror = qx.Bootstrap.bind(function(){
+
+              this._emit("readystatechange");
+              this._emit("error");
+              this._emit("loadend");
+            }, this);
+            {
+            };
+            this.__nativeXhr.open(method, url, async, user, password);
+            return;
+          };
+          // Access denied
+          // - IE 6: -2146828218
+          // - IE 7: -2147024891
+          // - Legacy Firefox
+          window.setTimeout(qx.Bootstrap.bind(function(){
+
+            if(this.__disposed){
+
+              return;
+            };
+            this.readyState = 4;
+            this._emit("readystatechange");
+            this._emit("error");
+            this._emit("loadend");
+          }, this));
+        };
+      };
+      // BUGFIX: IE < 9
+      // IE < 9 tends to cache overly agressive. This may result in stale
+      // representations. Force validating freshness of cached representation.
+      if(qx.core.Environment.get("engine.name") === "mshtml" && qx.core.Environment.get("browser.documentmode") < 9 && this.__nativeXhr.readyState > 0){
+
+        this.__nativeXhr.setRequestHeader("If-Modified-Since", "-1");
+      };
+      // BUGFIX: Firefox
+      // Firefox < 4 fails to trigger onreadystatechange OPENED for sync requests
+      if(qx.core.Environment.get("engine.name") === "gecko" && parseInt(qx.core.Environment.get("engine.version"), 10) < 2 && !this.__async){
+
+        // Native XHR is already set to readyState DONE. Fake readyState
+        // and call onreadystatechange manually.
+        this.readyState = qx.bom.request.Xhr.OPENED;
+        this._emit("readystatechange");
+      };
+    },
+    /**
+     * Sets an HTTP request header to be used by the request.
+     *
+     * Note: The request must be initialized before using this method.
+     *
+     * @param key {String}
+     *  The name of the header whose value is to be set.
+     * @param value {String}
+     *  The value to set as the body of the header.
+     * @return {qx.bom.request.Xhr} Self for chaining.
+     */
+    setRequestHeader : function(key, value){
+
+      this.__checkDisposed();
+      // Detect conditional requests
+      if(key == "If-Match" || key == "If-Modified-Since" || key == "If-None-Match" || key == "If-Range"){
+
+        this.__conditional = true;
+      };
+      this.__nativeXhr.setRequestHeader(key, value);
+      return this;
+    },
+    /**
+     * Sends request.
+     *
+     * @param data {String|Document?null}
+     *  Optional data to send.
+     * @return {qx.bom.request.Xhr} Self for chaining.
+     */
+    send : function(data){
+
+      this.__checkDisposed();
+      // BUGFIX: IE & Firefox < 3.5
+      // For sync requests, some browsers throw error on open()
+      // while it should be on send()
+      //
+      if(!this.__async && this.__openError){
+
+        throw this.__openError;
+      };
+      // BUGFIX: Opera
+      // On network error, Opera stalls at readyState HEADERS_RECEIVED
+      // This violates the spec. See here http://www.w3.org/TR/XMLHttpRequest2/#send
+      // (Section: If there is a network error)
+      //
+      // To fix, assume a default timeout of 10 seconds. Note: The "error"
+      // event will be fired correctly, because the error flag is inferred
+      // from the statusText property. Of course, compared to other
+      // browsers there is an additional call to ontimeout(), but this call
+      // should not harm.
+      //
+      if(qx.core.Environment.get("engine.name") === "opera" && this.timeout === 0){
+
+        this.timeout = 10000;
+      };
+      // Timeout
+      if(this.timeout > 0){
+
+        this.__timerId = window.setTimeout(this.__onTimeoutBound, this.timeout);
+      };
+      // BUGFIX: Firefox 2
+      // "NS_ERROR_XPC_NOT_ENOUGH_ARGS" when calling send() without arguments
+      data = typeof data == "undefined" ? null : data;
+      // Whitelisting the allowed data types regarding the spec
+      // -> http://www.w3.org/TR/XMLHttpRequest2/#the-send-method
+      // All other data input will be transformed to a string to e.g. prevent
+      // an SendError in Firefox (at least <= 31) and to harmonize it with the
+      // behaviour of all other browsers (Chrome, IE and Safari)
+      var dataType = qx.Bootstrap.getClass(data);
+      data = (data !== null && this.__dataTypeWhiteList.indexOf(dataType) === -1) ? data.toString() : data;
+      // Some browsers may throw an error when sending of async request fails.
+      // This violates the spec which states only sync requests should.
+      try{
+
+        {
+        };
+        this.__nativeXhr.send(data);
+      } catch(SendError) {
+
+        if(!this.__async){
+
+          throw SendError;
+        };
+        // BUGFIX
+        // Some browsers throws error when file not found via file:// protocol.
+        // Synthesize readyState changes.
+        if(this._getProtocol() === "file:"){
+
+          this.readyState = 2;
+          this.__readyStateChange();
+          var that = this;
+          window.setTimeout(function(){
+
+            if(that.__disposed){
+
+              return;
+            };
+            that.readyState = 3;
+            that.__readyStateChange();
+            that.readyState = 4;
+            that.__readyStateChange();
+          });
+        };
+      };
+      // BUGFIX: Firefox
+      // Firefox fails to trigger onreadystatechange DONE for sync requests
+      if(qx.core.Environment.get("engine.name") === "gecko" && !this.__async){
+
+        // Properties all set, only missing native readystatechange event
+        this.__onNativeReadyStateChange();
+      };
+      // Set send flag
+      this.__send = true;
+      return this;
+    },
+    /**
+     * Abort request - i.e. cancels any network activity.
+     *
+     * Note:
+     *  On Windows 7 every browser strangely skips the loading phase
+     *  when this method is called (because readyState never gets 3).
+     *
+     *  So keep this in mind if you rely on the phases which are
+     *  passed through. They will be "opened", "sent", "abort"
+     *  instead of normally "opened", "sent", "loading", "abort".
+     *
+     * @return {qx.bom.request.Xhr} Self for chaining.
+     */
+    abort : function(){
+
+      this.__checkDisposed();
+      this.__abort = true;
+      this.__nativeXhr.abort();
+      if(this.__nativeXhr){
+
+        this.readyState = this.__nativeXhr.readyState;
+      };
+      return this;
+    },
+    /**
+     * Helper to emit events and call the callback methods.
+     * @param event {String} The name of the event.
+     */
+    _emit : function(event){
+
+      if(this["on" + event]){
+
+        this["on" + event]();
+      };
+      this._emitter.emit(event, this);
+    },
+    /**
+     * Event handler for XHR event that fires at every state change.
+     *
+     * Replace with custom method to get informed about the communication progress.
+     */
+    onreadystatechange : function(){
+    },
+    /**
+     * Event handler for XHR event "load" that is fired on successful retrieval.
+     *
+     * Note: This handler is called even when the HTTP status indicates an error.
+     *
+     * Replace with custom method to listen to the "load" event.
+     */
+    onload : function(){
+    },
+    /**
+     * Event handler for XHR event "loadend" that is fired on retrieval.
+     *
+     * Note: This handler is called even when a network error (or similar)
+     * occurred.
+     *
+     * Replace with custom method to listen to the "loadend" event.
+     */
+    onloadend : function(){
+    },
+    /**
+     * Event handler for XHR event "error" that is fired on a network error.
+     *
+     * Replace with custom method to listen to the "error" event.
+     */
+    onerror : function(){
+    },
+    /**
+    * Event handler for XHR event "abort" that is fired when request
+    * is aborted.
+    *
+    * Replace with custom method to listen to the "abort" event.
+    */
+    onabort : function(){
+    },
+    /**
+    * Event handler for XHR event "timeout" that is fired when timeout
+    * interval has passed.
+    *
+    * Replace with custom method to listen to the "timeout" event.
+    */
+    ontimeout : function(){
+    },
+    /**
+     * Add an event listener for the given event name.
+     *
+     * @param name {String} The name of the event to listen to.
+     * @param listener {Function} The function to execute when the event is fired
+     * @param ctx {var?} The context of the listener.
+     * @return {qx.bom.request.Xhr} Self for chaining.
+     */
+    on : function(name, listener, ctx){
+
+      this._emitter.on(name, listener, ctx);
+      return this;
+    },
+    /**
+     * Get a single response header from response.
+     *
+     * @param header {String}
+     *  Key of the header to get the value from.
+     * @return {String}
+     *  Response header.
+     */
+    getResponseHeader : function(header){
+
+      this.__checkDisposed();
+      if(qx.core.Environment.get("browser.documentmode") === 9 && this.__nativeXhr.aborted){
+
+        return "";
+      };
+      return this.__nativeXhr.getResponseHeader(header);
+    },
+    /**
+     * Get all response headers from response.
+     *
+     * @return {String} All response headers.
+     */
+    getAllResponseHeaders : function(){
+
+      this.__checkDisposed();
+      if(qx.core.Environment.get("browser.documentmode") === 9 && this.__nativeXhr.aborted){
+
+        return "";
+      };
+      return this.__nativeXhr.getAllResponseHeaders();
+    },
+    /**
+     * Overrides the MIME type returned by the server
+     * and must be called before @send()@.
+     *
+     * Note:
+     *
+     * * IE doesn't support this method so in this case an Error is thrown.
+     * * after calling this method @getResponseHeader("Content-Type")@
+     *   may return the original (Firefox 23, IE 10, Safari 6) or
+     *   the overriden content type (Chrome 28+, Opera 15+).
+     *
+     *
+     * @param mimeType {String} The mimeType for overriding.
+     * @return {qx.bom.request.Xhr} Self for chaining.
+     */
+    overrideMimeType : function(mimeType){
+
+      this.__checkDisposed();
+      if(this.__nativeXhr.overrideMimeType){
+
+        this.__nativeXhr.overrideMimeType(mimeType);
+      } else {
+
+        throw new Error("Native XHR object doesn't support overrideMimeType.");
+      };
+      return this;
+    },
+    /**
+     * Get wrapped native XMLHttpRequest (or equivalent).
+     *
+     * Can be XMLHttpRequest or ActiveX.
+     *
+     * @return {Object} XMLHttpRequest or equivalent.
+     */
+    getRequest : function(){
+
+      return this.__nativeXhr;
+    },
+    /*
+    ---------------------------------------------------------------------------
+      HELPER
+    ---------------------------------------------------------------------------
+    */
+    /**
+     * Dispose object and wrapped native XHR.
+     * @return {Boolean} <code>true</code> if the object was successfully disposed
+     */
+    dispose : function(){
+
+      if(this.__disposed){
+
+        return false;
+      };
+      window.clearTimeout(this.__timerId);
+      // Remove unload listener in IE. Aborting on unload is no longer required
+      // for this instance.
+      if(window.detachEvent){
+
+        window.detachEvent("onunload", this.__onUnloadBound);
+      };
+      // May fail in IE
+      try{
+
+        this.__nativeXhr.onreadystatechange;
+      } catch(PropertiesNotAccessable) {
+
+        return false;
+      };
+      // Clear out listeners
+      var noop = function(){
+      };
+      this.__nativeXhr.onreadystatechange = noop;
+      this.__nativeXhr.onload = noop;
+      this.__nativeXhr.onerror = noop;
+      // Abort any network activity
+      this.abort();
+      // Remove reference to native XHR
+      this.__nativeXhr = null;
+      this.__disposed = true;
+      return true;
+    },
+    /**
+     * Check if the request has already beed disposed.
+     * @return {Boolean} <code>true</code>, if the request has been disposed.
+     */
+    isDisposed : function(){
+
+      return !!this.__disposed;
+    },
+    /*
+    ---------------------------------------------------------------------------
+      PROTECTED
+    ---------------------------------------------------------------------------
+    */
+    /**
+     * Create XMLHttpRequest (or equivalent).
+     *
+     * @return {Object} XMLHttpRequest or equivalent.
+     */
+    _createNativeXhr : function(){
+
+      var xhr = qx.core.Environment.get("io.xhr");
+      if(xhr === "xhr"){
+
+        return new XMLHttpRequest();
+      };
+      if(xhr == "activex"){
+
+        return new window.ActiveXObject("Microsoft.XMLHTTP");
+      };
+      qx.Bootstrap.error(this, "No XHR support available.");
+    },
+    /**
+     * Get protocol of requested URL.
+     *
+     * @return {String} The used protocol.
+     */
+    _getProtocol : function(){
+
+      var url = this.__url;
+      var protocolRe = /^(\w+:)\/\//;
+      // Could be http:// from file://
+      if(url !== null && url.match){
+
+        var match = url.match(protocolRe);
+        if(match && match[1]){
+
+          return match[1];
+        };
+      };
+      return window.location.protocol;
+    },
+    /*
+    ---------------------------------------------------------------------------
+      PRIVATE
+    ---------------------------------------------------------------------------
+    */
+    /**
+     * @type {Object} XMLHttpRequest or equivalent.
+     */
+    __nativeXhr : null,
+    /**
+     * @type {Boolean} Whether request is async.
+     */
+    __async : null,
+    /**
+     * @type {Function} Bound __onNativeReadyStateChange handler.
+     */
+    __onNativeReadyStateChangeBound : null,
+    /**
+     * @type {Function} Bound __onNativeAbort handler.
+     */
+    __onNativeAbortBound : null,
+    /**
+     * @type {Function} Bound __onUnload handler.
+     */
+    __onUnloadBound : null,
+    /**
+     * @type {Function} Bound __onTimeout handler.
+     */
+    __onTimeoutBound : null,
+    /**
+     * @type {Boolean} Send flag
+     */
+    __send : null,
+    /**
+     * @type {String} Requested URL
+     */
+    __url : null,
+    /**
+     * @type {Boolean} Abort flag
+     */
+    __abort : null,
+    /**
+     * @type {Boolean} Timeout flag
+     */
+    __timeout : null,
+    /**
+     * @type {Boolean} Whether object has been disposed.
+     */
+    __disposed : null,
+    /**
+     * @type {Number} ID of timeout timer.
+     */
+    __timerId : null,
+    /**
+     * @type {Error} Error thrown on open, if any.
+     */
+    __openError : null,
+    /**
+     * @type {Boolean} Conditional get flag
+     */
+    __conditional : null,
+    /**
+     * @type {Array} Whitelist with all allowed data types for the request payload
+     */
+    __dataTypeWhiteList : null,
+    /**
+     * Init native XHR.
+     */
+    __initNativeXhr : function(){
+
+      // Create native XHR or equivalent and hold reference
+      this.__nativeXhr = this._createNativeXhr();
+      // Track native ready state changes
+      this.__nativeXhr.onreadystatechange = this.__onNativeReadyStateChangeBound;
+      // Track native abort, when supported
+      if(this.__nativeXhr.onabort){
+
+        this.__nativeXhr.onabort = this.__onNativeAbortBound;
+      };
+      // Reset flags
+      this.__disposed = this.__send = this.__abort = false;
+      // Initialize data white list
+      this.__dataTypeWhiteList = ["ArrayBuffer", "Blob", "HTMLDocument", "String", "FormData"];
+    },
+    /**
+     * Track native abort.
+     *
+     * In case the end user cancels the request by other
+     * means than calling abort().
+     */
+    __onNativeAbort : function(){
+
+      // When the abort that triggered this method was not a result from
+      // calling abort()
+      if(!this.__abort){
+
+        this.abort();
+      };
+    },
+    /**
+     * Handle native onreadystatechange.
+     *
+     * Calls user-defined function onreadystatechange on each
+     * state change and syncs the XHR status properties.
+     */
+    __onNativeReadyStateChange : function(){
+
+      var nxhr = this.__nativeXhr,propertiesReadable = true;
+      {
+      };
+      // BUGFIX: IE, Firefox
+      // onreadystatechange() is called twice for readyState OPENED.
+      //
+      // Call onreadystatechange only when readyState has changed.
+      if(this.readyState == nxhr.readyState){
+
+        return;
+      };
+      // Sync current readyState
+      this.readyState = nxhr.readyState;
+      // BUGFIX: IE
+      // Superfluous onreadystatechange DONE when aborting OPENED
+      // without send flag
+      if(this.readyState === qx.bom.request.Xhr.DONE && this.__abort && !this.__send){
+
+        return;
+      };
+      // BUGFIX: IE
+      // IE fires onreadystatechange HEADERS_RECEIVED and LOADING when sync
+      //
+      // According to spec, only onreadystatechange OPENED and DONE should
+      // be fired.
+      if(!this.__async && (nxhr.readyState == 2 || nxhr.readyState == 3)){
+
+        return;
+      };
+      // Default values according to spec.
+      this.status = 0;
+      this.statusText = this.responseText = "";
+      this.responseXML = null;
+      if(this.readyState >= qx.bom.request.Xhr.HEADERS_RECEIVED){
+
+        // In some browsers, XHR properties are not readable
+        // while request is in progress.
+        try{
+
+          this.status = nxhr.status;
+          this.statusText = nxhr.statusText;
+          this.responseText = nxhr.responseText;
+          this.responseXML = nxhr.responseXML;
+        } catch(XhrPropertiesNotReadable) {
+
+          propertiesReadable = false;
+        };
+        if(propertiesReadable){
+
+          this.__normalizeStatus();
+          this.__normalizeResponseXML();
+        };
+      };
+      this.__readyStateChange();
+      // BUGFIX: IE
+      // Memory leak in XMLHttpRequest (on-page)
+      if(this.readyState == qx.bom.request.Xhr.DONE){
+
+        // Allow garbage collecting of native XHR
+        if(nxhr){
+
+          nxhr.onreadystatechange = function(){
+          };
+        };
+      };
+    },
+    /**
+     * Handle readystatechange. Called internally when readyState is changed.
+     */
+    __readyStateChange : function(){
+
+      // Cancel timeout before invoking handlers because they may throw
+      if(this.readyState === qx.bom.request.Xhr.DONE){
+
+        // Request determined DONE. Cancel timeout.
+        window.clearTimeout(this.__timerId);
+      };
+      // Always fire "readystatechange"
+      this._emit("readystatechange");
+      if(this.readyState === qx.bom.request.Xhr.DONE){
+
+        this.__readyStateChangeDone();
+      };
+    },
+    /**
+     * Handle readystatechange. Called internally by
+     * {@link #__readyStateChange} when readyState is DONE.
+     */
+    __readyStateChangeDone : function(){
+
+      // Fire "timeout" if timeout flag is set
+      if(this.__timeout){
+
+        this._emit("timeout");
+        // BUGFIX: Opera
+        // Since Opera does not fire "error" on network error, fire additional
+        // "error" on timeout (may well be related to network error)
+        if(qx.core.Environment.get("engine.name") === "opera"){
+
+          this._emit("error");
+        };
+        this.__timeout = false;
+      } else {
+
+        if(this.__abort){
+
+          this._emit("abort");
+        } else {
+
+          if(this.__isNetworkError()){
+
+            this._emit("error");
+          } else {
+
+            this._emit("load");
+          };
+        };
+      };
+      // Always fire "onloadend" when DONE
+      this._emit("loadend");
+    },
+    /**
+     * Check for network error.
+     *
+     * @return {Boolean} Whether a network error occured.
+     */
+    __isNetworkError : function(){
+
+      var error;
+      // Infer the XHR internal error flag from statusText when not aborted.
+      // See http://www.w3.org/TR/XMLHttpRequest2/#error-flag and
+      // http://www.w3.org/TR/XMLHttpRequest2/#the-statustext-attribute
+      //
+      // With file://, statusText is always falsy. Assume network error when
+      // response is empty.
+      if(this._getProtocol() === "file:"){
+
+        error = !this.responseText;
+      } else {
+
+        error = !this.statusText;
+      };
+      return error;
+    },
+    /**
+     * Handle faked timeout.
+     */
+    __onTimeout : function(){
+
+      // Basically, mimick http://www.w3.org/TR/XMLHttpRequest2/#timeout-error
+      var nxhr = this.__nativeXhr;
+      this.readyState = qx.bom.request.Xhr.DONE;
+      // Set timeout flag
+      this.__timeout = true;
+      // No longer consider request. Abort.
+      nxhr.aborted = true;
+      nxhr.abort();
+      this.responseText = "";
+      this.responseXML = null;
+      // Signal readystatechange
+      this.__readyStateChange();
+    },
+    /**
+     * Normalize status property across browsers.
+     */
+    __normalizeStatus : function(){
+
+      var isDone = this.readyState === qx.bom.request.Xhr.DONE;
+      // BUGFIX: Most browsers
+      // Most browsers tell status 0 when it should be 200 for local files
+      if(this._getProtocol() === "file:" && this.status === 0 && isDone){
+
+        if(!this.__isNetworkError()){
+
+          this.status = 200;
+        };
+      };
+      // BUGFIX: IE
+      // IE sometimes tells 1223 when it should be 204
+      if(this.status === 1223){
+
+        this.status = 204;
+      };
+      // BUGFIX: Opera
+      // Opera tells 0 for conditional requests when it should be 304
+      //
+      // Detect response to conditional request that signals fresh cache.
+      if(qx.core.Environment.get("engine.name") === "opera"){
+
+        if(isDone && // Done
+        this.__conditional && // Conditional request
+        !this.__abort && // Not aborted
+        this.status === 0){
+
+          this.status = 304;
+        };
+      };
+    },
+    /**
+     * Normalize responseXML property across browsers.
+     */
+    __normalizeResponseXML : function(){
+
+      // BUGFIX: IE
+      // IE does not recognize +xml extension, resulting in empty responseXML.
+      //
+      // Check if Content-Type is +xml, verify missing responseXML then parse
+      // responseText as XML.
+      if(qx.core.Environment.get("engine.name") == "mshtml" && (this.getResponseHeader("Content-Type") || "").match(/[^\/]+\/[^\+]+\+xml/) && this.responseXML && !this.responseXML.documentElement){
+
+        var dom = new window.ActiveXObject("Microsoft.XMLDOM");
+        dom.async = false;
+        dom.validateOnParse = false;
+        dom.loadXML(this.responseText);
+        this.responseXML = dom;
+      };
+    },
+    /**
+     * Handler for native unload event.
+     */
+    __onUnload : function(){
+
+      try{
+
+        // Abort and dispose
+        if(this){
+
+          this.dispose();
+        };
+      } catch(e) {
+      };
+    },
+    /**
+     * Helper method to determine whether browser supports reusing the
+     * same native XHR to send more requests.
+     * @return {Boolean} <code>true</code> if request object reuse is supported
+     */
+    __supportsManyRequests : function(){
+
+      var name = qx.core.Environment.get("engine.name");
+      var version = qx.core.Environment.get("browser.version");
+      return !(name == "mshtml" && version < 9 || name == "gecko" && version < 3.5);
+    },
+    /**
+     * Throw when already disposed.
+     */
+    __checkDisposed : function(){
+
+      if(this.__disposed){
+
+        throw new Error("Already disposed");
+      };
+    }
+  },
+  defer : function(){
+
+    qx.core.Environment.add("qx.debug.io", false);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
+     2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+     EPL: http://www.eclipse.org/org/documents/epl-v10.php
+     See the LICENSE file in the project's top-level directory for details.
+
+   Authors:
+     * Carsten Lergenmueller (carstenl)
+     * Fabian Jakobs (fbjakobs)
+     * Martin Wittemann (martinwittemann)
+
+************************************************************************ */
+/**
+ * Determines browser-dependent information about the transport layer.
+ *
+ * This class is used by {@link qx.core.Environment} and should not be used
+ * directly. Please check its class comment for details how to use it.
+ *
+ * @internal
+ */
+qx.Bootstrap.define("qx.bom.client.Transport", {
+  /*
+  *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics : {
+    /**
+     * Returns the maximum number of parallel requests the current browser
+     * supports per host addressed.
+     *
+     * Note that this assumes one connection can support one request at a time
+     * only. Technically, this is not correct when pipelining is enabled (which
+     * it currently is only for IE 8 and Opera). In this case, the number
+     * returned will be too low, as one connection supports multiple pipelined
+     * requests. This is accepted for now because pipelining cannot be
+     * detected from JavaScript and because modern browsers have enough
+     * parallel connections already - it's unlikely an app will require more
+     * than 4 parallel XMLHttpRequests to one server at a time.
+     *
+     * @internal
+     * @return {Integer} Maximum number of parallel requests
+     */
+    getMaxConcurrentRequestCount : function(){
+
+      var maxConcurrentRequestCount;
+      // Parse version numbers.
+      var versionParts = qx.bom.client.Engine.getVersion().split(".");
+      var versionMain = 0;
+      var versionMajor = 0;
+      var versionMinor = 0;
+      // Main number
+      if(versionParts[0]){
+
+        versionMain = versionParts[0];
+      };
+      // Major number
+      if(versionParts[1]){
+
+        versionMajor = versionParts[1];
+      };
+      // Minor number
+      if(versionParts[2]){
+
+        versionMinor = versionParts[2];
+      };
+      // IE 8 gives the max number of connections in a property
+      // see http://msdn.microsoft.com/en-us/library/cc197013(VS.85).aspx
+      if(window.maxConnectionsPerServer){
+
+        maxConcurrentRequestCount = window.maxConnectionsPerServer;
+      } else if(qx.bom.client.Engine.getName() == "opera"){
+
+        // Opera: 8 total
+        // see http://operawiki.info/HttpProtocol
+        maxConcurrentRequestCount = 8;
+      } else if(qx.bom.client.Engine.getName() == "webkit"){
+
+        // Safari: 4
+        // http://www.stevesouders.com/blog/2008/03/20/roundup-on-parallel-connections/
+        // Bug #6917: Distinguish Chrome from Safari, Chrome has 6 connections
+        //       according to
+        //      http://stackoverflow.com/questions/561046/how-many-concurrent-ajax-xmlhttprequest-requests-are-allowed-in-popular-browser
+        maxConcurrentRequestCount = 4;
+      } else if(qx.bom.client.Engine.getName() == "gecko" && ((versionMain > 1) || ((versionMain == 1) && (versionMajor > 9)) || ((versionMain == 1) && (versionMajor == 9) && (versionMinor >= 1)))){
+
+        // FF 3.5 (== Gecko 1.9.1): 6 Connections.
+        // see  http://gemal.dk/blog/2008/03/18/firefox_3_beta_5_will_have_improved_connection_parallelism/
+        maxConcurrentRequestCount = 6;
+      } else {
+
+        // Default is 2, as demanded by RFC 2616
+        // see http://blogs.msdn.com/ie/archive/2005/04/11/407189.aspx
+        maxConcurrentRequestCount = 2;
+      };;;
+      return maxConcurrentRequestCount;
+    },
+    /**
+     * Checks whether the app is loaded with SSL enabled which means via https.
+     *
+     * @internal
+     * @return {Boolean} <code>true</code>, if the app runs on https
+     */
+    getSsl : function(){
+
+      return window.location.protocol === "https:";
+    },
+    /**
+     * Checks what kind of XMLHttpRequest object the browser supports
+     * for the current protocol, if any.
+     *
+     * The standard XMLHttpRequest is preferred over ActiveX XMLHTTP.
+     *
+     * @internal
+     * @return {String}
+     *  <code>"xhr"</code>, if the browser provides standard XMLHttpRequest.<br/>
+     *  <code>"activex"</code>, if the browser provides ActiveX XMLHTTP.<br/>
+     *  <code>""</code>, if there is not XHR support at all.
+     */
+    getXmlHttpRequest : function(){
+
+      // Standard XHR can be disabled in IE's security settings,
+      // therefore provide ActiveX as fallback. Additionaly,
+      // standard XHR in IE7 is broken for file protocol.
+      var supports = window.ActiveXObject ? (function(){
+
+        if(window.location.protocol !== "file:"){
+
+          try{
+
+            new window.XMLHttpRequest();
+            return "xhr";
+          } catch(noXhr) {
+          };
+        };
+        try{
+
+          new window.ActiveXObject("Microsoft.XMLHTTP");
+          return "activex";
+        } catch(noActiveX) {
+        };
+      })() : (function(){
+
+        try{
+
+          new window.XMLHttpRequest();
+          return "xhr";
+        } catch(noXhr) {
+        };
+      })();
+      return supports || "";
+    }
+  },
+  defer : function(statics){
+
+    qx.core.Environment.add("io.maxrequests", statics.getMaxConcurrentRequestCount);
+    qx.core.Environment.add("io.ssl", statics.getSsl);
+    qx.core.Environment.add("io.xhr", statics.getXmlHttpRequest);
+  }
+});
+
+/* ************************************************************************
+
+   qooxdoo - the new era of web development
+
+   http://qooxdoo.org
+
+   Copyright:
      2013 1&1 Internet AG, Germany, http://www.1und1.de
 
    License:
@@ -36425,7 +38896,7 @@ qx.Bootstrap.define("qx.util.Request", {
  * @internal
  */
 qx.Bootstrap.define("qx.bom.request.SimpleXhr", {
-  extend : Object,
+  extend : qx.event.Emitter,
   /**
    * @param url {String?} The URL of the resource to request.
    * @param method {String?"GET"} The HTTP method.
@@ -36471,6 +38942,24 @@ qx.Bootstrap.define("qx.bom.request.SimpleXhr", {
     getRequestHeader : function(key){
 
       return this.__requestHeaders[key];
+    },
+    /**
+     * Returns a single response header
+     *
+     * @param header {String} Name of the header to get.
+     * @return {String} Response header
+     */
+    getResponseHeader : function(header){
+
+      return this._transport.getResponseHeader(header);
+    },
+    /**
+     * Returns all response headers
+     * @return {String} String of response headers
+     */
+    getAllResponseHeaders : function(){
+
+      return this._transport.getAllResponseHeaders();
     },
     /**
      * Sets the URL.
@@ -36914,7 +39403,20 @@ qx.Bootstrap.define("qx.bom.request.SimpleXhr", {
      */
     addListenerOnce : function(name, listener, ctx){
 
-      this._transport._emitter.once(name, listener, ctx);
+      this.once(name, listener, ctx);
+      return this;
+    },
+    /**
+     * Adds an event listener for the given event name.
+     *
+     * @param name {String} The name of the event to listen to.
+     * @param listener {Function} The function to execute when the event is fired
+     * @param ctx {var?} The context of the listener.
+     * @return {qx.bom.request.Xhr} Self for chaining.
+     */
+    addListener : function(name, listener, ctx){
+
+      this._transport._emitter.on(name, listener, ctx);
       return this;
     },
     /**
@@ -36944,7 +39446,7 @@ qx.Bootstrap.define("qx.bom.request.SimpleXhr", {
         {
         };
         this._setResponse(this.__parser.parse(response, contentType));
-        this._transport._emit("success");
+        this.emit("success");
       } else {
 
         try{
@@ -36955,7 +39457,7 @@ qx.Bootstrap.define("qx.bom.request.SimpleXhr", {
         // A remote error failure
         if(this._transport.status !== 0){
 
-          this._transport._emit("fail");
+          this.emit("fail");
         };
       };
     },
@@ -36964,32 +39466,32 @@ qx.Bootstrap.define("qx.bom.request.SimpleXhr", {
      */
     _onLoadEnd : function(){
 
-      this._transport._emit("loadEnd");
+      this.emit("loadEnd");
     },
     /**
      * Handles "abort" event.
      */
     _onAbort : function(){
 
-      this._transport._emit("abort");
+      this.emit("abort");
     },
     /**
      * Handles "timeout" event.
      */
     _onTimeout : function(){
 
-      this._transport._emit("timeout");
+      this.emit("timeout");
       // A network error failure
-      this._transport._emit("fail");
+      this.emit("fail");
     },
     /**
      * Handles "error" event.
      */
     _onError : function(){
 
-      this._transport._emit("error");
+      this.emit("error");
       // A network error failure
-      this._transport._emit("fail");
+      this.emit("fail");
     }
   }
 });
@@ -37140,7 +39642,7 @@ qx.Bootstrap.define("qx.bom.client.Plugin", {
     getWindowsMediaVersion : function(){
 
       var entry = qx.bom.client.Plugin.__db["wmv"];
-      return qx.bom.client.Plugin.__getVersion(entry.control, entry.plugin);
+      return qx.bom.client.Plugin.__getVersion(entry.control, entry.plugin, true);
     },
     /**
      * Fetches the version of the divx plugin.
@@ -37207,7 +39709,7 @@ qx.Bootstrap.define("qx.bom.client.Plugin", {
     getWindowsMedia : function(){
 
       var entry = qx.bom.client.Plugin.__db["wmv"];
-      return qx.bom.client.Plugin.__isAvailable(entry.control, entry.plugin);
+      return qx.bom.client.Plugin.__isAvailable(entry.control, entry.plugin, true);
     },
     /**
      * Checks if the divx plugin is available.
@@ -37260,18 +39762,20 @@ qx.Bootstrap.define("qx.bom.client.Plugin", {
      *   the test ActiveX Object.
      * @param pluginNames {Array} The names with which the plugins are listed in
      *   the navigator.plugins list.
+     * @param forceActiveX {Boolean?false} Force detection using ActiveX
+     *   for IE11 plugins that aren't listed in navigator.plugins
      * @return {String} The version of the plugin as string.
      */
-    __getVersion : function(activeXName, pluginNames){
+    __getVersion : function(activeXName, pluginNames, forceActiveX){
 
-      var available = qx.bom.client.Plugin.__isAvailable(activeXName, pluginNames);
+      var available = qx.bom.client.Plugin.__isAvailable(activeXName, pluginNames, forceActiveX);
       // don't check if the plugin is not available
       if(!available){
 
         return "";
       };
       // IE checks
-      if(qx.bom.client.Engine.getName() == "mshtml"){
+      if(qx.bom.client.Engine.getName() == "mshtml" && (qx.bom.client.Browser.getDocumentMode() < 11 || forceActiveX)){
 
         try{
 
@@ -37338,12 +39842,14 @@ qx.Bootstrap.define("qx.bom.client.Plugin", {
      *   the test ActiveX Object.
      * @param pluginNames {Array} The names with which the plugins are listed in
      *   the navigator.plugins list.
+     * @param forceActiveX {Boolean?false} Force detection using ActiveX
+     *   for IE11 plugins that aren't listed in navigator.plugins
      * @return {Boolean} <code>true</code>, if the plugin available
      */
-    __isAvailable : function(activeXName, pluginNames){
+    __isAvailable : function(activeXName, pluginNames, forceActiveX){
 
       // IE checks
-      if(qx.bom.client.Engine.getName() == "mshtml"){
+      if(qx.bom.client.Engine.getName() == "mshtml" && (qx.bom.client.Browser.getDocumentMode() < 11 || forceActiveX)){
 
         if(!this.getActiveX()){
 
@@ -37876,1182 +40382,6 @@ qx.Bootstrap.define("qx.util.ResponseParser", {
    http://qooxdoo.org
 
    Copyright:
-     2004-2011 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Tristan Koch (tristankoch)
-
-************************************************************************ */
-/**
- * A wrapper of the XMLHttpRequest host object (or equivalent). The interface is
- * similar to <a href="http://www.w3.org/TR/XMLHttpRequest/">XmlHttpRequest</a>.
- *
- * Hides browser inconsistencies and works around bugs found in popular
- * implementations.
- *
- * <div class="desktop">
- * Example:
- *
- * <pre class="javascript">
- *  var req = new qx.bom.request.Xhr();
- *  req.onload = function() {
- *    // Handle data received
- *    req.responseText;
- *  }
- *
- *  req.open("GET", url);
- *  req.send();
- * </pre>
- * </div>
- *
- * @ignore(XDomainRequest)
- * @ignore(qx.event, qx.event.GlobalError.*)
- *
- * @require(qx.bom.request.Xhr#open)
- * @require(qx.bom.request.Xhr#send)
- * @require(qx.bom.request.Xhr#on)
- * @require(qx.bom.request.Xhr#onreadystatechange)
- * @require(qx.bom.request.Xhr#onload)
- * @require(qx.bom.request.Xhr#onloadend)
- * @require(qx.bom.request.Xhr#onerror)
- * @require(qx.bom.request.Xhr#onabort)
- * @require(qx.bom.request.Xhr#ontimeout)
- * @require(qx.bom.request.Xhr#setRequestHeader)
- * @require(qx.bom.request.Xhr#getAllResponseHeaders)
- * @require(qx.bom.request.Xhr#getRequest)
- * @require(qx.bom.request.Xhr#overrideMimeType)
- * @require(qx.bom.request.Xhr#dispose)
- * @require(qx.bom.request.Xhr#isDisposed)
- *
- * @group (IO)
- */
-qx.Bootstrap.define("qx.bom.request.Xhr", {
-  extend : Object,
-  construct : function(){
-
-    var boundFunc = qx.Bootstrap.bind(this.__onNativeReadyStateChange, this);
-    // GlobalError shouldn't be included in qx.Website builds so use it
-    // if it's available but otherwise ignore it (see ignore stated above).
-    if(qx.event && qx.event.GlobalError && qx.event.GlobalError.observeMethod){
-
-      this.__onNativeReadyStateChangeBound = qx.event.GlobalError.observeMethod(boundFunc);
-    } else {
-
-      this.__onNativeReadyStateChangeBound = boundFunc;
-    };
-    this.__onNativeAbortBound = qx.Bootstrap.bind(this.__onNativeAbort, this);
-    this.__onTimeoutBound = qx.Bootstrap.bind(this.__onTimeout, this);
-    this.__initNativeXhr();
-    this._emitter = new qx.event.Emitter();
-    // BUGFIX: IE
-    // IE keeps connections alive unless aborted on unload
-    if(window.attachEvent){
-
-      this.__onUnloadBound = qx.Bootstrap.bind(this.__onUnload, this);
-      window.attachEvent("onunload", this.__onUnloadBound);
-    };
-  },
-  statics : {
-    UNSENT : 0,
-    OPENED : 1,
-    HEADERS_RECEIVED : 2,
-    LOADING : 3,
-    DONE : 4
-  },
-  events : {
-    /** Fired at ready state changes. */
-    "readystatechange" : "qx.bom.request.Xhr",
-    /** Fired on error. */
-    "error" : "qx.bom.request.Xhr",
-    /** Fired at loadend. */
-    "loadend" : "qx.bom.request.Xhr",
-    /** Fired on timeouts. */
-    "timeout" : "qx.bom.request.Xhr",
-    /** Fired when the request is aborted. */
-    "abort" : "qx.bom.request.Xhr",
-    /** Fired on successful retrieval. */
-    "load" : "qx.bom.request.Xhr"
-  },
-  members : {
-    /*
-    ---------------------------------------------------------------------------
-      PUBLIC
-    ---------------------------------------------------------------------------
-    */
-    /**
-     * @type {Number} Ready state.
-     *
-     * States can be:
-     * UNSENT:           0,
-     * OPENED:           1,
-     * HEADERS_RECEIVED: 2,
-     * LOADING:          3,
-     * DONE:             4
-     */
-    readyState : 0,
-    /**
-     * @type {String} The response of the request as text.
-     */
-    responseText : "",
-    /**
-     * @type {Object} The response of the request as a Document object.
-     */
-    responseXML : null,
-    /**
-     * @type {Number} The HTTP status code.
-     */
-    status : 0,
-    /**
-     * @type {String} The HTTP status text.
-     */
-    statusText : "",
-    /**
-     * @type {Number} Timeout limit in milliseconds.
-     *
-     * 0 (default) means no timeout. Not supported for synchronous requests.
-     */
-    timeout : 0,
-    /**
-     * Initializes (prepares) request.
-     *
-     * @ignore(XDomainRequest)
-     *
-     * @param method {String?"GET"}
-     *  The HTTP method to use.
-     * @param url {String}
-     *  The URL to which to send the request.
-     * @param async {Boolean?true}
-     *  Whether or not to perform the operation asynchronously.
-     * @param user {String?null}
-     *  Optional user name to use for authentication purposes.
-     * @param password {String?null}
-     *  Optional password to use for authentication purposes.
-     */
-    open : function(method, url, async, user, password){
-
-      this.__checkDisposed();
-      // Mimick native behavior
-      if(typeof url === "undefined"){
-
-        throw new Error("Not enough arguments");
-      } else if(typeof method === "undefined"){
-
-        method = "GET";
-      };
-      // Reset flags that may have been set on previous request
-      this.__abort = false;
-      this.__send = false;
-      this.__conditional = false;
-      // Store URL for later checks
-      this.__url = url;
-      if(typeof async == "undefined"){
-
-        async = true;
-      };
-      this.__async = async;
-      // BUGFIX
-      // IE < 9 and FF < 3.5 cannot reuse the native XHR to issue many requests
-      if(!this.__supportsManyRequests() && this.readyState > qx.bom.request.Xhr.UNSENT){
-
-        // XmlHttpRequest Level 1 requires open() to abort any pending requests
-        // associated to the object. Since we're dealing with a new object here,
-        // we have to emulate this behavior. Moreover, allow old native XHR to be garbage collected
-        //
-        // Dispose and abort.
-        //
-        this.dispose();
-        // Replace the underlying native XHR with a new one that can
-        // be used to issue new requests.
-        this.__initNativeXhr();
-      };
-      // Restore handler in case it was removed before
-      this.__nativeXhr.onreadystatechange = this.__onNativeReadyStateChangeBound;
-      try{
-
-        {
-        };
-        this.__nativeXhr.open(method, url, async, user, password);
-      } catch(OpenError) {
-
-        // Only work around exceptions caused by cross domain request attempts
-        if(!qx.util.Request.isCrossDomain(url)){
-
-          // Is same origin
-          throw OpenError;
-        };
-        if(!this.__async){
-
-          this.__openError = OpenError;
-        };
-        if(this.__async){
-
-          // Try again with XDomainRequest
-          // (Success case not handled on purpose)
-          // - IE 9
-          if(window.XDomainRequest){
-
-            this.readyState = 4;
-            this.__nativeXhr = new XDomainRequest();
-            this.__nativeXhr.onerror = qx.Bootstrap.bind(function(){
-
-              this._emit("readystatechange");
-              this._emit("error");
-              this._emit("loadend");
-            }, this);
-            {
-            };
-            this.__nativeXhr.open(method, url, async, user, password);
-            return;
-          };
-          // Access denied
-          // - IE 6: -2146828218
-          // - IE 7: -2147024891
-          // - Legacy Firefox
-          window.setTimeout(qx.Bootstrap.bind(function(){
-
-            if(this.__disposed){
-
-              return;
-            };
-            this.readyState = 4;
-            this._emit("readystatechange");
-            this._emit("error");
-            this._emit("loadend");
-          }, this));
-        };
-      };
-      // BUGFIX: IE < 9
-      // IE < 9 tends to cache overly agressive. This may result in stale
-      // representations. Force validating freshness of cached representation.
-      if(qx.core.Environment.get("engine.name") === "mshtml" && qx.core.Environment.get("browser.documentmode") < 9 && this.__nativeXhr.readyState > 0){
-
-        this.__nativeXhr.setRequestHeader("If-Modified-Since", "-1");
-      };
-      // BUGFIX: Firefox
-      // Firefox < 4 fails to trigger onreadystatechange OPENED for sync requests
-      if(qx.core.Environment.get("engine.name") === "gecko" && parseInt(qx.core.Environment.get("engine.version"), 10) < 2 && !this.__async){
-
-        // Native XHR is already set to readyState DONE. Fake readyState
-        // and call onreadystatechange manually.
-        this.readyState = qx.bom.request.Xhr.OPENED;
-        this._emit("readystatechange");
-      };
-    },
-    /**
-     * Sets an HTTP request header to be used by the request.
-     *
-     * Note: The request must be initialized before using this method.
-     *
-     * @param key {String}
-     *  The name of the header whose value is to be set.
-     * @param value {String}
-     *  The value to set as the body of the header.
-     * @return {qx.bom.request.Xhr} Self for chaining.
-     */
-    setRequestHeader : function(key, value){
-
-      this.__checkDisposed();
-      // Detect conditional requests
-      if(key == "If-Match" || key == "If-Modified-Since" || key == "If-None-Match" || key == "If-Range"){
-
-        this.__conditional = true;
-      };
-      this.__nativeXhr.setRequestHeader(key, value);
-      return this;
-    },
-    /**
-     * Sends request.
-     *
-     * @param data {String|Document?null}
-     *  Optional data to send.
-     * @return {qx.bom.request.Xhr} Self for chaining.
-     */
-    send : function(data){
-
-      this.__checkDisposed();
-      // BUGFIX: IE & Firefox < 3.5
-      // For sync requests, some browsers throw error on open()
-      // while it should be on send()
-      //
-      if(!this.__async && this.__openError){
-
-        throw this.__openError;
-      };
-      // BUGFIX: Opera
-      // On network error, Opera stalls at readyState HEADERS_RECEIVED
-      // This violates the spec. See here http://www.w3.org/TR/XMLHttpRequest2/#send
-      // (Section: If there is a network error)
-      //
-      // To fix, assume a default timeout of 10 seconds. Note: The "error"
-      // event will be fired correctly, because the error flag is inferred
-      // from the statusText property. Of course, compared to other
-      // browsers there is an additional call to ontimeout(), but this call
-      // should not harm.
-      //
-      if(qx.core.Environment.get("engine.name") === "opera" && this.timeout === 0){
-
-        this.timeout = 10000;
-      };
-      // Timeout
-      if(this.timeout > 0){
-
-        this.__timerId = window.setTimeout(this.__onTimeoutBound, this.timeout);
-      };
-      // BUGFIX: Firefox 2
-      // "NS_ERROR_XPC_NOT_ENOUGH_ARGS" when calling send() without arguments
-      data = typeof data == "undefined" ? null : data;
-      // Whitelisting the allowed data types regarding the spec
-      // -> http://www.w3.org/TR/XMLHttpRequest2/#the-send-method
-      // All other data input will be transformed to a string to e.g. prevent
-      // an SendError in Firefox (at least <= 31) and to harmonize it with the
-      // behaviour of all other browsers (Chrome, IE and Safari)
-      var dataType = qx.Bootstrap.getClass(data);
-      data = (data !== null && this.__dataTypeWhiteList.indexOf(dataType) === -1) ? data.toString() : data;
-      // Some browsers may throw an error when sending of async request fails.
-      // This violates the spec which states only sync requests should.
-      try{
-
-        {
-        };
-        this.__nativeXhr.send(data);
-      } catch(SendError) {
-
-        if(!this.__async){
-
-          throw SendError;
-        };
-        // BUGFIX
-        // Some browsers throws error when file not found via file:// protocol.
-        // Synthesize readyState changes.
-        if(this._getProtocol() === "file:"){
-
-          this.readyState = 2;
-          this.__readyStateChange();
-          var that = this;
-          window.setTimeout(function(){
-
-            if(that.__disposed){
-
-              return;
-            };
-            that.readyState = 3;
-            that.__readyStateChange();
-            that.readyState = 4;
-            that.__readyStateChange();
-          });
-        };
-      };
-      // BUGFIX: Firefox
-      // Firefox fails to trigger onreadystatechange DONE for sync requests
-      if(qx.core.Environment.get("engine.name") === "gecko" && !this.__async){
-
-        // Properties all set, only missing native readystatechange event
-        this.__onNativeReadyStateChange();
-      };
-      // Set send flag
-      this.__send = true;
-      return this;
-    },
-    /**
-     * Abort request - i.e. cancels any network activity.
-     *
-     * Note:
-     *  On Windows 7 every browser strangely skips the loading phase
-     *  when this method is called (because readyState never gets 3).
-     *
-     *  So keep this in mind if you rely on the phases which are
-     *  passed through. They will be "opened", "sent", "abort"
-     *  instead of normally "opened", "sent", "loading", "abort".
-     *
-     * @return {qx.bom.request.Xhr} Self for chaining.
-     */
-    abort : function(){
-
-      this.__checkDisposed();
-      this.__abort = true;
-      this.__nativeXhr.abort();
-      if(this.__nativeXhr){
-
-        this.readyState = this.__nativeXhr.readyState;
-      };
-      return this;
-    },
-    /**
-     * Helper to emit events and call the callback methods.
-     * @param event {String} The name of the event.
-     */
-    _emit : function(event){
-
-      if(this["on" + event]){
-
-        this["on" + event]();
-      };
-      this._emitter.emit(event, this);
-    },
-    /**
-     * Event handler for XHR event that fires at every state change.
-     *
-     * Replace with custom method to get informed about the communication progress.
-     */
-    onreadystatechange : function(){
-    },
-    /**
-     * Event handler for XHR event "load" that is fired on successful retrieval.
-     *
-     * Note: This handler is called even when the HTTP status indicates an error.
-     *
-     * Replace with custom method to listen to the "load" event.
-     */
-    onload : function(){
-    },
-    /**
-     * Event handler for XHR event "loadend" that is fired on retrieval.
-     *
-     * Note: This handler is called even when a network error (or similar)
-     * occurred.
-     *
-     * Replace with custom method to listen to the "loadend" event.
-     */
-    onloadend : function(){
-    },
-    /**
-     * Event handler for XHR event "error" that is fired on a network error.
-     *
-     * Replace with custom method to listen to the "error" event.
-     */
-    onerror : function(){
-    },
-    /**
-    * Event handler for XHR event "abort" that is fired when request
-    * is aborted.
-    *
-    * Replace with custom method to listen to the "abort" event.
-    */
-    onabort : function(){
-    },
-    /**
-    * Event handler for XHR event "timeout" that is fired when timeout
-    * interval has passed.
-    *
-    * Replace with custom method to listen to the "timeout" event.
-    */
-    ontimeout : function(){
-    },
-    /**
-     * Add an event listener for the given event name.
-     *
-     * @param name {String} The name of the event to listen to.
-     * @param listener {Function} The function to execute when the event is fired
-     * @param ctx {var?} The context of the listener.
-     * @return {qx.bom.request.Xhr} Self for chaining.
-     */
-    on : function(name, listener, ctx){
-
-      this._emitter.on(name, listener, ctx);
-      return this;
-    },
-    /**
-     * Get a single response header from response.
-     *
-     * @param header {String}
-     *  Key of the header to get the value from.
-     * @return {String}
-     *  Response header.
-     */
-    getResponseHeader : function(header){
-
-      this.__checkDisposed();
-      return this.__nativeXhr.getResponseHeader(header);
-    },
-    /**
-     * Get all response headers from response.
-     *
-     * @return {String} All response headers.
-     */
-    getAllResponseHeaders : function(){
-
-      this.__checkDisposed();
-      return this.__nativeXhr.getAllResponseHeaders();
-    },
-    /**
-     * Overrides the MIME type returned by the server
-     * and must be called before @send()@.
-     *
-     * Note:
-     *
-     * * IE doesn't support this method so in this case an Error is thrown.
-     * * after calling this method @getResponseHeader("Content-Type")@
-     *   may return the original (Firefox 23, IE 10, Safari 6) or
-     *   the overriden content type (Chrome 28+, Opera 15+).
-     *
-     *
-     * @param mimeType {String} The mimeType for overriding.
-     * @return {qx.bom.request.Xhr} Self for chaining.
-     */
-    overrideMimeType : function(mimeType){
-
-      this.__checkDisposed();
-      if(this.__nativeXhr.overrideMimeType){
-
-        this.__nativeXhr.overrideMimeType(mimeType);
-      } else {
-
-        throw new Error("Native XHR object doesn't support overrideMimeType.");
-      };
-      return this;
-    },
-    /**
-     * Get wrapped native XMLHttpRequest (or equivalent).
-     *
-     * Can be XMLHttpRequest or ActiveX.
-     *
-     * @return {Object} XMLHttpRequest or equivalent.
-     */
-    getRequest : function(){
-
-      return this.__nativeXhr;
-    },
-    /*
-    ---------------------------------------------------------------------------
-      HELPER
-    ---------------------------------------------------------------------------
-    */
-    /**
-     * Dispose object and wrapped native XHR.
-     * @return {Boolean} <code>true</code> if the object was successfully disposed
-     */
-    dispose : function(){
-
-      if(this.__disposed){
-
-        return false;
-      };
-      window.clearTimeout(this.__timerId);
-      // Remove unload listener in IE. Aborting on unload is no longer required
-      // for this instance.
-      if(window.detachEvent){
-
-        window.detachEvent("onunload", this.__onUnloadBound);
-      };
-      // May fail in IE
-      try{
-
-        this.__nativeXhr.onreadystatechange;
-      } catch(PropertiesNotAccessable) {
-
-        return false;
-      };
-      // Clear out listeners
-      var noop = function(){
-      };
-      this.__nativeXhr.onreadystatechange = noop;
-      this.__nativeXhr.onload = noop;
-      this.__nativeXhr.onerror = noop;
-      // Abort any network activity
-      this.abort();
-      // Remove reference to native XHR
-      this.__nativeXhr = null;
-      this.__disposed = true;
-      return true;
-    },
-    /**
-     * Check if the request has already beed disposed.
-     * @return {Boolean} <code>true</code>, if the request has been disposed.
-     */
-    isDisposed : function(){
-
-      return !!this.__disposed;
-    },
-    /*
-    ---------------------------------------------------------------------------
-      PROTECTED
-    ---------------------------------------------------------------------------
-    */
-    /**
-     * Create XMLHttpRequest (or equivalent).
-     *
-     * @return {Object} XMLHttpRequest or equivalent.
-     */
-    _createNativeXhr : function(){
-
-      var xhr = qx.core.Environment.get("io.xhr");
-      if(xhr === "xhr"){
-
-        return new XMLHttpRequest();
-      };
-      if(xhr == "activex"){
-
-        return new window.ActiveXObject("Microsoft.XMLHTTP");
-      };
-      qx.Bootstrap.error(this, "No XHR support available.");
-    },
-    /**
-     * Get protocol of requested URL.
-     *
-     * @return {String} The used protocol.
-     */
-    _getProtocol : function(){
-
-      var url = this.__url;
-      var protocolRe = /^(\w+:)\/\//;
-      // Could be http:// from file://
-      if(url !== null && url.match){
-
-        var match = url.match(protocolRe);
-        if(match && match[1]){
-
-          return match[1];
-        };
-      };
-      return window.location.protocol;
-    },
-    /*
-    ---------------------------------------------------------------------------
-      PRIVATE
-    ---------------------------------------------------------------------------
-    */
-    /**
-     * @type {Object} XMLHttpRequest or equivalent.
-     */
-    __nativeXhr : null,
-    /**
-     * @type {Boolean} Whether request is async.
-     */
-    __async : null,
-    /**
-     * @type {Function} Bound __onNativeReadyStateChange handler.
-     */
-    __onNativeReadyStateChangeBound : null,
-    /**
-     * @type {Function} Bound __onNativeAbort handler.
-     */
-    __onNativeAbortBound : null,
-    /**
-     * @type {Function} Bound __onUnload handler.
-     */
-    __onUnloadBound : null,
-    /**
-     * @type {Function} Bound __onTimeout handler.
-     */
-    __onTimeoutBound : null,
-    /**
-     * @type {Boolean} Send flag
-     */
-    __send : null,
-    /**
-     * @type {String} Requested URL
-     */
-    __url : null,
-    /**
-     * @type {Boolean} Abort flag
-     */
-    __abort : null,
-    /**
-     * @type {Boolean} Timeout flag
-     */
-    __timeout : null,
-    /**
-     * @type {Boolean} Whether object has been disposed.
-     */
-    __disposed : null,
-    /**
-     * @type {Number} ID of timeout timer.
-     */
-    __timerId : null,
-    /**
-     * @type {Error} Error thrown on open, if any.
-     */
-    __openError : null,
-    /**
-     * @type {Boolean} Conditional get flag
-     */
-    __conditional : null,
-    /**
-     * @type {Array} Whitelist with all allowed data types for the request payload
-     */
-    __dataTypeWhiteList : null,
-    /**
-     * Init native XHR.
-     */
-    __initNativeXhr : function(){
-
-      // Create native XHR or equivalent and hold reference
-      this.__nativeXhr = this._createNativeXhr();
-      // Track native ready state changes
-      this.__nativeXhr.onreadystatechange = this.__onNativeReadyStateChangeBound;
-      // Track native abort, when supported
-      if(this.__nativeXhr.onabort){
-
-        this.__nativeXhr.onabort = this.__onNativeAbortBound;
-      };
-      // Reset flags
-      this.__disposed = this.__send = this.__abort = false;
-      // Initialize data white list
-      this.__dataTypeWhiteList = ["ArrayBuffer", "Blob", "HTMLDocument", "String", "FormData"];
-    },
-    /**
-     * Track native abort.
-     *
-     * In case the end user cancels the request by other
-     * means than calling abort().
-     */
-    __onNativeAbort : function(){
-
-      // When the abort that triggered this method was not a result from
-      // calling abort()
-      if(!this.__abort){
-
-        this.abort();
-      };
-    },
-    /**
-     * Handle native onreadystatechange.
-     *
-     * Calls user-defined function onreadystatechange on each
-     * state change and syncs the XHR status properties.
-     */
-    __onNativeReadyStateChange : function(){
-
-      var nxhr = this.__nativeXhr,propertiesReadable = true;
-      {
-      };
-      // BUGFIX: IE, Firefox
-      // onreadystatechange() is called twice for readyState OPENED.
-      //
-      // Call onreadystatechange only when readyState has changed.
-      if(this.readyState == nxhr.readyState){
-
-        return;
-      };
-      // Sync current readyState
-      this.readyState = nxhr.readyState;
-      // BUGFIX: IE
-      // Superfluous onreadystatechange DONE when aborting OPENED
-      // without send flag
-      if(this.readyState === qx.bom.request.Xhr.DONE && this.__abort && !this.__send){
-
-        return;
-      };
-      // BUGFIX: IE
-      // IE fires onreadystatechange HEADERS_RECEIVED and LOADING when sync
-      //
-      // According to spec, only onreadystatechange OPENED and DONE should
-      // be fired.
-      if(!this.__async && (nxhr.readyState == 2 || nxhr.readyState == 3)){
-
-        return;
-      };
-      // Default values according to spec.
-      this.status = 0;
-      this.statusText = this.responseText = "";
-      this.responseXML = null;
-      if(this.readyState >= qx.bom.request.Xhr.HEADERS_RECEIVED){
-
-        // In some browsers, XHR properties are not readable
-        // while request is in progress.
-        try{
-
-          this.status = nxhr.status;
-          this.statusText = nxhr.statusText;
-          this.responseText = nxhr.responseText;
-          this.responseXML = nxhr.responseXML;
-        } catch(XhrPropertiesNotReadable) {
-
-          propertiesReadable = false;
-        };
-        if(propertiesReadable){
-
-          this.__normalizeStatus();
-          this.__normalizeResponseXML();
-        };
-      };
-      this.__readyStateChange();
-      // BUGFIX: IE
-      // Memory leak in XMLHttpRequest (on-page)
-      if(this.readyState == qx.bom.request.Xhr.DONE){
-
-        // Allow garbage collecting of native XHR
-        if(nxhr){
-
-          nxhr.onreadystatechange = function(){
-          };
-        };
-      };
-    },
-    /**
-     * Handle readystatechange. Called internally when readyState is changed.
-     */
-    __readyStateChange : function(){
-
-      // Cancel timeout before invoking handlers because they may throw
-      if(this.readyState === qx.bom.request.Xhr.DONE){
-
-        // Request determined DONE. Cancel timeout.
-        window.clearTimeout(this.__timerId);
-      };
-      // Always fire "readystatechange"
-      this._emit("readystatechange");
-      if(this.readyState === qx.bom.request.Xhr.DONE){
-
-        this.__readyStateChangeDone();
-      };
-    },
-    /**
-     * Handle readystatechange. Called internally by
-     * {@link #__readyStateChange} when readyState is DONE.
-     */
-    __readyStateChangeDone : function(){
-
-      // Fire "timeout" if timeout flag is set
-      if(this.__timeout){
-
-        this._emit("timeout");
-        // BUGFIX: Opera
-        // Since Opera does not fire "error" on network error, fire additional
-        // "error" on timeout (may well be related to network error)
-        if(qx.core.Environment.get("engine.name") === "opera"){
-
-          this._emit("error");
-        };
-        this.__timeout = false;
-      } else {
-
-        if(this.__abort){
-
-          this._emit("abort");
-        } else {
-
-          if(this.__isNetworkError()){
-
-            this._emit("error");
-          } else {
-
-            this._emit("load");
-          };
-        };
-      };
-      // Always fire "onloadend" when DONE
-      this._emit("loadend");
-    },
-    /**
-     * Check for network error.
-     *
-     * @return {Boolean} Whether a network error occured.
-     */
-    __isNetworkError : function(){
-
-      var error;
-      // Infer the XHR internal error flag from statusText when not aborted.
-      // See http://www.w3.org/TR/XMLHttpRequest2/#error-flag and
-      // http://www.w3.org/TR/XMLHttpRequest2/#the-statustext-attribute
-      //
-      // With file://, statusText is always falsy. Assume network error when
-      // response is empty.
-      if(this._getProtocol() === "file:"){
-
-        error = !this.responseText;
-      } else {
-
-        error = !this.statusText;
-      };
-      return error;
-    },
-    /**
-     * Handle faked timeout.
-     */
-    __onTimeout : function(){
-
-      // Basically, mimick http://www.w3.org/TR/XMLHttpRequest2/#timeout-error
-      var nxhr = this.__nativeXhr;
-      this.readyState = qx.bom.request.Xhr.DONE;
-      // Set timeout flag
-      this.__timeout = true;
-      // No longer consider request. Abort.
-      nxhr.abort();
-      this.responseText = "";
-      this.responseXML = null;
-      // Signal readystatechange
-      this.__readyStateChange();
-    },
-    /**
-     * Normalize status property across browsers.
-     */
-    __normalizeStatus : function(){
-
-      var isDone = this.readyState === qx.bom.request.Xhr.DONE;
-      // BUGFIX: Most browsers
-      // Most browsers tell status 0 when it should be 200 for local files
-      if(this._getProtocol() === "file:" && this.status === 0 && isDone){
-
-        if(!this.__isNetworkError()){
-
-          this.status = 200;
-        };
-      };
-      // BUGFIX: IE
-      // IE sometimes tells 1223 when it should be 204
-      if(this.status === 1223){
-
-        this.status = 204;
-      };
-      // BUGFIX: Opera
-      // Opera tells 0 for conditional requests when it should be 304
-      //
-      // Detect response to conditional request that signals fresh cache.
-      if(qx.core.Environment.get("engine.name") === "opera"){
-
-        if(isDone && // Done
-        this.__conditional && // Conditional request
-        !this.__abort && // Not aborted
-        this.status === 0){
-
-          this.status = 304;
-        };
-      };
-    },
-    /**
-     * Normalize responseXML property across browsers.
-     */
-    __normalizeResponseXML : function(){
-
-      // BUGFIX: IE
-      // IE does not recognize +xml extension, resulting in empty responseXML.
-      //
-      // Check if Content-Type is +xml, verify missing responseXML then parse
-      // responseText as XML.
-      if(qx.core.Environment.get("engine.name") == "mshtml" && (this.getResponseHeader("Content-Type") || "").match(/[^\/]+\/[^\+]+\+xml/) && this.responseXML && !this.responseXML.documentElement){
-
-        var dom = new window.ActiveXObject("Microsoft.XMLDOM");
-        dom.async = false;
-        dom.validateOnParse = false;
-        dom.loadXML(this.responseText);
-        this.responseXML = dom;
-      };
-    },
-    /**
-     * Handler for native unload event.
-     */
-    __onUnload : function(){
-
-      try{
-
-        // Abort and dispose
-        if(this){
-
-          this.dispose();
-        };
-      } catch(e) {
-      };
-    },
-    /**
-     * Helper method to determine whether browser supports reusing the
-     * same native XHR to send more requests.
-     * @return {Boolean} <code>true</code> if request object reuse is supported
-     */
-    __supportsManyRequests : function(){
-
-      var name = qx.core.Environment.get("engine.name");
-      var version = qx.core.Environment.get("browser.version");
-      return !(name == "mshtml" && version < 9 || name == "gecko" && version < 3.5);
-    },
-    /**
-     * Throw when already disposed.
-     */
-    __checkDisposed : function(){
-
-      if(this.__disposed){
-
-        throw new Error("Already disposed");
-      };
-    }
-  },
-  defer : function(){
-
-    qx.core.Environment.add("qx.debug.io", false);
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2004-2008 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Carsten Lergenmueller (carstenl)
-     * Fabian Jakobs (fbjakobs)
-     * Martin Wittemann (martinwittemann)
-
-************************************************************************ */
-/**
- * Determines browser-dependent information about the transport layer.
- *
- * This class is used by {@link qx.core.Environment} and should not be used
- * directly. Please check its class comment for details how to use it.
- *
- * @internal
- */
-qx.Bootstrap.define("qx.bom.client.Transport", {
-  /*
-  *****************************************************************************
-     STATICS
-  *****************************************************************************
-  */
-  statics : {
-    /**
-     * Returns the maximum number of parallel requests the current browser
-     * supports per host addressed.
-     *
-     * Note that this assumes one connection can support one request at a time
-     * only. Technically, this is not correct when pipelining is enabled (which
-     * it currently is only for IE 8 and Opera). In this case, the number
-     * returned will be too low, as one connection supports multiple pipelined
-     * requests. This is accepted for now because pipelining cannot be
-     * detected from JavaScript and because modern browsers have enough
-     * parallel connections already - it's unlikely an app will require more
-     * than 4 parallel XMLHttpRequests to one server at a time.
-     *
-     * @internal
-     * @return {Integer} Maximum number of parallel requests
-     */
-    getMaxConcurrentRequestCount : function(){
-
-      var maxConcurrentRequestCount;
-      // Parse version numbers.
-      var versionParts = qx.bom.client.Engine.getVersion().split(".");
-      var versionMain = 0;
-      var versionMajor = 0;
-      var versionMinor = 0;
-      // Main number
-      if(versionParts[0]){
-
-        versionMain = versionParts[0];
-      };
-      // Major number
-      if(versionParts[1]){
-
-        versionMajor = versionParts[1];
-      };
-      // Minor number
-      if(versionParts[2]){
-
-        versionMinor = versionParts[2];
-      };
-      // IE 8 gives the max number of connections in a property
-      // see http://msdn.microsoft.com/en-us/library/cc197013(VS.85).aspx
-      if(window.maxConnectionsPerServer){
-
-        maxConcurrentRequestCount = window.maxConnectionsPerServer;
-      } else if(qx.bom.client.Engine.getName() == "opera"){
-
-        // Opera: 8 total
-        // see http://operawiki.info/HttpProtocol
-        maxConcurrentRequestCount = 8;
-      } else if(qx.bom.client.Engine.getName() == "webkit"){
-
-        // Safari: 4
-        // http://www.stevesouders.com/blog/2008/03/20/roundup-on-parallel-connections/
-        // Bug #6917: Distinguish Chrome from Safari, Chrome has 6 connections
-        //       according to
-        //      http://stackoverflow.com/questions/561046/how-many-concurrent-ajax-xmlhttprequest-requests-are-allowed-in-popular-browser
-        maxConcurrentRequestCount = 4;
-      } else if(qx.bom.client.Engine.getName() == "gecko" && ((versionMain > 1) || ((versionMain == 1) && (versionMajor > 9)) || ((versionMain == 1) && (versionMajor == 9) && (versionMinor >= 1)))){
-
-        // FF 3.5 (== Gecko 1.9.1): 6 Connections.
-        // see  http://gemal.dk/blog/2008/03/18/firefox_3_beta_5_will_have_improved_connection_parallelism/
-        maxConcurrentRequestCount = 6;
-      } else {
-
-        // Default is 2, as demanded by RFC 2616
-        // see http://blogs.msdn.com/ie/archive/2005/04/11/407189.aspx
-        maxConcurrentRequestCount = 2;
-      };;;
-      return maxConcurrentRequestCount;
-    },
-    /**
-     * Checks whether the app is loaded with SSL enabled which means via https.
-     *
-     * @internal
-     * @return {Boolean} <code>true</code>, if the app runs on https
-     */
-    getSsl : function(){
-
-      return window.location.protocol === "https:";
-    },
-    /**
-     * Checks what kind of XMLHttpRequest object the browser supports
-     * for the current protocol, if any.
-     *
-     * The standard XMLHttpRequest is preferred over ActiveX XMLHTTP.
-     *
-     * @internal
-     * @return {String}
-     *  <code>"xhr"</code>, if the browser provides standard XMLHttpRequest.<br/>
-     *  <code>"activex"</code>, if the browser provides ActiveX XMLHTTP.<br/>
-     *  <code>""</code>, if there is not XHR support at all.
-     */
-    getXmlHttpRequest : function(){
-
-      // Standard XHR can be disabled in IE's security settings,
-      // therefore provide ActiveX as fallback. Additionaly,
-      // standard XHR in IE7 is broken for file protocol.
-      var supports = window.ActiveXObject ? (function(){
-
-        if(window.location.protocol !== "file:"){
-
-          try{
-
-            new window.XMLHttpRequest();
-            return "xhr";
-          } catch(noXhr) {
-          };
-        };
-        try{
-
-          new window.ActiveXObject("Microsoft.XMLHTTP");
-          return "activex";
-        } catch(noActiveX) {
-        };
-      })() : (function(){
-
-        try{
-
-          new window.XMLHttpRequest();
-          return "xhr";
-        } catch(noXhr) {
-        };
-      })();
-      return supports || "";
-    }
-  },
-  defer : function(statics){
-
-    qx.core.Environment.add("io.maxrequests", statics.getMaxConcurrentRequestCount);
-    qx.core.Environment.add("io.ssl", statics.getSsl);
-    qx.core.Environment.add("io.xhr", statics.getXmlHttpRequest);
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
      2012 1&1 Internet AG, Germany, http://www.1und1.de
 
    License:
@@ -39159,13 +40489,7 @@ qx.Bootstrap.define("qx.module.Io", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      io : {
-        xhr : statics.xhr,
-        script : statics.script,
-        jsonp : statics.jsonp
-      }
-    });
+    qxWeb.$attachAll(this, "io");
   }
 });
 
@@ -40152,7 +41476,7 @@ qx.Bootstrap.define("qx.bom.request.Jsonp", {
  * @group (Core)
  */
 qx.Bootstrap.define("qx.module.Attribute", {
-  statics : {
+  members : {
     /**
      * Returns the HTML content of the first item in the collection
      * @attach {qxWeb}
@@ -40394,8 +41718,9 @@ qx.Bootstrap.define("qx.module.Attribute", {
      * is checked (checkbox, radiobutton).
      * Supports array values for selectboxes (multiple selection) and checkboxes
      * or radiobuttons (for convenience).
+     *
      * Please note: To modify the value attribute of a checkbox or radiobutton
-     * use @link{#set} instead.
+     * use {@link #setAttribute} instead and manipulate the <code>checked</code> attribute.
      *
      * @attach {qxWeb}
      * @param value {String|Number|Array} The value to apply
@@ -40412,24 +41737,7 @@ qx.Bootstrap.define("qx.module.Attribute", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "getHtml" : statics.getHtml,
-      "setHtml" : statics.setHtml,
-      "getAttribute" : statics.getAttribute,
-      "setAttribute" : statics.setAttribute,
-      "removeAttribute" : statics.removeAttribute,
-      "getAttributes" : statics.getAttributes,
-      "setAttributes" : statics.setAttributes,
-      "removeAttributes" : statics.removeAttributes,
-      "getProperty" : statics.getProperty,
-      "setProperty" : statics.setProperty,
-      "removeProperty" : statics.removeProperty,
-      "getProperties" : statics.getProperties,
-      "setProperties" : statics.setProperties,
-      "removeProperties" : statics.removeProperties,
-      "getValue" : statics.getValue,
-      "setValue" : statics.setValue
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -40993,6 +42301,118 @@ qx.Bootstrap.define("qx.bom.Input", {
  */
 qx.Bootstrap.define("qx.module.Manipulating", {
   statics : {
+    /** Default animation descriptions for animated scrolling **/
+    _animationDescription : {
+      scrollLeft : {
+        duration : 700,
+        timing : "ease-in",
+        keep : 100,
+        keyFrames : {
+          '0' : {
+          },
+          '100' : {
+            scrollLeft : 1
+          }
+        }
+      },
+      scrollTop : {
+        duration : 700,
+        timing : "ease-in",
+        keep : 100,
+        keyFrames : {
+          '0' : {
+          },
+          '100' : {
+            scrollTop : 1
+          }
+        }
+      }
+    },
+    /**
+     * Performs animated scrolling
+     *
+     * @param property {String} Element property to animate: <code>scrollLeft</code>
+     * or <code>scrollTop</code>
+     * @param value {Number} Final scroll position
+     * @param duration {Number} The animation's duration in ms
+     * @return {q} The collection for chaining.
+     */
+    __animateScroll : function(property, value, duration){
+
+      var desc = qx.lang.Object.clone(qx.module.Manipulating._animationDescription[property], true);
+      desc.keyFrames[100][property] = value;
+      return this.animate(desc, duration);
+    },
+    /**
+     * Creates a new collection from the given argument
+     * @param arg {var} Selector expression, HTML string, DOM element or list of
+     * DOM elements
+     * @return {qxWeb} Collection
+     * @internal
+     */
+    __getCollectionFromArgument : function(arg){
+
+      var coll;
+      // Collection/array of DOM elements
+      if(qx.lang.Type.isArray(arg)){
+
+        coll = qxWeb(arg);
+      } else {
+
+        var arr = qx.bom.Html.clean([arg]);
+        if(arr.length > 0 && qx.dom.Node.isElement(arr[0])){
+
+          coll = qxWeb(arr);
+        } else {
+
+          coll = qxWeb(arg);
+        };
+      };
+      return coll;
+    },
+    /**
+     * Returns the innermost element of a DOM tree as determined by a simple
+     * depth-first search.
+     *
+     * @param element {Element} Root element
+     * @return {Element} innermost element
+     * @internal
+     */
+    __getInnermostElement : function(element){
+
+      if(element.childNodes.length == 0){
+
+        return element;
+      };
+      for(var i = 0,l = element.childNodes.length;i < l;i++){
+
+        if(element.childNodes[i].nodeType === 1){
+
+          return this.__getInnermostElement(element.childNodes[i]);
+        };
+      };
+      return element;
+    },
+    /**
+     * Returns an array from a selector expression or a single element
+     *
+     * @attach{qxWeb}
+     * @param arg {String|Element} Selector expression or DOM element
+     * @return {Element[]} Array of elements
+     * @internal
+     */
+    __getElementArray : function(arg){
+
+      if(!qx.lang.Type.isArray(arg)){
+
+        var fromSelector = qxWeb(arg);
+        arg = fromSelector.length > 0 ? fromSelector : [arg];
+      };
+      return arg.filter(function(item){
+
+        return (item && (item.nodeType === 1 || item.nodeType === 11));
+      });
+    },
     /**
      * Creates a new collection from the given argument. This can either be an
      * HTML string, a single DOM element or an array of elements
@@ -41003,7 +42423,7 @@ qx.Bootstrap.define("qx.module.Manipulating", {
      * <strong>Note:</strong> When a complex HTML string is provided the <code>innerHTML</code>
      * mechanism of the browser is used. Some browsers do filter out elements like <code>&lt;html&gt;</code>,
      * <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code>. The better approach is to create
-     * a single element and the appending the child nodes like in the example below.
+     * a single element and the appending the child nodes.
      *
      * @attachStatic{qxWeb}
      * @param html {String|Element[]} HTML string or DOM element(s)
@@ -41013,13 +42433,15 @@ qx.Bootstrap.define("qx.module.Manipulating", {
     create : function(html, context){
 
       return qxWeb.$init(qx.bom.Html.clean([html], context), qxWeb);
-    },
+    }
+  },
+  members : {
     /**
      * Clones the items in the current collection and returns them in a new set.
      * Event listeners can also be cloned.
      *
      * @attach{qxWeb}
-     * @param events {Boolean} clone event listeners. Default: <pre>false</pre>
+     * @param events {Boolean} clone event listeners. Default: <code>false</code>
      * @return {qxWeb} New collection with clones
      */
     clone : function(events){
@@ -41161,26 +42583,6 @@ qx.Bootstrap.define("qx.module.Manipulating", {
       return this;
     },
     /**
-     * Returns an array from a selector expression or a single element
-     *
-     * @attach{qxWeb}
-     * @param arg {String|Element} Selector expression or DOM element
-     * @return {Element[]} Array of elements
-     * @internal
-     */
-    __getElementArray : function(arg){
-
-      if(!qx.lang.Type.isArray(arg)){
-
-        var fromSelector = qxWeb(arg);
-        arg = fromSelector.length > 0 ? fromSelector : [arg];
-      };
-      return arg.filter(function(item){
-
-        return (item && (item.nodeType === 1 || item.nodeType === 11));
-      });
-    },
-    /**
      * Wraps each element in the collection in a copy of an HTML structure.
      * Elements will be appended to the deepest nested element in the structure
      * as determined by a depth-first search.
@@ -41205,56 +42607,6 @@ qx.Bootstrap.define("qx.module.Manipulating", {
         qx.dom.Element.insertEnd(item, innermost);
       });
       return this;
-    },
-    /**
-     * Creates a new collection from the given argument
-     * @param arg {var} Selector expression, HTML string, DOM element or list of
-     * DOM elements
-     * @return {qxWeb} Collection
-     * @internal
-     */
-    __getCollectionFromArgument : function(arg){
-
-      var coll;
-      // Collection/array of DOM elements
-      if(qx.lang.Type.isArray(arg)){
-
-        coll = qxWeb(arg);
-      } else {
-
-        var arr = qx.bom.Html.clean([arg]);
-        if(arr.length > 0 && qx.dom.Node.isElement(arr[0])){
-
-          coll = qxWeb(arr);
-        } else {
-
-          coll = qxWeb(arg);
-        };
-      };
-      return coll;
-    },
-    /**
-     * Returns the innermost element of a DOM tree as determined by a simple
-     * depth-first search.
-     *
-     * @param element {Element} Root element
-     * @return {Element} innermost element
-     * @internal
-     */
-    __getInnermostElement : function(element){
-
-      if(element.childNodes.length == 0){
-
-        return element;
-      };
-      for(var i = 0,l = element.childNodes.length;i < l;i++){
-
-        if(element.childNodes[i].nodeType === 1){
-
-          return this.__getInnermostElement(element.childNodes[i]);
-        };
-      };
-      return element;
     },
     /**
      * Removes each element in the current collection from the DOM
@@ -41401,48 +42753,6 @@ qx.Bootstrap.define("qx.module.Manipulating", {
       };
       return obj.scrollTop;
     },
-    /** Default animation descriptions for animated scrolling **/
-    _animationDescription : {
-      scrollLeft : {
-        duration : 700,
-        timing : "ease-in",
-        keep : 100,
-        keyFrames : {
-          '0' : {
-          },
-          '100' : {
-            scrollLeft : 1
-          }
-        }
-      },
-      scrollTop : {
-        duration : 700,
-        timing : "ease-in",
-        keep : 100,
-        keyFrames : {
-          '0' : {
-          },
-          '100' : {
-            scrollTop : 1
-          }
-        }
-      }
-    },
-    /**
-     * Performs animated scrolling
-     *
-     * @param property {String} Element property to animate: <code>scrollLeft</code>
-     * or <code>scrollTop</code>
-     * @param value {Number} Final scroll position
-     * @param duration {Number} The animation's duration in ms
-     * @return {q} The collection for chaining.
-     */
-    __animateScroll : function(property, value, duration){
-
-      var desc = qx.lang.Object.clone(qx.module.Manipulating._animationDescription[property], true);
-      desc.keyFrames[100][property] = value;
-      return this.animate(desc, duration);
-    },
     /**
      * Scrolls the elements of the collection to the given coordinate.
      *
@@ -41547,27 +42857,7 @@ qx.Bootstrap.define("qx.module.Manipulating", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "create" : statics.create
-    });
-    qxWeb.$attach({
-      "append" : statics.append,
-      "appendTo" : statics.appendTo,
-      "remove" : statics.remove,
-      "empty" : statics.empty,
-      "before" : statics.before,
-      "insertBefore" : statics.insertBefore,
-      "after" : statics.after,
-      "insertAfter" : statics.insertAfter,
-      "wrap" : statics.wrap,
-      "clone" : statics.clone,
-      "getScrollLeft" : statics.getScrollLeft,
-      "setScrollLeft" : statics.setScrollLeft,
-      "getScrollTop" : statics.getScrollTop,
-      "setScrollTop" : statics.setScrollTop,
-      "focus" : statics.focus,
-      "blur" : statics.blur
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -41592,12 +42882,6 @@ qx.Bootstrap.define("qx.module.Manipulating", {
 /**
  * Provides a way to block elements so they will no longer receive (native)
  * events by overlaying them with a DIV element.
- *
- * The blocker can also be applied to the entire document, e.g.:
- *
- * <pre class="javascript">
- * q(document).block();
- * </pre>
  *
  * @require(qx.module.Environment)
  * @require(qx.module.Manipulating)
@@ -41711,7 +42995,9 @@ qxWeb.define("qx.module.Blocker", {
         };
       });
       return blockerElements;
-    },
+    }
+  },
+  members : {
     /**
      * Adds an overlay to all items in the collection that intercepts mouse
      * events.
@@ -41771,11 +43057,7 @@ qxWeb.define("qx.module.Blocker", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "block" : statics.block,
-      "unblock" : statics.unblock,
-      "getBlocker" : statics.getBlocker
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -41857,7 +43139,9 @@ qx.Bootstrap.define("qx.module.MatchMedia", {
 
         this.removeClass(className);
       };
-    },
+    }
+  },
+  members : {
     /**
      * Listens for media query updates and applies/removes the css class.
      *
@@ -41879,13 +43163,7 @@ qx.Bootstrap.define("qx.module.MatchMedia", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      matchMedia : statics.matchMedia,
-      addSizeClasses : statics.addSizeClasses
-    });
-    qxWeb.$attach({
-      mediaQueryToClass : statics.mediaQueryToClass
-    });
+    qxWeb.$attachAll(this);
   }
 });
 
@@ -42335,22 +43613,6 @@ qx.Bootstrap.define("qx.module.Animation", {
   },
   statics : {
     /**
-     * Returns the stored animation handles. The handles are only
-     * available while an animation is running.
-     *
-     * @internal
-     * @return {Array} An array of animation handles.
-     */
-    getAnimationHandles : function(){
-
-      var animationHandles = [];
-      for(var i = 0;i < this.length;i++){
-
-        animationHandles[i] = this[i].$$animation;
-      };
-      return animationHandles;
-    },
-    /**
      * Animation description used in {@link #fadeOut}.
      */
     _fadeOut : {
@@ -42382,76 +43644,6 @@ qx.Bootstrap.define("qx.module.Animation", {
           opacity : 1
         }
       }
-    },
-    /**
-     * Starts the animation with the given description.
-     * The description should be a map, which could look like this:
-     *
-     * <pre class="javascript">
-     * {
-     *   "duration": 1000,
-     *   "keep": 100,
-     *   "keyFrames": {
-     *     0 : {"opacity": 1, "scale": 1},
-     *     100 : {"opacity": 0, "scale": 0}
-     *   },
-     *   "origin": "50% 50%",
-     *   "repeat": 1,
-     *   "timing": "ease-out",
-     *   "alternate": false,
-     *   "delay": 2000
-     * }
-     * </pre>
-     *
-     * *duration* is the time in milliseconds one animation cycle should take.
-     *
-     * *keep* is the key frame to apply at the end of the animation. (optional)
-     *
-     * *keyFrames* is a map of separate frames. Each frame is defined by a
-     *   number which is the percentage value of time in the animation. The value
-     *   is a map itself which holds css properties or transforms
-     *   (Transforms only for CSS Animations).
-     *
-     * *origin* maps to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin">transform origin</a>
-     * (Only for CSS animations).
-     *
-     * *repeat* is the amount of time the animation should be run in
-     *   sequence. You can also use "infinite".
-     *
-     * *timing* takes one of these predefined values:
-     *   <code>ease</code> | <code>linear</code> | <code>ease-in</code>
-     *   | <code>ease-out</code> | <code>ease-in-out</code> |
-     *   <code>cubic-bezier(&lt;number&gt;, &lt;number&gt;, &lt;number&gt;, &lt;number&gt;)</code>
-     *   (cubic-bezier only available for CSS animations)
-     *
-     * *alternate* defines if every other animation should be run in reverse order.
-     *
-     * *delay* is the time in milliseconds the animation should wait before start.
-     *
-     * @attach {qxWeb}
-     * @param desc {Map} The animation"s description.
-     * @param duration {Number?} The duration in milliseconds of the animation,
-     *   which will override the duration given in the description.
-     * @return {qxWeb} The collection for chaining.
-     */
-    animate : function(desc, duration){
-
-      qx.module.Animation._animate.bind(this)(desc, duration, false);
-      return this;
-    },
-    /**
-     * Starts an animation in reversed order. For further details, take a look at
-     * the {@link #animate} method.
-     * @attach {qxWeb}
-     * @param desc {Map} The animation"s description.
-     * @param duration {Number?} The duration in milliseconds of the animation,
-     *   which will override the duration given in the description.
-     * @return {qxWeb} The collection for chaining.
-     */
-    animateReverse : function(desc, duration){
-
-      qx.module.Animation._animate.bind(this)(desc, duration, true);
-      return this;
     },
     /**
      * Animation execute either regular or reversed direction.
@@ -42502,6 +43694,77 @@ qx.Bootstrap.define("qx.module.Animation", {
           self.emit("animationEnd");
         }, el);
       });
+    }
+  },
+  members : {
+    /**
+     * Returns the stored animation handles. The handles are only
+     * available while an animation is running.
+     *
+     * @internal
+     * @return {Array} An array of animation handles.
+     */
+    getAnimationHandles : function(){
+
+      var animationHandles = [];
+      for(var i = 0;i < this.length;i++){
+
+        animationHandles[i] = this[i].$$animation;
+      };
+      return animationHandles;
+    },
+    /**
+     * Starts the animation with the given description.
+     *
+     * *duration* is the time in milliseconds one animation cycle should take.
+     *
+     * *keep* is the key frame to apply at the end of the animation. (optional)
+     *
+     * *keyFrames* is a map of separate frames. Each frame is defined by a
+     *   number which is the percentage value of time in the animation. The value
+     *   is a map itself which holds css properties or transforms
+     *   (Transforms only for CSS Animations).
+     *
+     * *origin* maps to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin">transform origin</a>
+     * (Only for CSS animations).
+     *
+     * *repeat* is the amount of time the animation should be run in
+     *   sequence. You can also use "infinite".
+     *
+     * *timing* takes one of these predefined values:
+     *   <code>ease</code> | <code>linear</code> | <code>ease-in</code>
+     *   | <code>ease-out</code> | <code>ease-in-out</code> |
+     *   <code>cubic-bezier(&lt;number&gt;, &lt;number&gt;, &lt;number&gt;, &lt;number&gt;)</code>
+     *   (cubic-bezier only available for CSS animations)
+     *
+     * *alternate* defines if every other animation should be run in reverse order.
+     *
+     * *delay* is the time in milliseconds the animation should wait before start.
+     *
+     * @attach {qxWeb}
+     * @param desc {Map} The animation"s description.
+     * @param duration {Number?} The duration in milliseconds of the animation,
+     *   which will override the duration given in the description.
+     * @return {qxWeb} The collection for chaining.
+     */
+    animate : function(desc, duration){
+
+      qx.module.Animation._animate.bind(this)(desc, duration, false);
+      return this;
+    },
+    /**
+     * Starts an animation in reversed order. For further details, take a look at
+     * the {@link #animate} method.
+     * @attach {qxWeb}
+     * @param desc {Map} The animation"s description.
+     * @param duration {Number?} The duration in milliseconds of the animation,
+     *   which will override the duration given in the description.
+     * @return {qxWeb} The collection for chaining.
+     */
+    animateReverse : function(desc, duration){
+
+      qx.module.Animation._animate.bind(this)(desc, duration, true);
+      return this;
     },
     /**
      * Manipulates the play state of the animation.
@@ -42615,18 +43878,7 @@ qx.Bootstrap.define("qx.module.Animation", {
   },
   defer : function(statics){
 
-    qxWeb.$attach({
-      "animate" : statics.animate,
-      "animateReverse" : statics.animateReverse,
-      "fadeIn" : statics.fadeIn,
-      "fadeOut" : statics.fadeOut,
-      "play" : statics.play,
-      "pause" : statics.pause,
-      "stop" : statics.stop,
-      "isEnded" : statics.isEnded,
-      "isPlaying" : statics.isPlaying,
-      "getAnimationHandles" : statics.getAnimationHandles
-    });
+    qxWeb.$attachAll(this);
     /**
      * End value for opacity style. This value is modified for all browsers which are
      * 'optimizing' this style value by not setting it (like IE9). This leads to a wrong
@@ -42965,7 +44217,10 @@ qx.Bootstrap.define("qx.bom.element.AnimationCss", {
      */
     __onAnimationStart : function(e){
 
-      e.target.$$animation.emit("start", e.target);
+      if(e.target.$$animation){
+
+        e.target.$$animation.emit("start", e.target);
+      };
     },
     /**
      * Handler for the animation iteration.
@@ -43155,7 +44410,36 @@ qx.Bootstrap.define("qx.bom.element.AnimationCss", {
       qx.bom.Stylesheet.addRule(this.__sheet, selector, rule);
       this.__rules[rule] = name;
       return name;
+    },
+    /**
+     * Internal helper to reset the cache.
+     */
+    __clearCache : function(){
+
+      this.__id = 0;
+      if(this.__sheet){
+
+        this.__sheet.ownerNode.remove();
+        this.__sheet = null;
+        this.__rules = {
+        };
+      };
     }
+  },
+  defer : function(statics){
+
+    // iOS 8 seems to stumble over the old sheet object on tab
+    // changes or leaving the browser [BUG #8986]
+    if(qx.core.Environment.get("os.name") === "ios" && parseInt(qx.core.Environment.get("os.version")) >= 8){
+
+      document.addEventListener("visibilitychange", function(){
+
+        if(!document.hidden){
+
+          statics.__clearCache();
+        };
+      }, false);
+    };
   }
 });
 
@@ -44193,7 +45477,7 @@ qx.Bootstrap.define("qx.util.ColorUtil", {
       var red = parseInt(RegExp.$1, 10);
       var green = parseInt(RegExp.$2, 10);
       var blue = parseInt(RegExp.$3, 10);
-      var alpha = parseInt(RegExp.$4, 10);
+      var alpha = parseFloat(RegExp.$4, 10);
       if(red === 0 && green === 0 & blue === 0 && alpha === 0){
 
         return [-1, -1, -1];
@@ -44429,629 +45713,6 @@ qx.Bootstrap.define("qx.util.ColorUtil", {
    http://qooxdoo.org
 
    Copyright:
-     2009 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Fabian Jakobs (fjakobs)
-     * Christian Hagendorn (chris_schmidt)
-
-************************************************************************ */
-/**
- * Abstract class to compute the position of an object on one axis.
- */
-qx.Bootstrap.define("qx.util.placement.AbstractAxis", {
-  extend : Object,
-  statics : {
-    /**
-     * Computes the start of the object on the axis
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param areaSize {Integer} Size of the axis.
-     * @param position {String} Alignment of the object on the target. Valid values are
-     *   <ul>
-     *   <li><code>edge-start</code> The object is placed before the target</li>
-     *   <li><code>edge-end</code> The object is placed after the target</li>
-     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
-     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
-     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
-     *   </ul>
-     * @return {Integer} The computed start position of the object.
-     * @abstract
-     */
-    computeStart : function(size, target, offsets, areaSize, position){
-
-      throw new Error("abstract method call!");
-    },
-    /**
-     * Computes the start of the object by taking only the attachment and
-     * alignment into account. The object by be not fully visible.
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param position {String} Accepts the same values as the <code> position</code>
-     *   argument of {@link #computeStart}.
-     * @return {Integer} The computed start position of the object.
-     */
-    _moveToEdgeAndAlign : function(size, target, offsets, position){
-
-      switch(position){case "edge-start":
-      return target.start - offsets.end - size;case "edge-end":
-      return target.end + offsets.start;case "align-start":
-      return target.start + offsets.start;case "align-center":
-      return target.start + parseInt((target.end - target.start - size) / 2, 10) + offsets.start;case "align-end":
-      return target.end - offsets.end - size;};
-    },
-    /**
-     * Whether the object specified by <code>start</code> and <code>size</code>
-     * is completely inside of the axis' range..
-     *
-     * @param start {Integer} Computed start position of the object
-     * @param size {Integer} Size of the object
-     * @param areaSize {Integer} The size of the axis
-     * @return {Boolean} Whether the object is inside of the axis' range
-     */
-    _isInRange : function(start, size, areaSize){
-
-      return start >= 0 && start + size <= areaSize;
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2009 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Fabian Jakobs (fjakobs)
-     * Christian Hagendorn (chris_schmidt)
-
-************************************************************************ */
-/**
- * Places the object directly at the specified position. It is not moved if
- * parts of the object are outside of the axis' range.
- */
-qx.Bootstrap.define("qx.util.placement.DirectAxis", {
-  statics : {
-    /**
-     * Computes the start of the object by taking only the attachment and
-     * alignment into account. The object by be not fully visible.
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param position {String} Accepts the same values as the <code> position</code>
-     *   argument of {@link #computeStart}.
-     * @return {Integer} The computed start position of the object.
-     */
-    _moveToEdgeAndAlign : qx.util.placement.AbstractAxis._moveToEdgeAndAlign,
-    /**
-     * Computes the start of the object on the axis
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param areaSize {Integer} Size of the axis.
-     * @param position {String} Alignment of the object on the target. Valid values are
-     *   <ul>
-     *   <li><code>edge-start</code> The object is placed before the target</li>
-     *   <li><code>edge-end</code> The object is placed after the target</li>
-     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
-     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
-     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
-     *   </ul>
-     * @return {Integer} The computed start position of the object.
-     */
-    computeStart : function(size, target, offsets, areaSize, position){
-
-      return this._moveToEdgeAndAlign(size, target, offsets, position);
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2009 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Fabian Jakobs (fjakobs)
-     * Christian Hagendorn (chris_schmidt)
-
-************************************************************************ */
-/**
- * Places the object to the target. If parts of the object are outside of the
- * range this class places the object at the best "edge", "alignment"
- * combination so that the overlap between object and range is maximized.
- */
-qx.Bootstrap.define("qx.util.placement.KeepAlignAxis", {
-  statics : {
-    /**
-     * Computes the start of the object by taking only the attachment and
-     * alignment into account. The object by be not fully visible.
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param position {String} Accepts the same values as the <code> position</code>
-     *   argument of {@link #computeStart}.
-     * @return {Integer} The computed start position of the object.
-     */
-    _moveToEdgeAndAlign : qx.util.placement.AbstractAxis._moveToEdgeAndAlign,
-    /**
-     * Whether the object specified by <code>start</code> and <code>size</code>
-     * is completely inside of the axis' range..
-     *
-     * @param start {Integer} Computed start position of the object
-     * @param size {Integer} Size of the object
-     * @param areaSize {Integer} The size of the axis
-     * @return {Boolean} Whether the object is inside of the axis' range
-     */
-    _isInRange : qx.util.placement.AbstractAxis._isInRange,
-    /**
-     * Computes the start of the object on the axis
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param areaSize {Integer} Size of the axis.
-     * @param position {String} Alignment of the object on the target. Valid values are
-     *   <ul>
-     *   <li><code>edge-start</code> The object is placed before the target</li>
-     *   <li><code>edge-end</code> The object is placed after the target</li>
-     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
-     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
-     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
-     *   </ul>
-     * @return {Integer} The computed start position of the object.
-     */
-    computeStart : function(size, target, offsets, areaSize, position){
-
-      var start = this._moveToEdgeAndAlign(size, target, offsets, position);
-      var range1End,range2Start;
-      if(this._isInRange(start, size, areaSize)){
-
-        return start;
-      };
-      if(position == "edge-start" || position == "edge-end"){
-
-        range1End = target.start - offsets.end;
-        range2Start = target.end + offsets.start;
-      } else {
-
-        range1End = target.end - offsets.end;
-        range2Start = target.start + offsets.start;
-      };
-      if(range1End > areaSize - range2Start){
-
-        start = Math.max(0, range1End - size);
-      } else {
-
-        start = range2Start;
-      };
-      return start;
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2009 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Fabian Jakobs (fjakobs)
-     * Christian Hagendorn (chris_schmidt)
-
-************************************************************************ */
-/**
- * Places the object according to the target. If parts of the object are outside
- * of the axis' range the object's start is adjusted so that the overlap between
- * the object and the axis is maximized.
- */
-qx.Bootstrap.define("qx.util.placement.BestFitAxis", {
-  statics : {
-    /**
-     * Whether the object specified by <code>start</code> and <code>size</code>
-     * is completely inside of the axis' range..
-     *
-     * @param start {Integer} Computed start position of the object
-     * @param size {Integer} Size of the object
-     * @param areaSize {Integer} The size of the axis
-     * @return {Boolean} Whether the object is inside of the axis' range
-     */
-    _isInRange : qx.util.placement.AbstractAxis._isInRange,
-    /**
-     * Computes the start of the object by taking only the attachment and
-     * alignment into account. The object by be not fully visible.
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param position {String} Accepts the same values as the <code> position</code>
-     *   argument of {@link #computeStart}.
-     * @return {Integer} The computed start position of the object.
-     */
-    _moveToEdgeAndAlign : qx.util.placement.AbstractAxis._moveToEdgeAndAlign,
-    /**
-     * Computes the start of the object on the axis
-     *
-     * @param size {Integer} Size of the object to align
-     * @param target {Map} Location of the object to align the object to. This map
-     *   should have the keys <code>start</code> and <code>end</code>.
-     * @param offsets {Map} Map with all offsets on each side.
-     *   Comes with the keys <code>start</code> and <code>end</code>.
-     * @param areaSize {Integer} Size of the axis.
-     * @param position {String} Alignment of the object on the target. Valid values are
-     *   <ul>
-     *   <li><code>edge-start</code> The object is placed before the target</li>
-     *   <li><code>edge-end</code> The object is placed after the target</li>
-     *   <li><code>align-start</code>The start of the object is aligned with the start of the target</li>
-     *   <li><code>align-center</code>The center of the object is aligned with the center of the target</li>
-     *   <li><code>align-end</code>The end of the object is aligned with the end of the object</li>
-     *   </ul>
-     * @return {Integer} The computed start position of the object.
-     */
-    computeStart : function(size, target, offsets, areaSize, position){
-
-      var start = this._moveToEdgeAndAlign(size, target, offsets, position);
-      if(this._isInRange(start, size, areaSize)){
-
-        return start;
-      };
-      if(start < 0){
-
-        start = Math.min(0, areaSize - size);
-      };
-      if(start + size > areaSize){
-
-        start = Math.max(0, areaSize - size);
-      };
-      return start;
-    }
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
-     2012 1&1 Internet AG, Germany, http://www.1und1.de
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Daniel Wagner (danielwagner)
-
-************************************************************************ */
-/**
- * The Placement module provides a convenient way to align two elements relative
- * to each other using various pre-defined algorithms.
- *
- * @require(qx.util.placement.KeepAlignAxis#computeStart)
- * @require(qx.util.placement.BestFitAxis#computeStart)
- * @require(qx.util.placement.DirectAxis#computeStart)
- */
-qxWeb.define("qx.module.Placement", {
-  statics : {
-    /**
-     * Moves the first element in the collection, aligning it with the given
-     * target.
-     *
-     * <div>
-     * <strong>NOTE:</strong> The <code>placeTo</code> method also works for hidden
-     * elements. However, the visibility / display styles are only manipulated during
-     * the placement operation. As a result a previously hidden element <strong>stays hidden</strong>
-     * </div>
-     *
-     * <div>
-     * <strong>NOTE:</strong> If the target is changing its position due e.g. a DOM manipulation the
-     * placed element <strong>is not</strong> updated automatically. You have to call <code>placeTo</code>
-     * again to place the element to the target. The element is <strong>always</strong> positioned by using
-     * <code>position:absolute</code> independently on the chosen <code>position</code> and <code>mode</code>.
-     * </div>
-     *
-     * @attach{qxWeb}
-     * @param target {Element} Placement target
-     * @param position {String} Alignment of the object with the target, any of
-     * <code>"top-left"</code>, <code>"top-center"</code>, <code>"top-right"</code>,
-     * <code>"bottom-left"</code>, <code>"bottom-center"</code>, <code>"bottom-right"</code>,
-     * <code>"left-top"</code>, <code>"left-middle"</code>, <code>"left-bottom"</code>,
-     * <code>"right-top"</code>, <code>"right-middle"</code>, <code>"right-bottom"</code>
-     * @param offsets {Map?null} Map with the desired offsets between the two elements.
-     * Must contain the keys <code>left</code>, <code>top</code>,
-     * <code>right</code> and <code>bottom</code>
-     * @param modeX {String?"direct"} Horizontal placement mode. Valid values are:
-     *   <ul>
-     *   <li><code>direct</code>: place the element directly at the given
-     *   location.</li>
-     *   <li><code>keep-align</code>: if the element is partially outside of the
-     *   visible area, it is moved to the best fitting 'edge' and 'alignment' of
-     *   the target.
-     *   It is guaranteed the the new position attaches the object to one of the
-     *   target edges and that it is aligned with a target edge.</li>
-     *   <li><code>best-fit</code>: If the element is partially outside of the visible
-     *   area, it is moved into the view port, ignoring any offset and position
-     *   values.</li>
-     *   </ul>
-     * @param modeY {String?"direct"} Vertical placement mode. Accepts the same values as
-     *   the 'modeX' argument.
-     * @return {qxWeb} The collection for chaining
-     */
-    placeTo : function(target, position, offsets, modeX, modeY){
-
-      if(!this[0] || !target){
-
-        return this;
-      };
-      target = qxWeb(target);
-      // make sure the DOM elements are rendered so we can get the size of them.
-      // It's not necessary to move them out of the viewport - just out of the
-      // layout flow.
-      var visible = this.isRendered();
-      var displayStyleValue = null;
-      var visibilityStyleValue = null;
-      if(!visible){
-
-        // do not use the computed style value otherwise we will mess up the styles
-        // when resetting them, since these styles might also be set via a CSS class.
-        displayStyleValue = this[0].style.display;
-        visibilityStyleValue = this[0].style.visibility;
-        this.setStyles({
-          position : "absolute",
-          visibility : "hidden",
-          display : "block"
-        });
-      };
-      var axes = {
-        x : qx.module.Placement._getAxis(modeX),
-        y : qx.module.Placement._getAxis(modeY)
-      };
-      var size = {
-        width : this.getWidth(),
-        height : this.getHeight()
-      };
-      var parent = this.getParents();
-      var area = {
-        width : parent.getWidth(),
-        height : parent.getHeight()
-      };
-      offsets = offsets || {
-        top : 0,
-        right : 0,
-        bottom : 0,
-        left : 0
-      };
-      var split = position.split("-");
-      var edge = split[0];
-      var align = split[1];
-      var newPosition = {
-        x : qx.module.Placement._getPositionX(edge, align),
-        y : qx.module.Placement._getPositionY(edge, align)
-      };
-      var targetLocation;
-      var parentPositioning = parent.getStyle("position");
-      if(parentPositioning == "relative" || parentPositioning == "static"){
-
-        targetLocation = target.getOffset();
-      } else {
-
-        var targetPos = target.getPosition();
-        targetLocation = {
-          top : targetPos.top,
-          bottom : targetPos.top + target.getHeight(),
-          left : targetPos.left,
-          right : targetPos.left + target.getWidth()
-        };
-      };
-      var newLocation = qx.module.Placement._computePlacement(axes, size, area, targetLocation, offsets, newPosition);
-      while(parent.length > 0){
-
-        if(parent.getStyle("position") == "relative"){
-
-          var offset = parent.getOffset();
-          var borderTop = parseInt(parent.getStyle("border-top-width")) || 0;
-          var borderLeft = parseInt(parent.getStyle("border-left-width")) || 0;
-          newLocation.left -= (offset.left + borderLeft);
-          newLocation.top -= (offset.top + borderTop);
-          parent = [];
-        } else {
-
-          parent = parent.getParents();
-        };
-      };
-      // Reset the styles to hide the element if it was previously hidden
-      if(!visible){
-
-        this[0].style.display = displayStyleValue;
-        this[0].style.visibility = visibilityStyleValue;
-      };
-      this.setStyles({
-        position : "absolute",
-        left : newLocation.left + "px",
-        top : newLocation.top + "px"
-      });
-      return this;
-    },
-    /**
-     * Returns the appropriate axis implementation for the given placement
-     * mode
-     *
-     * @param mode {String} Placement mode
-     * @return {Object} Placement axis class
-     */
-    _getAxis : function(mode){
-
-      switch(mode){case "keep-align":
-      return qx.util.placement.KeepAlignAxis;case "best-fit":
-      return qx.util.placement.BestFitAxis;case "direct":default:
-      return qx.util.placement.DirectAxis;};
-    },
-    /**
-     * Returns the computed coordinates for the element to be placed
-     *
-     * @param axes {Map} Map with the keys <code>x</code> and <code>y</code>. Values
-     * are the axis implementations
-     * @param size {Map} Map with the keys <code>width</code> and <code>height</code>
-     * containing the size of the placement target
-     * @param area {Map} Map with the keys <code>width</code> and <code>height</code>
-     * containing the size of the two elements' common parent (available space for
-     * placement)
-     * @param target {Map} Location of the object to align the object to. This map
-     * should have the keys <code>left</code>, <code>top</code>, <code>right</code>
-     * and <code>bottom</code>
-     * @param offsets {Map} Map of offsets (top, right, bottom, left)
-     * @param position {Map} Map with the keys <code>x</code> and <code>y</code>,
-     * containing the type of positioning for each axis
-     * @return {Map} Map with the keys <code>left</code> and <code>top</code>
-     * containing the computed coordinates to which the element should be moved
-     */
-    _computePlacement : function(axes, size, area, target, offsets, position){
-
-      var left = axes.x.computeStart(size.width, {
-        start : target.left,
-        end : target.right
-      }, {
-        start : offsets.left,
-        end : offsets.right
-      }, area.width, position.x);
-      var top = axes.y.computeStart(size.height, {
-        start : target.top,
-        end : target.bottom
-      }, {
-        start : offsets.top,
-        end : offsets.bottom
-      }, area.height, position.y);
-      return {
-        left : left,
-        top : top
-      };
-    },
-    /**
-     * Returns the X axis positioning type for the given edge and alignment
-     * values
-     *
-     * @param edge {String} edge value
-     * @param align {String} align value
-     * @return {String} X positioning type
-     */
-    _getPositionX : function(edge, align){
-
-      if(edge == "left"){
-
-        return "edge-start";
-      } else if(edge == "right"){
-
-        return "edge-end";
-      } else if(align == "left"){
-
-        return "align-start";
-      } else if(align == "center"){
-
-        return "align-center";
-      } else if(align == "right"){
-
-        return "align-end";
-      };;;;
-    },
-    /**
-     * Returns the Y axis positioning type for the given edge and alignment
-     * values
-     *
-     * @param edge {String} edge value
-     * @param align {String} align value
-     * @return {String} Y positioning type
-     */
-    _getPositionY : function(edge, align){
-
-      if(edge == "top"){
-
-        return "edge-start";
-      } else if(edge == "bottom"){
-
-        return "edge-end";
-      } else if(align == "top"){
-
-        return "align-start";
-      } else if(align == "middle"){
-
-        return "align-center";
-      } else if(align == "bottom"){
-
-        return "align-end";
-      };;;;
-    }
-  },
-  defer : function(statics){
-
-    qxWeb.$attach({
-      "placeTo" : statics.placeTo
-    });
-  }
-});
-
-/* ************************************************************************
-
-   qooxdoo - the new era of web development
-
-   http://qooxdoo.org
-
-   Copyright:
      2012 1&1 Internet AG, Germany, http://www.1und1.de
 
    License:
@@ -45216,22 +45877,7 @@ qx.Bootstrap.define("qx.module.util.Array", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      array : {
-        cast : statics.cast,
-        equals : statics.equals,
-        exclude : statics.exclude,
-        fromArguments : statics.fromArguments,
-        insertAfter : statics.insertAfter,
-        insertBefore : statics.insertBefore,
-        max : statics.max,
-        min : statics.min,
-        remove : statics.remove,
-        removeAll : statics.removeAll,
-        unique : statics.unique,
-        range : statics.range
-      }
-    });
+    qxWeb.$attachAll(this, "array");
   }
 });
 
@@ -45291,52 +45937,6 @@ qx.Bootstrap.define("qx.module.Placeholder", {
 
         qxWeb("input[placeholder], textarea[placeholder]").updatePlaceholder();
       };
-    },
-    /**
-     * Updates the placeholders for input's and textarea's in the collection.
-     * This includes positioning, styles and DOM positioning.
-     * In case the browser supports native placeholders, this methods simply
-     * does nothing.
-     *
-     * @attach {qxWeb}
-     * @return {qxWeb} The collection for chaining
-     */
-    updatePlaceholder : function(){
-
-      // ignore everything if native placeholder are supported
-      if(!qxWeb.env.get("css.placeholder")){
-
-        for(var i = 0;i < this.length;i++){
-
-          var item = qxWeb(this[i]);
-          // ignore all not fitting items in the collection
-          var placeholder = item.getAttribute("placeholder");
-          var tagName = item.getProperty("tagName");
-          if(!placeholder || (tagName != "TEXTAREA" && tagName != "INPUT")){
-
-            continue;
-          };
-          // create the element if necessary
-          var placeholderEl = item.getProperty(qx.module.Placeholder.PLACEHOLDER_NAME);
-          if(!placeholderEl){
-
-            placeholderEl = qx.module.Placeholder.__createPlaceholderElement(item);
-          };
-          // remove and add handling
-          var itemInBody = item.isRendered();
-          var placeholderElInBody = placeholderEl.isRendered();
-          if(itemInBody && !placeholderElInBody){
-
-            item.before(placeholderEl);
-          } else if(!itemInBody && placeholderElInBody){
-
-            placeholderEl.remove();
-            return this;
-          };
-          qx.module.Placeholder.__syncStyles(item);
-        };
-      };
-      return this;
     },
     /**
      * Internal helper method to update the styles for a given input element.
@@ -45401,16 +46001,57 @@ qx.Bootstrap.define("qx.module.Placeholder", {
       return placeholderEl;
     }
   },
+  members : {
+    /**
+     * Updates the placeholders for input's and textarea's in the collection.
+     * This includes positioning, styles and DOM positioning.
+     * In case the browser supports native placeholders, this methods simply
+     * does nothing.
+     *
+     * @attach {qxWeb}
+     * @return {qxWeb} The collection for chaining
+     */
+    updatePlaceholder : function(){
+
+      // ignore everything if native placeholder are supported
+      if(!qxWeb.env.get("css.placeholder")){
+
+        for(var i = 0;i < this.length;i++){
+
+          var item = qxWeb(this[i]);
+          // ignore all not fitting items in the collection
+          var placeholder = item.getAttribute("placeholder");
+          var tagName = item.getProperty("tagName");
+          if(!placeholder || (tagName != "TEXTAREA" && tagName != "INPUT")){
+
+            continue;
+          };
+          // create the element if necessary
+          var placeholderEl = item.getProperty(qx.module.Placeholder.PLACEHOLDER_NAME);
+          if(!placeholderEl){
+
+            placeholderEl = qx.module.Placeholder.__createPlaceholderElement(item);
+          };
+          // remove and add handling
+          var itemInBody = item.isRendered();
+          var placeholderElInBody = placeholderEl.isRendered();
+          if(itemInBody && !placeholderElInBody){
+
+            item.before(placeholderEl);
+          } else if(!itemInBody && placeholderElInBody){
+
+            placeholderEl.remove();
+            return this;
+          };
+          qx.module.Placeholder.__syncStyles(item);
+        };
+      };
+      return this;
+    }
+  },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "placeholder" : {
-        update : statics.update
-      }
-    });
-    qxWeb.$attach({
-      "updatePlaceholder" : statics.updatePlaceholder
-    });
+    qxWeb.$attachAll(this, "placeholder");
   }
 });
 
@@ -45439,37 +46080,6 @@ qx.Bootstrap.define("qx.module.Placeholder", {
  * Automatically creates URL filtering rules to ensure that only configured
  * requests are faked while others will be processed normally by the browser's
  * XHR implementation.
- *
- * The following example shows how to configure mock responses for two different
- * requests:
- * <pre class="javascript">
- *   var responseData = [
- *     {
- *       method: "GET",
- *       url: /\/api\/resource\/\d+/,
- *       response : function(request) {
- *         var status = 200;
- *         var headers = { "Content-Type": "application/json" };
- *         var responseData = {
- *           description: "Mock REST response for resource " + request.url
- *         };
- *         var body = JSON.stringify(responseData);
- *         request.respond(status, headers, body);
- *       }
- *     },
- *     {
- *       method: "GET",
- *       url: "/users/{userId}",
- *       response: [
- *         200,
- *         { "Content-Type": "application/json" },
- *         JSON.stringify({userId: 'someUser'})
- *       ]
- *     }
- *   ];
- *
- *   q.dev.fakeServer.configure(responseData);
- * </pre>
  *
  * @group (IO)
  */
@@ -51405,13 +52015,6 @@ qx.Bootstrap.define("qx.event.handler.TouchCore", {
 ************************************************************************ */
 /**
  * Normalization for orientationchange events
- * Example:
- * <pre class="javascript">
- *   q(window).on("orientationchange", function(ev) {
- *     ev.getOrientation();
- *     ev.isLandscape();
- *   });
- * </pre>
  *
  * @require(qx.module.Event)
  *
@@ -51712,12 +52315,7 @@ qx.Bootstrap.define("qx.module.util.Function", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      func : {
-        debounce : statics.debounce,
-        throttle : statics.throttle
-      }
-    });
+    qxWeb.$attachAll(this, "func");
   }
 });
 
@@ -52430,13 +53028,7 @@ qx.Bootstrap.define("qx.module.Cookie", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      "cookie" : {
-        get : statics.get,
-        set : statics.set,
-        del : statics.del
-      }
-    });
+    qxWeb.$attachAll(this, "cookie");
   }
 });
 

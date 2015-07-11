@@ -1,15 +1,15 @@
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 (function(){
 if (!window.qx) window.qx = qxWeb.$$qx;
 var qx = window.qx;
 
 if (!qx.$$environment) qx.$$environment = {};
-var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"4.1"};
+var envinfo = {"json":true,"qx.application":"library.Application","qx.debug":true,"qx.debug.databinding":false,"qx.debug.dispose":false,"qx.debug.io":false,"qx.debug.ui.queue":false,"qx.globalErrorHandling":false,"qx.optimization.variants":true,"qx.revision":"","qx.theme":"qx.theme.Modern","qx.version":"5.0"};
 for (var k in envinfo) qx.$$environment[k] = envinfo[k];
 
 qx.$$packageData = {};
 
-/** qooxdoo v4.1 | (c) 2013 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
+/** qooxdoo v5.0 | (c) 2015 1&1 Internet AG, http://1und1.de | http://qooxdoo.org/license */
 qx.$$packageData['0']={"locales":{},"resources":{},"translations":{"C":{},"en":{}}};
 
 /* ************************************************************************
@@ -509,6 +509,10 @@ qx.Bootstrap.define("qx.bom.request.Xhr", {
     getResponseHeader : function(header){
 
       this.__checkDisposed();
+      if(qx.core.Environment.get("browser.documentmode") === 9 && this.__nativeXhr.aborted){
+
+        return "";
+      };
       return this.__nativeXhr.getResponseHeader(header);
     },
     /**
@@ -519,6 +523,10 @@ qx.Bootstrap.define("qx.bom.request.Xhr", {
     getAllResponseHeaders : function(){
 
       this.__checkDisposed();
+      if(qx.core.Environment.get("browser.documentmode") === 9 && this.__nativeXhr.aborted){
+
+        return "";
+      };
       return this.__nativeXhr.getAllResponseHeaders();
     },
     /**
@@ -915,6 +923,7 @@ qx.Bootstrap.define("qx.bom.request.Xhr", {
       // Set timeout flag
       this.__timeout = true;
       // No longer consider request. Abort.
+      nxhr.aborted = true;
       nxhr.abort();
       this.responseText = "";
       this.responseXML = null;
@@ -1388,13 +1397,7 @@ qx.Bootstrap.define("qx.module.Io", {
   },
   defer : function(statics){
 
-    qxWeb.$attachStatic({
-      io : {
-        xhr : statics.xhr,
-        script : statics.script,
-        jsonp : statics.jsonp
-      }
-    });
+    qxWeb.$attachAll(this, "io");
   }
 });
 

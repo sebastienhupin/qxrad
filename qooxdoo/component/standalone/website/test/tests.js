@@ -187,6 +187,10 @@ testrunner.define({
     var coll2 = q("h2", q(container1));
     this.assertEquals(1, coll2.length);
     this.assertEquals("inner1", coll2[0].id);
+
+    // empty collection as context
+    var coll3 = q("h2", q());
+    this.assertEquals(0, coll3.length);
   },
 
   testOverrideQxWebPrototypeMethods: function () {
@@ -224,6 +228,20 @@ testrunner.define({
       }
     }, true);
     this.assertEquals("bar", qxWeb(document.body).__attach_test());
+  },
+
+  testIndexOf : function() {
+    this.assertEquals([].indexOf(), qxWeb().indexOf());
+    this.assertEquals([0, 1].indexOf(1),
+      qxWeb([document.documentElement, document.body]).indexOf(document.body));
+    this.assertEquals([0, 1].indexOf(0, 1),
+      qxWeb([document.documentElement, document.body]).indexOf(document.documentElement, 1));
+    this.assertEquals([0].indexOf(0, 5),
+      qxWeb("#sandbox").indexOf(qxWeb("#sandbox")[0], 5));
+    this.assertEquals([0].indexOf(0, -5),
+      qxWeb("#sandbox").indexOf(qxWeb("#sandbox")[0], -5));
+    this.assertEquals([0, 1, 0].indexOf(0, -1),
+      qxWeb([window, document.documentElement, window]).indexOf(window, -1));
   }
 });
 
@@ -1204,6 +1222,7 @@ testrunner.define({
   testIsDocument : function()
   {
     this.assertTrue(q.isDocument(document));
+    this.assertTrue(q.isDocument(q(document)));
     this.assertFalse(q.isDocument(q("#sandbox")[0]));
     this.assertFalse(q.isDocument({}));
   },
@@ -2779,6 +2798,7 @@ testrunner.define({
       left: 200,
       top: 200
     };
+
     this.assertEquals(expectedLocation.left, q("#bar").getOffset().left);
     this.assertEquals(expectedLocation.top, q("#bar").getOffset().top);
 
@@ -3863,6 +3883,21 @@ testrunner.define({
      q(document).removeData("fooBar");
    },
 
+   testRemoveDataOnCollection : function() {
+     this.__element.setData("option", "test");
+
+     var secondElement = qxWeb.create("<div id='testEl2'></div>");
+     secondElement.setData("option", "test2");
+
+     secondElement.appendTo(this.sandbox[0]);
+
+     var collection = this.sandbox.getChildren();
+     collection.removeData("option");
+
+     this.assertNull(this.__element.getAttribute('data-option'));
+     this.assertNull(secondElement.getAttribute('data-option'));
+   },
+
    testHasData : function() {
     this.assertFalse(this.__element.hasData());
     this.__element.setData("type", "test");
@@ -4060,6 +4095,7 @@ testrunner.define({
   testSpan : function() {
     var coll = q.create('<span>Just some text</span>')
     .appendTo("#sandbox");
+    coll.setStyle("position", "absolute");
     this.__testSelection(coll, "some");
   },
 
@@ -4079,36 +4115,29 @@ testrunner.define({
 
 testrunner.define({
   classname: "FunctionUtil",
+  setUp: function() {
+    this.clock = qx.dev.unit.Sinon.getSinon().useFakeTimers();
+    testrunner.globalSetup.call(this);
+  },
+  tearDown: function() {
+    this.clock.restore();
+    this.sandbox.remove();
+  },
 
-  setUp : testrunner.globalSetup,
-  tearDown : testrunner.globalTeardown,
-
-  testFunctionDebounce : function() {
-    var called = 0;
-    var checkCalled;
-
-    var spy = function() {
-      called++;
-    };
+  testFunctionDebounce: function() {
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
 
     var deferred = q.func.debounce(spy, 300);
     deferred();
 
-    window.setTimeout((function() {
-      checkCalled = (called === 0);
-    }).bind(this), 200);
+    this.clock.tick(200);
+    sinon.assert.notCalled(spy);
 
-    window.setTimeout((function() {
-      this.resume(function() {
-        this.assertTrue(checkCalled);
-        this.assertEquals(1, called);
-      });
-    }).bind(this), 800);
-
-    this.wait(1000);
+    this.clock.tick(800);
+    sinon.assert.calledOnce(spy);
   },
 
-  testFunctionDebounceWithEvents : function() {
+  testFunctionDebounceWithEvents: function() {
     var callCounter = 0;
     var context;
     var data;
@@ -4117,28 +4146,20 @@ testrunner.define({
       context = this;
       data = e;
     };
-
     this.sandbox.on("myEvent", q.func.debounce(myCallback, 200), this.sandbox);
 
-    var counter = 0;
-    var intervalId = window.setInterval((function() {
-      this.emit("myEvent", "interval_" + counter);
-      counter++;
-
-      if (counter === 20) {
-        window.clearInterval(intervalId);
-      }
-    }).bind(this.sandbox), 50);
-
+    for (var i = 0; i < 5; i++) {
+      this.clock.tick(50);
+      this.sandbox.emit("myEvent", "interval_" + i);
+    }
     var checkContext = this.sandbox;
-    this.wait(1500, function() {
-      this.assertEquals(1, callCounter);
-      this.assertEquals(checkContext, context);
-      this.assertEquals("interval_19", data);
-    }, this);
+    this.clock.tick(500);
+    this.assertEquals(1, callCounter);
+    this.assertEquals(checkContext, context);
+    this.assertEquals("interval_4", data);
   },
 
-  testFunctionDebounceWithImmediateEvents : function() {
+  testFunctionDebounceWithImmediateEvents: function() {
     var callCounter = 0;
     var context;
     var data;
@@ -4150,164 +4171,86 @@ testrunner.define({
 
     this.sandbox.on("myEvent", q.func.debounce(myCallback, 200, true), this.sandbox);
 
-    var counter = 0;
-    var intervalId = window.setInterval((function() {
-      this.emit("myEvent", "interval_" + counter);
-      counter++;
-
-      if (counter === 20) {
-        window.clearInterval(intervalId);
-
-        window.setTimeout((function() {
-          this.emit("myEvent", "interval_" + counter);
-        }).bind(this), 500);
+    for (var i = 0; i <= 20; i++) {
+      this.sandbox.emit("myEvent", "interval_" + i);
+      this.clock.tick(50);
+      if (i === 20) {
+        this.clock.tick(500);
+        this.sandbox.emit("myEvent", "interval_" + i);
       }
-    }).bind(this.sandbox), 50);
-
+    }
     var checkContext = this.sandbox;
-    this.wait(2000, function() {
-      this.assertEquals(2, callCounter);
-      this.assertEquals(checkContext, context);
-      this.assertEquals("interval_20", data);
-    }, this);
+    this.assertEquals(2, callCounter);
+    this.assertEquals(checkContext, context);
+    this.assertEquals("interval_20", data);
   },
 
 
-  testFunctionThrottle : function()
-  {
-    var intervalCounter = 0;
-    var callInfo = [];
-    var spy = function() {
-      callInfo.push(Date.now());
-    };
+  testFunctionThrottle: function() {
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
     var throttled = q.func.throttle(spy, 250);
-
-    var intervalId = window.setInterval((function() {
-      throttled(intervalCounter);
-      if (intervalCounter == 20) {
-        window.clearInterval(intervalId);
-      }
-      intervalCounter++;
-    }).bind(this), 80);
-
-    window.setTimeout((function() {
-      this.resume(function() {
-        this.assertEquals(7, callInfo.length);
-      });
-    }).bind(this), 1800);
-
-    this.wait(2000);
+    for (var i = 0; i <= 20; i++) {
+      throttled(i);
+      this.clock.tick(25);
+    }
+    sinon.assert.calledTwice(spy);
   },
 
-  testFunctionThrottleNoTrailing : function()
-  {
-    var intervalCounter = 0;
-    var callInfo = [];
-    var spy = function() {
-      callInfo.push(Date.now());
-    };
-    var throttled = q.func.throttle(spy, 500, { trailing: false });
+  testFunctionThrottleNoTrailing: function() {
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
+    var throttled = q.func.throttle(spy, 500, {
+      trailing: false
+    });
 
-    var intervalId = window.setInterval((function() {
+    for (var i = 0; i <= 20; i++) {
+      this.clock.tick(90);
       throttled();
-      if (intervalCounter == 20) {
-        window.clearInterval(intervalId);
-      }
-      intervalCounter++;
-    }).bind(this), 80);
-
-    window.setTimeout((function() {
-      this.resume(function() {
-        this.assertEquals(3, callInfo.length);
-      });
-    }).bind(this), 1300);
-
-    this.wait(2000);
+    }
+    sinon.assert.calledThrice(spy);
   },
 
-  testFunctionThrottleNoLeadingNoTrailing : function()
-  {
-    var intervalCounter = 0;
-    var callInfo = [];
-    var spy = function() {
-      callInfo.push(Date.now());
-    };
-    var throttled = q.func.throttle(spy, 500, { leading: false, trailing: false });
-
-    var intervalId = window.setInterval((function() {
+  testFunctionThrottleNoLeadingNoTrailing: function() {
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
+    var throttled = q.func.throttle(spy, 500, {
+      leading: false,
+      trailing: false
+    });
+    for (var i = 0; i <= 20; i++) {
+      this.clock.tick(80);
       throttled();
-      if (intervalCounter == 20) {
-        window.clearInterval(intervalId);
-      }
-      intervalCounter++;
-    }).bind(this), 80);
-
-    window.setTimeout((function() {
-      this.resume(function() {
-        this.assertEquals(2, callInfo.length);
-      });
-    }).bind(this), 1300);
-
-    this.wait(2000);
+    }
+    sinon.assert.calledTwice(spy);
   },
 
-  testFunctionThrottleWithEvents : function()
-  {
-    var context;
-    var callInfo = [];
-    var spy = function(e) {
-      context = this;
-      callInfo.push(Date.now());
-    };
+  testFunctionThrottleWithEvents: function() {
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
     this.sandbox.on("myEvent", q.func.throttle(spy, 400), this.sandbox);
 
-    var counter = 0;
-    var intervalId = window.setInterval((function() {
-      this.emit("myEvent");
-
-      if (counter === 4) {
-        window.clearInterval(intervalId);
-      }
-      counter++;
-    }).bind(this.sandbox), 150);
-
-    var checkContext = this.sandbox;
-    this.wait(1500, function() {
-      this.assertEquals(checkContext, context);
-      this.assertEquals(3, callInfo.length);
-    }, this);
+    for (var i = 0; i < 4; i++) {
+      this.clock.tick(350);
+      this.sandbox.emit("myEvent");
+    }
+    sinon.assert.calledThrice(spy);
   },
 
-  testFunctionThrottleWithLeadingEvents : function() {
-    var context;
-    var callInfo = [];
-    var spy = function(e) {
-      context = this;
-      callInfo.push(Date.now());
-    };
-    this.sandbox.on("myEvent", q.func.throttle(spy, 250, { trailing: false }), this.sandbox);
+  testFunctionThrottleWithLeadingEvents: function() {
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
+    this.sandbox.on("myEvent", q.func.throttle(spy, 250, {
+      trailing: false
+    }), this.sandbox);
 
-    var counter = 0;
-    var intervalId = window.setInterval((function() {
-      this.emit("myEvent");
-
-      if (counter === 14) {
-        window.clearInterval(intervalId);
-
-        window.setTimeout((function() {
-          this.emit("myEvent");
-        }).bind(this), 500);
+    for (var i = 0; i < 17; i++) {
+      this.clock.tick(100);
+      this.sandbox.emit("myEvent");
+      if (i === 14) {
+        this.clock.tick(500);
+        this.sandbox.emit("myEvent");
       }
-      counter++;
-    }).bind(this.sandbox), 100);
-
-    var checkContext = this.sandbox;
-    this.wait(2500, function() {
-      this.assertEquals(6, callInfo.length);
-      this.assertEquals(checkContext, context);
-    }, this);
+    }
+    this.assertEquals(6, spy.callCount);
   }
 });
+
 
 
 testrunner.define({
@@ -4370,6 +4313,40 @@ testrunner.define({
     this.assertEquals("qx.ui.website.Widget", w.getAttribute("data-qx-class"));
   },
 
+  testConstructorOnCollection : function() {
+    var w = q.create("<div>").widget();
+    this.assertEquals("qx.ui.website.Widget", w.getAttribute("data-qx-class"));
+  },
+
+  testConstructorOnCollectionWithTwo : function() {
+    var w = q.create("<div></div><div></div>");
+    this.assertEquals(2, w.length);
+
+    this.assertException(function() {
+      w = w.widget();
+    });
+  },
+
+  testQueryWithTwo : function() {
+    var w = q.create("<div data-qx-class='qx.ui.website.Rating'></div><div data-qx-class='qx.ui.website.Button'></div>");
+    this.assertEquals(2, w.length);
+    w.appendTo(sandbox);
+
+    var query = qxWeb("*[data-qx-class]", sandbox);
+    this.assertEquals(2, query.length);
+    this.assertEquals("qxWeb", query.classname);
+
+    this.assertEquals("qx.ui.website.Rating", query.eq(0).classname);
+    this.assertEquals("qx.ui.website.Button", query.eq(1).classname);
+  },
+
+  testConstructorAndQuery : function() {
+    var w = q.create("<div id='affe'>").widget().appendTo("#sandbox");
+    this.assertEquals("qx.ui.website.Widget", w.getAttribute("data-qx-class"));
+
+    this.assertEquals(w, q("#affe", sandbox));
+  },
+
   testIsCollection : function() {
     var w = new qxWeb.$$qx.ui.website.Widget(qxWeb("#sandbox"));
     this.assertTrue(w instanceof qxWeb);
@@ -4407,123 +4384,35 @@ testrunner.define({
     this.assertUndefined(w.getTemplate("uiuibgkabfg"));
   },
 
-  testOnOffWidget : function() {
-    var w = new qxWeb.$$qx.ui.website.Widget(qxWeb("#sandbox"));
-    var called = 0;
-    var clb = function() {
-      called++;
-    };
-    w.$onFirstCollection("foo", clb, w);
-
-    w.emit("foo");
-    this.assertEquals(1, called);
-
-    w.$onFirstCollection("foo", clb, w);
-
-    w.emit("foo");
-    this.assertEquals(2, called);
-
-    w.$offFirstCollection("foo", clb, w);
-    w.emit("foo");
-    this.assertEquals(2, called);
-  },
-
-  testOnOffWidgetDifferentCallback : function() {
-    var w = new qxWeb.$$qx.ui.website.Widget(qxWeb("#sandbox"));
-    var called = 0;
-    var clb = function() {
-      called++;
-    };
-    w.$onFirstCollection("foo", clb, w);
-
-    w.emit("foo");
-    this.assertEquals(1, called);
-
-    w.$onFirstCollection("foo", function() {
-      clb();
-    }, w);
-
-    w.emit("foo");
-    this.assertEquals(3, called);
-
-    w.$offFirstCollection("foo", clb, w);
-    w.emit("foo");
-    this.assertEquals(4, called);
-  },
-
-  testOnOffWidgetDifferentContext : function() {
-    var w = new qxWeb.$$qx.ui.website.Widget(qxWeb("#sandbox"));
-    var called = 0;
-    var clb = function() {
-      called++;
-    };
-    w.$onFirstCollection("foo", clb, {});
-
-    w.emit("foo");
-    this.assertEquals(1, called);
-
-    w.$onFirstCollection("foo", clb, {});
-
-    w.emit("foo");
-    this.assertEquals(2, called);
-
-    w.$offFirstCollection("foo", clb, {});
-    w.emit("foo");
-    this.assertEquals(2, called);
-  },
-
-  testOnOffWidgetMultipleItems : function() {
-    q.create("<div></div><div></div>").appendTo(this.sandbox);
-    this.sandbox.getChildren().setData("qxClass", "qx.ui.website.Widget");
-    var w = this.sandbox.getChildren();
-    var called = 0;
-    var clb = function() {
-      called++;
-    };
-    w.$onFirstCollection("foo", clb, w);
-
-    w.emit("foo");
-    this.assertEquals(2, called);
-
-    w.$onFirstCollection("foo", clb, w);
-
-    w.emit("foo");
-    this.assertEquals(4, called);
-
-    w.getFirst().emit("foo");
-    this.assertEquals(5, called);
-
-    w.$offFirstCollection("foo", clb, w);
-    w.getFirst().emit("foo");
-    this.assertEquals(5, called);
-  },
-
-  testOnOffWidgetMultipleCollections : function() {
-    new qxWeb.$$qx.ui.website.Widget(qxWeb("#sandbox"));
-    var called = 0;
-    var clb = function() {
-      called++;
-    };
-    q("#sandbox").$onFirstCollection("foo", clb, q("#sandbox"));
-
-    q("#sandbox").emit("foo");
-    this.assertEquals(1, called);
-
-    q("#sandbox").$onFirstCollection("foo", clb, q("#sandbox"));
-
-    q("#sandbox").emit("foo");
-    this.assertEquals(2, called);
-
-    q("#sandbox").$offFirstCollection("foo", clb, q("#sandbox"));
-    this.assertEquals(2, called);
-  },
-
   testInitWidgets : function() {
     var el1 = q.create("<div id='el1' data-qx-class='qx.ui.website.Widget'></div>").appendTo(q("#sandbox"));
     var el2 = q.create("<div id='el2' data-qx-class='qx.ui.website.Widget'></div>").appendTo(q("#sandbox"));
     q.initWidgets("#el1");
     this.assertTrue(el1.hasClass("qx-widget"));
     this.assertFalse(el2.hasClass("qx-widget"));
+  },
+
+  testWrapper: function() {
+    var w0 = q.create('<div id="w0" class="wrapped">').widget().appendTo(q("#sandbox"));
+    var w1 = q.create('<div id="w1" class="wrapped">').widget().appendTo(q("#sandbox"));
+
+    var wrapper = q(".wrapped").toWidgetCollection();
+    this.assertInstance(wrapper, qxWeb.$$qx.core.Wrapper);
+    this.assertEquals(wrapper.length, 2);
+    this.assertEquals(wrapper[0], w0);
+    this.assertEquals(wrapper[1], w1);
+
+    this.assertEquals(wrapper.getAttribute("id"), "w0");
+
+    wrapper.setEnabled(false);
+    this.assertTrue(w0.getAttribute("disabled"));
+    this.assertTrue(w1.getAttribute("disabled"));
+
+    var spy = qx.dev.unit.Sinon.getSinon().spy();
+    wrapper.on("custom", spy).emit("custom");
+    sinon.assert.calledTwice(spy);
+    this.assertEquals(spy.firstCall.thisValue, w0);
+    this.assertEquals(spy.secondCall.thisValue, w1);
   }
 });
 
@@ -4639,14 +4528,6 @@ testrunner.define({
     this.assertEquals(2, rr.getValue());
   },
 
-  testTwoRatings : function() {
-    q.create("<div/><div/>").rating().appendTo("#sandbox");
-    q("#sandbox").getChildren().setValue(2);
-    this.assertEquals(2, q("#sandbox").getChildren().getValue());
-    this.assertEquals(2, q("#sandbox").getChildren().eq(0).getValue());
-    this.assertEquals(2, q("#sandbox").getChildren().eq(1).getValue());
-  },
-
   testListenerRemove : function() {
     var r = q("#sandbox").rating();
     var calledChange = 0;
@@ -4733,16 +4614,6 @@ testrunner.define({
     this.assertEquals(displayedPrev, newPrev);
   },
 
-  testTwoCollections : function() {
-    var now = new Date();
-    var c0 = q("#sandbox").calendar();
-    var c1 = q("#sandbox").calendar();
-    c0.setValue(now);
-
-    this.assertEquals(now.toDateString(), c0.getValue().toDateString());
-    this.assertEquals(now.toDateString(), c1.getValue().toDateString());
-  },
-
   testMinDate : function() {
     var cal = q("#sandbox").calendar(new Date(2014, 1, 3));
     cal.setConfig("minDate", new Date(2013, 5, 6));
@@ -4773,19 +4644,43 @@ testrunner.define({
     });
   },
 
-  testPersistEnabled : function() {
-    var slider = q("#sandbox").slider()
-    this.assertTrue(slider.getEnabled());
-    this.assertFalse(slider.getAttribute("disabled"));
-    this.assertFalse(slider.find("button").getAttribute("disabled"));
-    slider.setEnabled(false);
-    this.assertFalse(slider.getEnabled());
-    this.assertTrue(slider.getAttribute("disabled"));
-    this.assertTrue(slider.find("button").getAttribute("disabled"));
-    slider.render();
-    this.assertFalse(slider.getEnabled());
-    this.assertTrue(slider.getAttribute("disabled"));
-    this.assertTrue(slider.find("button").getAttribute("disabled"));
+  testPastDays : function() {
+    var cal = q('#sandbox').calendar()
+    cal.setValue(new Date());
+
+    var today = q('.qx-calendar-today', cal);
+    var yesterday = today.getPrev();
+
+    // if today is the first day of the week we have to get previous day row
+    if (yesterday.length === 0) {
+      yesterday = today.getParents().getPrev().getChildren(':last');
+    }
+
+    var firstDayInCalendar = q('.qx-calendar-previous-month', cal).eq(0);
+
+    this.assertTrue(yesterday.hasClass('qx-calendar-past'));
+    this.assertTrue(firstDayInCalendar.hasClass('qx-calendar-past'));
+    this.assertFalse(today.hasClass('qx-calendar-past'));
+  },
+
+  testSuppressDisplayOfDaysOfPreviousNextMonth: function() {
+    var cal = q('#sandbox').calendar();
+    cal.setValue(new Date());
+
+    cal.setConfig('hideDaysOtherMonth', true);
+    cal.render();
+
+    var previousDaysMonth = q('.qx-calendar-previous-month').getChildren().eq(0);
+    this.assertTrue(previousDaysMonth.hasClass('qx-hidden'));
+  },
+
+  testDisableDaysOfPreviousNextMonth: function() {
+    var cal = q('#sandbox').calendar(new Date());
+    cal.setConfig('disableDaysOtherMonth', true);
+    cal.render();
+
+    var previousDaysMonth = q('.qx-calendar-previous-month').getChildren().eq(0);
+    this.assertTrue(previousDaysMonth.getAttribute('disabled'));
   }
 });
 
@@ -4849,15 +4744,6 @@ testrunner.define({
     slider.setValue(4);
     slider.setConfig("step", null).render();
     this.assertEquals(4, slider.getValue());
-  },
-
-  testTwoSliders : function() {
-    q.create("<div>").appendTo("#sandbox");
-    q.create("<div>").appendTo("#sandbox");
-    q("#sandbox").getChildren().slider();
-    q("#sandbox").getChildren().eq(1).setValue(30);
-    this.assertEquals(0, q("#sandbox").getChildren().eq(0).getValue());
-    this.assertEquals(30, q("#sandbox").getChildren().eq(1).getValue());
   },
 
   testMinMaxValue : function() {
@@ -4927,6 +4813,21 @@ testrunner.define({
     this.assertEquals(1, slider._getNearestValue(0));
     this.assertEquals(4, slider._getNearestValue(slider.getWidth() / 2));
     this.assertEquals(7, slider._getNearestValue(slider.getWidth()));
+  },
+
+  testPersistEnabled : function() {
+    var slider = q("#sandbox").slider()
+    this.assertTrue(slider.getEnabled());
+    this.assertFalse(slider.getAttribute("disabled"));
+    this.assertFalse(slider.find("button").getAttribute("disabled"));
+    slider.setEnabled(false);
+    this.assertFalse(slider.getEnabled());
+    this.assertTrue(slider.getAttribute("disabled"));
+    this.assertTrue(slider.find("button").getAttribute("disabled"));
+    slider.render();
+    this.assertFalse(slider.getEnabled());
+    this.assertTrue(slider.getAttribute("disabled"));
+    this.assertTrue(slider.find("button").getAttribute("disabled"));
   }
 });
 
@@ -4964,12 +4865,6 @@ testrunner.define({
     tabs.addButton("Bar", "#cont");
     this.assertEquals(2, tabs.find("ul li button").length);
     this.assertEquals("none", q("#cont").getStyle("display"));
-  },
-
-  testTwoTabs : function() {
-    var tabs = q.create('<div/><div/>').appendTo("#sandbox").tabs();
-    tabs.addButton("Foo");
-    this.assertEquals(2, tabs.find(".qx-tabs-button").length);
   },
 
   testSelectPage : function() {
@@ -5063,31 +4958,9 @@ testrunner.define({
     datepicker.dispose();
   },
 
-  testReadOnlyInputElementWithConfig : function() {
-    var sandbox = q("#sandbox");
-    sandbox.append("<input type='text' class='datepicker' data-qx-class='qx.ui.website.DatePicker' value=''></input");
-    sandbox.append("<input type='text' class='datepicker' data-qx-class='qx.ui.website.DatePicker' value=''></input");
-
-    var datepicker = q("input.datepicker").datepicker();
-
-    this.assertTrue(datepicker.eq(0).getConfig('readonly'));
-    this.assertTrue(datepicker.eq(1).getConfig('readonly'));
-
-    this.assertTrue(datepicker.eq(0).getAttribute('readonly'));
-    this.assertTrue(datepicker.eq(1).getAttribute('readonly'));
-
-    datepicker.eq(0).setConfig('readonly', false);
-    datepicker.render();
-
-    this.assertFalse(datepicker.eq(0).getAttribute('readonly'));
-    this.assertTrue(datepicker.eq(1).getAttribute('readonly'));
-
-    datepicker.dispose();
-  },
-
   testIconOpener : function() {
     var sandbox = q("#sandbox");
-    sandbox.append("<input type='text' class='datepicker' data-qx-class='qx.ui.website.DatePicker' value=''></input");
+    sandbox.append("<input type='text' class='datepicker' data-qx-class='qx.ui.website.DatePicker' value=''></input>");
 
     var datepicker = q("input.datepicker").datepicker();
     datepicker.setConfig('icon', '../../../../application/websitewidgetbrowser/demo/datepicker/office-calendar.png');
@@ -5132,5 +5005,392 @@ testrunner.define({
     this.assertTrue(datepicker.getAttribute("disabled"));
 
     datepicker.dispose();
+   },
+
+   testConfigurePositionOfPopup : function() {
+     var sandbox = q("#sandbox");
+
+     // set height to make sure the popup is openable at 'top' and 'bottom' position
+     sandbox.setStyle("height", "1000px");
+
+     sandbox.append("<input type='text' class='datepicker' data-qx-class='qx.ui.website.DatePicker' value='' />");
+     var datepicker = q("input.datepicker").datepicker();
+
+     datepicker._onTap();
+
+     var positionPicker = datepicker.getPosition();
+     var positionCalendar = datepicker.getCalendar().getPosition();
+
+     this.assertTrue(positionPicker.top < positionCalendar.top);
+
+     datepicker.getCalendar().hide();
+     datepicker.setConfig("position", "top-left");
+     datepicker.render();
+
+     datepicker._onTap();
+     positionCalendar = datepicker.getCalendar().getPosition();
+     this.assertTrue(positionPicker.top > positionCalendar.top);
+
+     datepicker.getCalendar().hide();
+
+     this.assertException(function() {
+
+       this.setConfig("position", 'top-bottom');
+
+     }.bind(datepicker));
+
+     datepicker.dispose();
    }
+});
+
+
+testrunner.define({
+  classname: "ui.Carousel",
+
+  __carousel: null,
+  __orderStyle: null,
+  __isIeLt10: null,
+
+
+  setUp : function() {
+    var docMode = q.env.get("browser.documentmode");
+    if (docMode < 9 && docMode != 0) {
+      this.skip("Legacy IE");
+    }
+
+    testrunner.globalSetup();
+
+    this.__orderStyle = qxWeb.env.get("engine.name") === "mshtml" &&
+      qxWeb.env.get("browser.documentmode") === 10 ? "msFlexOrder" : "order";
+
+    this.__isIeLt10 = qxWeb.env.get("engine.name") === "mshtml" &&
+      qxWeb.env.get("browser.documentmode") < 10;
+
+    this.__carousel = qxWeb.create("<div>").carousel()
+      .setStyles({
+        position: "absolute",
+        top: "0px",
+        left: "0px",
+        width: "400px",
+        height: "400px"
+      })
+      .setConfig("pageSwitchDuration", 100)
+      .appendTo(this.sandbox);
+  },
+
+
+  tearDown : function() {
+    this.__carousel.dispose();
+    testrunner.globalTeardown();
+  },
+
+
+  testInitialActive: function() {
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+  },
+
+
+  testOrderFirstActive: function() {
+    // IE older than 10 doesn't support the order attribute
+    if (this.__isIeLt10) {
+      this.skip("Legacy IE");
+    }
+
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>");
+    this.__carousel.addPage(p3);
+
+    this.assertEquals(p1.getStyle(this.__orderStyle), "0");
+    this.assertEquals(p2.getStyle(this.__orderStyle), "1");
+    this.assertEquals(p3.getStyle(this.__orderStyle), "-1");
+  },
+
+
+  testOrderLastActive: function() {
+    // IE older than 10 doesn't support the order attribute
+    if (this.__isIeLt10) {
+      this.skip("Legacy IE");
+    }
+
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>");
+    this.__carousel.addPage(p3);
+
+    this.__carousel.setActive(p3);
+
+    this.assertEquals(p3.getStyle(this.__orderStyle), "0");
+    this.assertEquals(p1.getStyle(this.__orderStyle), "1");
+    this.assertEquals(p2.getStyle(this.__orderStyle), "-1");
+  },
+
+
+  testOrderMiddleActive: function() {
+    // IE older than 10 doesn't support the order attribute
+    if (this.__isIeLt10) {
+      this.skip("Legacy IE");
+    }
+
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>");
+    this.__carousel.addPage(p3);
+
+    this.__carousel.setActive(p2);
+
+    this.assertEquals(p2.getStyle(this.__orderStyle), "0");
+    this.assertEquals(p3.getStyle(this.__orderStyle), "1");
+    this.assertEquals(p1.getStyle(this.__orderStyle), "-1");
+  },
+
+
+  testRemoveActive: function() {
+    // IE older than 10 doesn't support the order attribute
+    if (this.__isIeLt10) {
+      this.skip("Legacy IE");
+    }
+
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>");
+    this.__carousel.addPage(p3);
+    var p4 = qxWeb.create("<div>");
+    this.__carousel.addPage(p4);
+
+    this.__carousel.removePage(p1);
+
+    this.assertEquals(this.__carousel.getActive()[0], p2[0]);
+    this.assertEquals(p2.getStyle(this.__orderStyle), "0");
+    this.assertEquals(p3.getStyle(this.__orderStyle), "1");
+    this.assertEquals(p4.getStyle(this.__orderStyle), "-1");
+  },
+
+
+  testEmpty: function() {
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>");
+    this.__carousel.addPage(p3);
+
+    this.__carousel.removePage(p1);
+    this.__carousel.removePage(p2);
+    this.__carousel.removePage(p3);
+
+    this.assertEquals(0, this.__carousel.find(".qx-carousel-pagination").getChildren().length);
+    this.assertNull(this.__carousel.getActive());
+  },
+
+
+  testEmptyAndAppend: function(done) {
+    var p1 = qxWeb.create("<div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>");
+    this.__carousel.addPage(p3);
+
+    this.__carousel.removePage(p1);
+    this.__carousel.removePage(p2);
+    this.__carousel.removePage(p3);
+
+    this.assertNull(this.__carousel.getActive());
+
+    this.__carousel.addPage(p1);
+    this.assertEquals(p1, this.__carousel.getActive());
+
+    this.__carousel.addPage(p2);
+    this.assertEquals(p1, this.__carousel.getActive());
+
+    this.__carousel.on("changeActive", function(e) {
+      this.resume(function() {
+        this.assertEquals(p2[0], e.value[0]);
+        this.assertEquals(p2[0], this.__carousel.getActive()[0]);
+      }, this);
+    }, this);
+
+    setTimeout(function() {
+      this.__carousel.nextPage();
+    }.bind(this), 100);
+
+    this.wait(250);
+  },
+
+
+  testNextPage: function() {
+    var p1 = qxWeb.create("<div>page1</div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>page2</div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>page3</div>");
+    this.__carousel.addPage(p3);
+
+    var cb3 = qx.dev.unit.Sinon.getSinon().spy(function(e) {
+      this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+      this.assertEquals(this.__carousel.getActive()[0], e.value[0]);
+      this.assertEquals(p1[0], e.value[0]);
+      var activeButton = this.__carousel.find(".active");
+      this.assertEquals(this.__carousel.find(".qx-carousel-pagination-label").indexOf(activeButton), 0);
+      this.assertEquals(activeButton[0].textContent, "1");
+    }.bind(this));
+
+    var cb2 = qx.dev.unit.Sinon.getSinon().spy(function(e) {
+      this.assertEquals(this.__carousel.getActive()[0], p3[0]);
+      this.assertEquals(this.__carousel.getActive()[0], e.value[0]);
+      this.assertEquals(p3[0], e.value[0]);
+      var activeButton = this.__carousel.find(".active");
+      this.assertEquals(this.__carousel.find(".qx-carousel-pagination-label").indexOf(activeButton), 2);
+      this.assertEquals(activeButton[0].textContent, "3");
+
+      this.__carousel.once("changeActive", cb3);
+      this.__carousel.nextPage();
+    }.bind(this));
+
+    var cb1 = qx.dev.unit.Sinon.getSinon().spy(function(e) {
+      this.assertEquals(this.__carousel.getActive()[0], p2[0]);
+      this.assertEquals(this.__carousel.getActive()[0], e.value[0]);
+      this.assertEquals(p2[0], e.value[0]);
+      var activeButton = this.__carousel.find(".active");
+      this.assertEquals(this.__carousel.find(".qx-carousel-pagination-label").indexOf(activeButton), 1);
+      this.assertEquals(activeButton[0].textContent, "2");
+
+      this.__carousel.once("changeActive", cb2);
+      this.__carousel.nextPage();
+    }.bind(this));
+
+    this.__carousel.once("changeActive", cb1);
+    this.__carousel.nextPage();
+
+    window.setTimeout(function() {
+      this.resume(function() {
+        sinon.assert.calledOnce(cb1);
+        sinon.assert.calledOnce(cb2);
+        sinon.assert.calledOnce(cb3);
+      });
+    }.bind(this), 600);
+
+    this.wait(1000);
+  },
+
+
+  testPreviousPage: function() {
+    var p1 = qxWeb.create("<div>page1</div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>page2</div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>page3</div>");
+    this.__carousel.addPage(p3);
+
+    var cb3 = qx.dev.unit.Sinon.getSinon().spy(function(e) {
+      this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+      this.assertEquals(this.__carousel.getActive()[0], e.value[0]);
+      this.assertEquals(p1[0], e.value[0]);
+      var activeButton = this.__carousel.find(".active");
+      this.assertEquals(this.__carousel.find(".qx-carousel-pagination-label").indexOf(activeButton), 0);
+      this.assertEquals(activeButton[0].textContent, "1");
+    }.bind(this));
+
+    var cb2 = qx.dev.unit.Sinon.getSinon().spy(function(e) {
+      this.assertEquals(this.__carousel.getActive()[0], p2[0]);
+      this.assertEquals(this.__carousel.getActive()[0], e.value[0]);
+      this.assertEquals(p2[0], e.value[0]);
+      var activeButton = this.__carousel.find(".active");
+      this.assertEquals(this.__carousel.find(".qx-carousel-pagination-label").indexOf(activeButton), 1);
+      this.assertEquals(activeButton[0].textContent, "2");
+
+      this.__carousel.once("changeActive", cb3);
+      this.__carousel.previousPage();
+    }.bind(this));
+
+    var cb1 = qx.dev.unit.Sinon.getSinon().spy(function(e) {
+      this.assertEquals(this.__carousel.getActive()[0], p3[0]);
+      this.assertEquals(this.__carousel.getActive()[0], e.value[0]);
+      this.assertEquals(p3[0], e.value[0]);
+      var activeButton = this.__carousel.find(".active");
+      this.assertEquals(this.__carousel.find(".qx-carousel-pagination-label").indexOf(activeButton), 2);
+      this.assertEquals(activeButton[0].textContent, "3");
+
+      this.__carousel.once("changeActive", cb2);
+      this.__carousel.previousPage();
+    }.bind(this));
+
+    this.__carousel.once("changeActive", cb1);
+    this.__carousel.previousPage();
+
+    window.setTimeout(function() {
+      this.resume(function() {
+        sinon.assert.calledOnce(cb1);
+        sinon.assert.calledOnce(cb2);
+        sinon.assert.calledOnce(cb3);
+      });
+    }.bind(this), 600);
+
+    this.wait(1000);
+  },
+
+
+  testPaginationUpdateOnPageRemove: function() {
+    var p1 = qxWeb.create("<div>page1</div>");
+    this.__carousel.addPage(p1);
+    var p2 = qxWeb.create("<div>page2</div>");
+    this.__carousel.addPage(p2);
+    var p3 = qxWeb.create("<div>page3</div>");
+    this.__carousel.addPage(p3);
+
+    var labels = this.__carousel.find(".qx-carousel-pagination-label");
+    this.assertEquals(3, labels.length);
+    this.assertTrue(labels.eq(0).is(".active"));
+    this.assertEquals(labels.eq(0)[0].textContent, "1");
+
+    this.__carousel.removePage(p1);
+    labels = this.__carousel.find(".qx-carousel-pagination-label");
+    this.assertEquals(2, labels.length);
+    this.assertTrue(labels.eq(0).is(".active"));
+    this.assertEquals(labels.eq(0)[0].textContent, "1");
+  },
+
+
+  testOnePage: function() {
+    var p1 = qxWeb.create("<div>page1</div>");
+    this.__carousel.addPage(p1);
+    this.__carousel.nextPage();
+    this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+    this.__carousel.previousPage();
+    this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+
+    this.__carousel.removePage(p1);
+    this.__carousel.nextPage();
+    this.assertNull(this.__carousel.getActive());
+  },
+
+
+  testTwoPages: function() {
+    var p1 = qxWeb.create("<div>page1</div>");
+    this.__carousel.addPage(p1);
+
+    var p2 = qxWeb.create("<div>page2</div>");
+    this.__carousel.addPage(p2);
+
+    this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+    this.__carousel.previousPage();
+    this.assertEquals(this.__carousel.getActive()[0], p1[0]);
+
+    this.__carousel.nextPage();
+    this.assertEquals(this.__carousel.getActive()[0], p2[0]);
+    this.__carousel.nextPage();
+    this.assertEquals(this.__carousel.getActive()[0], p2[0]);
+  }
+
 });

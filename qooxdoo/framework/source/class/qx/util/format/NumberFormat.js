@@ -34,20 +34,28 @@ qx.Class.define("qx.util.format.NumberFormat",
 
   /**
    * @param locale {String} optional locale to be used
-   * @throws {Error} If the number of arguments !== 1 and the argument is not a string.
+   * @throws {Error} If the argument is not a string.
    */
   construct : function(locale)
   {
     this.base(arguments);
+
     if (arguments.length > 0) {
       if (arguments.length === 1) {
         if (qx.lang.Type.isString(locale)) {
-          this.__locale = locale;
+          this.setLocale(locale);
         } else {
           throw new Error("Wrong argument type. String is expected.");
         }
       } else {
         throw new Error("Wrong number of arguments.");
+      }
+    }
+
+    if (!locale) {
+      this.setLocale(qx.locale.Manager.getInstance().getLocale());
+      if (qx.core.Environment.get("qx.dynlocale")) {
+        qx.locale.Manager.getInstance().bind("locale", this, "locale");
       }
     }
   },
@@ -128,6 +136,14 @@ qx.Class.define("qx.util.format.NumberFormat",
       check : "String",
       init : "",
       event : "changeNumberFormat"
+    },
+
+    /** Locale used */
+    locale :
+    {
+      check : "String",
+      init : null,
+      event : "changeLocale"
     }
   },
 
@@ -143,8 +159,6 @@ qx.Class.define("qx.util.format.NumberFormat",
   members :
   {
 
-    __locale : null,
-
     /**
      * Formats a number.
      *
@@ -154,15 +168,16 @@ qx.Class.define("qx.util.format.NumberFormat",
     format : function(num)
     {
       // handle special cases
+      if (isNaN(num)) {
+        return "NaN";
+      }
+
       switch (num) {
         case Infinity:
           return "Infinity";
 
         case -Infinity:
           return "-Infinity";
-
-        case NaN:
-          return "NaN";
       }
 
       var negative = (num < 0);
@@ -217,7 +232,7 @@ qx.Class.define("qx.util.format.NumberFormat",
         var groupPos;
 
         for (groupPos=origIntegerStr.length; groupPos>3; groupPos-=3) {
-          integerStr = "" + qx.locale.Number.getGroupSeparator(this.__locale) + origIntegerStr.substring(groupPos - 3, groupPos) + integerStr;
+          integerStr = "" + qx.locale.Number.getGroupSeparator(this.getLocale()) + origIntegerStr.substring(groupPos - 3, groupPos) + integerStr;
         }
 
         integerStr = origIntegerStr.substring(0, groupPos) + integerStr;
@@ -232,7 +247,7 @@ qx.Class.define("qx.util.format.NumberFormat",
       var str = prefix + (negative ? "-" : "") + integerStr;
 
       if (fractionStr.length > 0) {
-        str += "" + qx.locale.Number.getDecimalSeparator(this.__locale) + fractionStr;
+        str += "" + qx.locale.Number.getDecimalSeparator(this.getLocale()) + fractionStr;
       }
 
       str += postfix;
@@ -251,17 +266,17 @@ qx.Class.define("qx.util.format.NumberFormat",
     parse : function(str)
     {
       // use the escaped separators for regexp
-      var groupSepEsc = qx.lang.String.escapeRegexpChars(qx.locale.Number.getGroupSeparator(this.__locale) + "");
-      var decimalSepEsc = qx.lang.String.escapeRegexpChars(qx.locale.Number.getDecimalSeparator(this.__locale) + "");
+      var groupSepEsc = qx.lang.String.escapeRegexpChars(qx.locale.Number.getGroupSeparator(this.getLocale()) + "");
+      var decimalSepEsc = qx.lang.String.escapeRegexpChars(qx.locale.Number.getDecimalSeparator(this.getLocale()) + "");
 
       var regex = new RegExp(
-        "^" +
+        "^(" +
         qx.lang.String.escapeRegexpChars(this.getPrefix()) +
-        '([-+]){0,1}'+
+        ')?([-+]){0,1}'+
         '([0-9]{1,3}(?:'+ groupSepEsc + '{0,1}[0-9]{3}){0,}){0,1}' +
-        '(' + decimalSepEsc + '\\d+){0,1}' +
+        '(' + decimalSepEsc + '\\d+){0,1}(' +
         qx.lang.String.escapeRegexpChars(this.getPostfix()) +
-        "$"
+        ")?$"
       );
 
       var hit = regex.exec(str);
@@ -270,9 +285,11 @@ qx.Class.define("qx.util.format.NumberFormat",
         throw new Error("Number string '" + str + "' does not match the number format");
       }
 
-      var negative = (hit[1] == "-");
-      var integerStr = hit[2] || "0";
-      var fractionStr = hit[3];
+      // hit[1] = potential prefix
+      var negative = (hit[2] == "-");
+      var integerStr = hit[3] || "0";
+      var fractionStr = hit[4];
+      // hit[5] = potential postfix
 
       // Remove the thousand groupings
       integerStr = integerStr.replace(new RegExp(groupSepEsc, "g"), "");
@@ -287,6 +304,13 @@ qx.Class.define("qx.util.format.NumberFormat",
       }
 
       return parseFloat(asStr);
+    }
+  },
+
+
+  destruct: function() {
+    if (qx.core.Environment.get("qx.dynlocale")) {
+      qx.locale.Manager.getInstance().removeRelatedBindings(this);
     }
   }
 });

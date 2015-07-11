@@ -48,11 +48,13 @@ qx.Class.define("qx.ui.form.AbstractField",
      * Adds the CSS rules needed to style the native placeholder element.
      */
     __addPlaceholderRules : function() {
+      var engine = qx.core.Environment.get("engine.name");
+      var browser = qx.core.Environment.get("browser.name");
       var colorManager = qx.theme.manager.Color.getInstance();
       var color = colorManager.resolve("text-placeholder");
       var selector;
 
-      if (qx.core.Environment.get("engine.name") == "gecko") {
+      if (engine == "gecko") {
         // see https://developer.mozilla.org/de/docs/CSS/:-moz-placeholder for details
        if (parseFloat(qx.core.Environment.get("engine.version")) >= 19) {
           selector = "input::-moz-placeholder, textarea::-moz-placeholder";
@@ -60,10 +62,10 @@ qx.Class.define("qx.ui.form.AbstractField",
           selector = "input:-moz-placeholder, textarea:-moz-placeholder";
         }
         qx.ui.style.Stylesheet.getInstance().addRule(selector, "color: " + color + " !important");
-      } else if (qx.core.Environment.get("engine.name") == "webkit") {
+      } else if (engine == "webkit" && browser != "edge") {
         selector = "input.qx-placeholder-color::-webkit-input-placeholder, textarea.qx-placeholder-color::-webkit-input-placeholder";
         qx.ui.style.Stylesheet.getInstance().addRule(selector, "color: " + color);
-      } else if (qx.core.Environment.get("engine.name") == "mshtml") {
+      } else if (engine == "mshtml" || browser == "edge") {
         selector = "input.qx-placeholder-color:-ms-input-placeholder, textarea.qx-placeholder-color:-ms-input-placeholder";
         qx.ui.style.Stylesheet.getInstance().addRule(selector, "color: " + color + " !important");
       }
@@ -963,6 +965,20 @@ qx.Class.define("qx.ui.form.AbstractField",
         // only apply if the widget is enabled
         if (this.getEnabled()) {
           this.getContentElement().setAttribute("placeholder", value);
+
+          if (qx.core.Environment.get("browser.name") === "firefox" &&
+              parseFloat(qx.core.Environment.get("browser.version")) < 36 &&
+              this.getContentElement().getNodeName() === "textarea" &&
+              !this.getContentElement().getDomElement())
+          {
+            /* qx Bug #8870: Firefox 35 will not display a text area's
+               placeholder text if the attribute is set before the
+               element is added to the DOM. This is fixed in FF 36. */
+            this.addListenerOnce("appear", function() {
+              this.getContentElement().getDomElement().removeAttribute("placeholder");
+              this.getContentElement().getDomElement().setAttribute("placeholder", value);
+            }, this);
+          }
         }
       }
     },

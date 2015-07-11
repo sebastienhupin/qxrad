@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Generator Configuration File &mdash; qooxdoo 4.1 documentation</title>
+    <title>Generator Configuration File &mdash; qooxdoo 5.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '4.1',
+        VERSION:     '5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -33,7 +33,7 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="qooxdoo 4.1 documentation" href="../../../index.html" />
+    <link rel="top" title="qooxdoo 5.0 documentation" href="../../../index.html" />
     <link rel="up" title="Tooling" href="../../tool.html" />
     <link rel="next" title="Configuration Usage" href="config_usage.html" />
     <link rel="prev" title="Adding Dependency Information Manually" href="dependencies_manually.html" />
@@ -132,7 +132,7 @@
   <section id="breadcrumb">
       
   <a href="http://qooxdoo.org">Home</a> &raquo;
-    <a href="../../../index.html">Manual (v4.1)</a>
+    <a href="../../../index.html">Manual (v5.0)</a>
        &raquo;
       <a href="../../tool.html" accesskey="U">Tooling</a>
      &raquo;
@@ -223,7 +223,7 @@ the source version of an application:</p>
 <div class="section" id="syntax">
 <span id="pages-tool-generator-generator-config-syntax"></span><h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
 <p>The basic syntax of the configuration files is JSON, but on top of that a
-<a class="reference external" href="https://github.com/qooxdoo/qooxdoo/blob/release_4_1/tool/data/config/config_schema.json">schema</a>
+<a class="reference external" href="https://github.com/qooxdoo/qooxdoo/blob/release_5_0/tool/data/config/config_schema.json">schema</a>
 further restricts which keys and values can appear in which locations in the
 structure, see further for details. Additionally to the described keys you can
 place <tt class="docutils literal"><span class="pre">=</span></tt> in front of job and key names, to indicate that this feature should
@@ -293,127 +293,124 @@ and they will be ignored in the processing.</p>
 <tr class="row-even"><td>shell</td>
 <td>Triggers the execution of one or more external command(s).</td>
 </tr>
-<tr class="row-odd"><td>simulate</td>
-<td>Triggers the execution of a suite of integration tests (deprecated).</td>
-</tr>
-<tr class="row-even"><td>slice-images</td>
+<tr class="row-odd"><td>slice-images</td>
 <td>Triggers cutting images into regions.</td>
 </tr>
-<tr class="row-odd"><td>translate</td>
+<tr class="row-even"><td>translate</td>
 <td>Triggers updating of .po files.</td>
 </tr>
-<tr class="row-even"><td>validation-config</td>
+<tr class="row-odd"><td>validation-config</td>
 <td>Validate a configuration file.</td>
 </tr>
-<tr class="row-odd"><td>validation-manifest</td>
+<tr class="row-even"><td>validation-manifest</td>
 <td>Validate the Manifest.json.</td>
 </tr>
-<tr class="row-even"><td>watch-files</td>
+<tr class="row-odd"><td>watch-files</td>
 <td>Execute a job when some files change.</td>
 </tr>
-<tr class="row-odd"><td>web-server</td>
+<tr class="row-even"><td>web-server</td>
 <td>Start a mini web-server to serve the current app.</td>
 </tr>
-<tr class="row-even"><td>web-server-config</td>
+<tr class="row-odd"><td>web-server-config</td>
 <td>Generate a configuration snippet (e.g. for Apache), for the current app.</td>
-</tr>
-<tr class="row-odd"><td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr class="row-even"><td><strong>Structure-changing Keys</strong></td>
-<td><strong>Description</strong></td>
-</tr>
-<tr class="row-odd"><td>default-job (top-level)</td>
-<td>Default job to be run.</td>
-</tr>
-<tr class="row-even"><td>export (top-level)</td>
-<td>List of jobs to be exported to other config files.</td>
-</tr>
-<tr class="row-odd"><td>extend</td>
-<td>Extend the current job with other jobs.</td>
-</tr>
-<tr class="row-even"><td>include (top-level)</td>
-<td>Include external config files.</td>
-</tr>
-<tr class="row-odd"><td>jobs (top-level)</td>
-<td>Define jobs.</td>
-</tr>
-<tr class="row-even"><td>let</td>
-<td>Define macros.</td>
-</tr>
-<tr class="row-odd"><td>let (top-level)</td>
-<td>Define default macros.</td>
-</tr>
-<tr class="row-even"><td>run</td>
-<td>Define a list of jobs to run.</td>
-</tr>
-<tr class="row-odd"><td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr class="row-even"><td><strong>Input/Output-setting Keys</strong></td>
-<td><strong>Description</strong></td>
-</tr>
-<tr class="row-odd"><td>add-css</td>
-<td>Include arbitrary CSS URIs to be loaded by the app.</td>
-</tr>
-<tr class="row-even"><td>add-script</td>
-<td>Includes arbitrary script URIs to be loaded by the app.</td>
-</tr>
-<tr class="row-odd"><td>asset-let</td>
-<td>Defines macros that will be replaced in &#64;asset hints.</td>
-</tr>
-<tr class="row-even"><td>compile-options</td>
-<td>Various options that tailor the <em>compile</em> action.</td>
-</tr>
-<tr class="row-odd"><td>dependencies</td>
-<td>Fine-tune dependency processing.</td>
-</tr>
-<tr class="row-even"><td>exclude</td>
-<td>Exclude classes from processing of the job.</td>
-</tr>
-<tr class="row-odd"><td>include</td>
-<td>Include classes to be processed in the job.</td>
-</tr>
-<tr class="row-even"><td>library</td>
-<td>Define libraries to be taken into account for this job.</td>
-</tr>
-<tr class="row-odd"><td>packages</td>
-<td>Define packages for this app.</td>
-</tr>
-<tr class="row-even"><td>require</td>
-<td>Define prerequisite classes (load time).</td>
-</tr>
-<tr class="row-odd"><td>environment</td>
-<td>Define key:value pairs for the app.</td>
-</tr>
-<tr class="row-even"><td>use</td>
-<td>Define prerequisite classes (run time).</td>
-</tr>
-<tr class="row-odd"><td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr class="row-even"><td><strong>Runtime-setting Keys</strong></td>
-<td><strong>Description</strong></td>
-</tr>
-<tr class="row-odd"><td>cache</td>
-<td>Define the path to the cache directory.</td>
-</tr>
-<tr class="row-even"><td>config-warnings (experimental)</td>
-<td>Suppress warnings relating to configuration.</td>
-</tr>
-<tr class="row-odd"><td>log</td>
-<td>Tailor log output options.</td>
 </tr>
 <tr class="row-even"><td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr class="row-odd"><td><strong>Miscellaneous Keys</strong></td>
+<tr class="row-odd"><td><strong>Structure-changing Keys</strong></td>
 <td><strong>Description</strong></td>
 </tr>
-<tr class="row-even"><td>desc</td>
+<tr class="row-even"><td>default-job (top-level)</td>
+<td>Default job to be run.</td>
+</tr>
+<tr class="row-odd"><td>export (top-level)</td>
+<td>List of jobs to be exported to other config files.</td>
+</tr>
+<tr class="row-even"><td>extend</td>
+<td>Extend the current job with other jobs.</td>
+</tr>
+<tr class="row-odd"><td>include (top-level)</td>
+<td>Include external config files.</td>
+</tr>
+<tr class="row-even"><td>jobs (top-level)</td>
+<td>Define jobs.</td>
+</tr>
+<tr class="row-odd"><td>let</td>
+<td>Define macros.</td>
+</tr>
+<tr class="row-even"><td>let (top-level)</td>
+<td>Define default macros.</td>
+</tr>
+<tr class="row-odd"><td>run</td>
+<td>Define a list of jobs to run.</td>
+</tr>
+<tr class="row-even"><td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td><strong>Input/Output-setting Keys</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr class="row-even"><td>add-css</td>
+<td>Include arbitrary CSS URIs to be loaded by the app.</td>
+</tr>
+<tr class="row-odd"><td>add-script</td>
+<td>Includes arbitrary script URIs to be loaded by the app.</td>
+</tr>
+<tr class="row-even"><td>asset-let</td>
+<td>Defines macros that will be replaced in &#64;asset hints.</td>
+</tr>
+<tr class="row-odd"><td>compile-options</td>
+<td>Various options that tailor the <em>compile</em> action.</td>
+</tr>
+<tr class="row-even"><td>dependencies</td>
+<td>Fine-tune dependency processing.</td>
+</tr>
+<tr class="row-odd"><td>exclude</td>
+<td>Exclude classes from processing of the job.</td>
+</tr>
+<tr class="row-even"><td>include</td>
+<td>Include classes to be processed in the job.</td>
+</tr>
+<tr class="row-odd"><td>library</td>
+<td>Define libraries to be taken into account for this job.</td>
+</tr>
+<tr class="row-even"><td>packages</td>
+<td>Define packages for this app.</td>
+</tr>
+<tr class="row-odd"><td>require</td>
+<td>Define prerequisite classes (load time).</td>
+</tr>
+<tr class="row-even"><td>environment</td>
+<td>Define key:value pairs for the app.</td>
+</tr>
+<tr class="row-odd"><td>use</td>
+<td>Define prerequisite classes (run time).</td>
+</tr>
+<tr class="row-even"><td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td><strong>Runtime-setting Keys</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr class="row-even"><td>cache</td>
+<td>Define the path to the cache directory.</td>
+</tr>
+<tr class="row-odd"><td>config-warnings (experimental)</td>
+<td>Suppress warnings relating to configuration.</td>
+</tr>
+<tr class="row-even"><td>log</td>
+<td>Tailor log output options.</td>
+</tr>
+<tr class="row-odd"><td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><strong>Miscellaneous Keys</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr class="row-odd"><td>desc</td>
 <td>A descriptive string for the job.</td>
 </tr>
-<tr class="row-odd"><td>name (top-level)</td>
+<tr class="row-even"><td>name (top-level)</td>
 <td>A descriptive string for the configuration file.</td>
 </tr>
 </tbody>
@@ -462,7 +459,6 @@ and they will be ignored in the processing.</p>
 <li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-require"><em>require</em></a> Define prerequisite classes needed at load time. Takes a map, where the keys are class names and the values lists of prerequisite classes.</li>
 <li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-run"><em>run</em></a> Define a list of jobs to run in place of the current job. (See the special section on <a class="reference internal" href="generator_config_articles.html#pages-tool-generator-generator-config-articles-run-key"><em>&quot;run&quot; semantics</em></a>).</li>
 <li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-shell"><em>shell</em></a> Triggers the execution of one or more external command(s).</li>
-<li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-simulate"><em>simulate</em></a> Triggers the execution of a GUI test (simulated interaction) suite.</li>
 <li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-slice-images"><em>slice-images</em></a> Triggers cutting images into regions.</li>
 <li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-translate"><em>translate</em></a> (Re-)generate .po files from source classes.</li>
 <li><a class="reference internal" href="generator_config_ref.html#pages-tool-generator-generator-config-ref-use"><em>use</em></a> Define prerequisite classes needed at run time. Takes a map, where the keys are class names and the values lists of prerequisite classes.</li>
@@ -566,6 +562,9 @@ application (source version) through a pre-installed web server, like Apache.</l
             <a href="http://bugs.qooxdoo.org">Bugs</a>
           </li>
           <li>
+            <a href="/project">Project</a>
+          </li>
+          <li>
             <a href="http://qooxdoo.org/license">License</a>
           </li>
         </ul>
@@ -575,22 +574,22 @@ application (source version) through a pre-installed web server, like Apache.</l
         <ul>
           <li>
             
-            <a href="http://manual.qooxdoo.org/4.1/pages/introduction/about.html">About</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/introduction/about.html">About</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/getting_started.html">Getting Started</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/getting_started.html">Getting Started</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/website.html">Website</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/website.html">Website</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/mobile.html">Mobile</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/mobile.html">Mobile</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/desktop.html">Desktop</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/desktop.html">Desktop</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/server.html">Server</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/server.html">Server</a>
           </li>
         </ul>
       </div>
@@ -605,9 +604,6 @@ application (source version) through a pre-installed web server, like Apache.</l
           </li>
           <li>
             <a href="http://qooxdoo.org/community/real_life_examples">Real Life Examples</a>
-          </li>
-          <li>
-            <a href="http://qooxdoo.org/community/events">Events</a>
           </li>
           <li>
             <a href="http://qooxdoo.org/community/jobs_services">Jobs &amp; Services</a>
@@ -637,7 +633,7 @@ application (source version) through a pre-installed web server, like Apache.</l
           </strong>
         </p>
         <p class="page">
-              &copy; Copyright 2011-2013, 1&amp;1 Internet AG.
+              &copy; Copyright 2011-2015, 1&amp;1 Internet AG.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
         </p>
       </div>

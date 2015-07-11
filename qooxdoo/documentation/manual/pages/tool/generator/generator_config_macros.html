@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Generator Config Macros &mdash; qooxdoo 4.1 documentation</title>
+    <title>Generator Config Macros &mdash; qooxdoo 5.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -19,7 +19,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '4.1',
+        VERSION:     '5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -33,9 +33,9 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="qooxdoo 4.1 documentation" href="../../../index.html" />
+    <link rel="top" title="qooxdoo 5.0 documentation" href="../../../index.html" />
     <link rel="up" title="References" href="../../references.html" />
-    <link rel="next" title="qooxdoo Generator Cheat Sheet - v.4.1" href="cheat_sheet.html" />
+    <link rel="next" title="qooxdoo Generator Cheat Sheet - v.5.0" href="cheat_sheet.html" />
     <link rel="prev" title="Generator Config Keys" href="generator_config_ref.html" />
     <link rel="shortcut icon" href="http://resources.qooxdoo.org/images/qx-favicon.png" />
     <script type="text/javascript">
@@ -132,7 +132,7 @@
   <section id="breadcrumb">
       
   <a href="http://qooxdoo.org">Home</a> &raquo;
-    <a href="../../../index.html">Manual (v4.1)</a>
+    <a href="../../../index.html">Manual (v5.0)</a>
        &raquo;
       <a href="../../references.html" accesskey="U">References</a>
      &raquo;
@@ -230,7 +230,7 @@
 <tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-qooxdoo-version">QOOXDOO_VERSION</p>
 </td>
 <td>the current qooxdoo version</td>
-<td>4.1</td>
+<td>5.0</td>
 </tr>
 <tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-qooxdoo-revision">QOOXDOO_REVISION</p>
 </td>
@@ -257,47 +257,32 @@
 <td>application root dir (rel. to config dir)</td>
 <td>&quot;.&quot;</td>
 </tr>
-<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-simulation-include">SIMULATION_INCLUDE</p>
-</td>
-<td>class pattern to search for GUI test classes (deprecated)</td>
-<td>&quot;${APPLICATION}.simulation.*&quot;</td>
-</tr>
-<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-simulator-classpath">SIMULATOR_CLASSPATH</p>
-</td>
-<td>Java classpath argument for GUI test runner</td>
-<td>&quot;${SIMULATOR_ROOT}/tool/js.jar: ${SIMULATOR_ROOT}/tool/selenium-java-client-driver.jar&quot;</td>
-</tr>
-<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-simulator-root">SIMULATOR_ROOT</p>
-</td>
-<td>path to the framework's simulator component</td>
-<td>&quot;${QOOXDOO_PATH}/ component/ simulator&quot;</td>
-</tr>
-<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-source-server-port">SOURCE_SERVER_PORT</p>
+<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-source-server-port">SOURCE_SERVER_PORT</p>
 </td>
 <td>port the <a class="reference internal" href="default_jobs_actions.html#pages-tool-generator-generator-default-jobs-source-server"><em>source-server</em></a> should run on</td>
 <td>0 (meaning an arbitrary free port will be picked)</td>
 </tr>
-<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-test-include">TEST_INCLUDE</p>
+<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-test-include">TEST_INCLUDE</p>
 </td>
 <td>class pattern to search for unit test classes</td>
 <td>&quot;${APPLICATION}.test.*&quot;</td>
 </tr>
-<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-test-exclude">TEST_EXCLUDE</p>
+<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-test-exclude">TEST_EXCLUDE</p>
 </td>
 <td>class pattern to exclude unit test classes</td>
 <td>&quot;${APPLICATION}.test.oldtests.*&quot;</td>
 </tr>
-<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-test-script">TESTS_SCRIPT</p>
+<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-test-script">TESTS_SCRIPT</p>
 </td>
 <td>script file name for the test application (the &quot;AUT&quot;)</td>
 <td>&quot;tests.js&quot;</td>
 </tr>
-<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-tmpdir">TMPDIR</p>
+<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-tmpdir">TMPDIR</p>
 </td>
 <td>(read-only) path to tmp directory</td>
 <td>(platform-dependent, like /tmp etc.; run <em>generate.py info</em> to find out)</td>
 </tr>
-<tr class="row-even"><td><p class="first last" id="pages-tool-generator-generator-config-macros-username">USERNAME</p>
+<tr class="row-odd"><td><p class="first last" id="pages-tool-generator-generator-config-macros-username">USERNAME</p>
 </td>
 <td>(read-only) value of the (process) environment variable &quot;USERNAME&quot;</td>
 <td>&lt;undef&gt;</td>
@@ -313,7 +298,7 @@
              title="previous chapter">« Generator Config Keys</a>
           <span class="separator">|</span>
           <a class="next" href="cheat_sheet.html"
-             title="next chapter">qooxdoo Generator Cheat Sheet - v.4.1 »</a>
+             title="next chapter">qooxdoo Generator Cheat Sheet - v.5.0 »</a>
       </div>
     </section>
     <section id="sidebar">
@@ -321,7 +306,7 @@
         <div class="sphinxsidebarwrapper">
   <h4>» Next topic</h4>
   <p class="topless"><a href="cheat_sheet.html"
-                        title="next chapter">qooxdoo Generator Cheat Sheet - v.4.1</a></p>
+                        title="next chapter">qooxdoo Generator Cheat Sheet - v.5.0</a></p>
   <h4>« Previous topic</h4>
   <p class="topless"><a href="generator_config_ref.html"
                         title="previous chapter">Generator Config Keys</a></p>
@@ -376,6 +361,9 @@
             <a href="http://bugs.qooxdoo.org">Bugs</a>
           </li>
           <li>
+            <a href="/project">Project</a>
+          </li>
+          <li>
             <a href="http://qooxdoo.org/license">License</a>
           </li>
         </ul>
@@ -385,22 +373,22 @@
         <ul>
           <li>
             
-            <a href="http://manual.qooxdoo.org/4.1/pages/introduction/about.html">About</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/introduction/about.html">About</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/getting_started.html">Getting Started</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/getting_started.html">Getting Started</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/website.html">Website</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/website.html">Website</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/mobile.html">Mobile</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/mobile.html">Mobile</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/desktop.html">Desktop</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/desktop.html">Desktop</a>
           </li>
           <li>
-            <a href="http://manual.qooxdoo.org/4.1/pages/server.html">Server</a>
+            <a href="http://manual.qooxdoo.org/5.0/pages/server.html">Server</a>
           </li>
         </ul>
       </div>
@@ -415,9 +403,6 @@
           </li>
           <li>
             <a href="http://qooxdoo.org/community/real_life_examples">Real Life Examples</a>
-          </li>
-          <li>
-            <a href="http://qooxdoo.org/community/events">Events</a>
           </li>
           <li>
             <a href="http://qooxdoo.org/community/jobs_services">Jobs &amp; Services</a>
@@ -447,7 +432,7 @@
           </strong>
         </p>
         <p class="page">
-              &copy; Copyright 2011-2013, 1&amp;1 Internet AG.
+              &copy; Copyright 2011-2015, 1&amp;1 Internet AG.
             Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
         </p>
       </div>

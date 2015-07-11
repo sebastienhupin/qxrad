@@ -106,6 +106,8 @@ qx.Class.define("mobileshowcase.page.Dialog",
       var anchorMenuModel = new qx.data.Array(["Red", "Green", "Blue"]);
       this.__anchorMenu = new qx.ui.mobile.dialog.Menu(anchorMenuModel, showAnchorMenuButton);
       this.__anchorMenu.setTitle("Colors");
+      this.__anchorMenu.addListener("changeSelection", this.__onMenuChangeSelection, this);
+
 
       // BUTTONS
       var showPopupButton = new qx.ui.mobile.form.Button("Popup");
@@ -159,7 +161,6 @@ qx.Class.define("mobileshowcase.page.Dialog",
     /**
     * Creates the date picker dialog.
     * @param anchor {qx.ui.mobile.core.Widget} the anchor of the popup.
-    * @return {qx.ui.mobile.dialog.Picker} the date picker.
     */
     _createPicker : function(anchor) {
       var pickerDialog = this.__pickerDialog = new qx.ui.mobile.dialog.Popup(anchor);
@@ -277,7 +278,10 @@ qx.Class.define("mobileshowcase.page.Dialog",
       }
 
       if (e.getData().item) {
-        this.__resultsLabel.setValue("Received <b>changeSelection</b> from Picker Dialog. [slot: "+ e.getData().slot+ "] [item: "+ e.getData().item.title+"]");
+        this.__resultsLabel.setValue(
+          "Received <b>changeSelection</b> from Picker Dialog. [slot: " +
+          e.getData().slot + "] [item: " + e.getData().item.title + "]"
+        );
       }
     },
 

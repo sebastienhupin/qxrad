@@ -68,7 +68,6 @@ qx.Class.define("qx.event.handler.Pointer",
     this.__root = this.__window.document;
 
     qx.event.handler.PointerCore.apply(this, [this.__root]);
-    this.__root.$$pointerHandler = this;
   },
 
   members : {
@@ -119,8 +118,8 @@ qx.Class.define("qx.event.handler.Pointer",
       }
 
       // respect anonymous elements
-      while (target && target.getAttribute("qxanonymous")) {
-        target = target.parentNode
+      while (target && target.getAttribute && target.getAttribute("qxanonymous")) {
+        target = target.parentNode;
       }
 
       if (!type) {
@@ -142,7 +141,10 @@ qx.Class.define("qx.event.handler.Pointer",
           [domEvent, target, null, true, true]
         );
 
-        if (type == "pointerdown" || type == "pointerup" || type == "pointermove" || type == "pointercancel") {
+        if ((domEvent.getPointerType() !== "mouse" ||
+             domEvent.button <= qx.event.handler.PointerCore.LEFT_BUTTON) &&
+          (type == "pointerdown" || type == "pointerup" || type == "pointermove" || type == "pointercancel"))
+        {
           qx.event.Registration.fireEvent(
             this.__root,
             qx.event.handler.PointerCore.POINTER_TO_GESTURE_MAPPING[type],
@@ -158,6 +160,10 @@ qx.Class.define("qx.event.handler.Pointer",
 
     // overridden
     _onPointerEvent : function(domEvent) {
+      if (domEvent._original && domEvent._original[this._processedFlag]) {
+        return;
+      }
+
       var type = qx.event.handler.PointerCore.MSPOINTER_TO_POINTER_MAPPING[domEvent.type] || domEvent.type;
       this._fireEvent(domEvent, type, qx.bom.Event.getTarget(domEvent));
     },

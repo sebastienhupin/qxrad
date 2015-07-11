@@ -51,10 +51,13 @@
  *
  * @group (Widget)
  */
-qx.Bootstrap.define("qx.ui.website.DatePicker", {
+qx.Bootstrap.define('qx.ui.website.DatePicker', {
   extend : qx.ui.website.Widget,
 
   statics : {
+    /** List of valid positions to check against */
+    __validPositions : null,
+
     /**
      * *format*
      *
@@ -89,6 +92,27 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
      *
      * Default value:
      * <pre>input</pre>
+     *
+     * *position*
+     *
+     * Position of the calendar popup from the point of view of the <code>INPUT</code> element.
+     * Possible values are
+     *
+     * * <code>top-left</code>
+     * * <code>top-center</code>
+     * * <code>top-right</code>
+     * * <code>bottom-left</code>
+     * * <code>bottom-center</code>
+     * * <code>bottom-right</code>
+     * * <code>left-top</code>
+     * * <code>left-middle</code>
+     * * <code>left-bottom</code>
+     * * <code>right-top</code>
+     * * <code>right-middle</code>
+     * * <code>right-bottom</code>
+     *
+     * Default value:
+     * <pre>bottom-left</pre>
      */
     _config : {
       format : function(date) {
@@ -99,7 +123,9 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
 
       icon : null,
 
-      mode : 'input'
+      mode : 'input',
+
+      position : 'bottom-left'
     },
 
     /**
@@ -124,6 +150,10 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
   },
 
   members : {
+    _calendarId: null,
+    _iconId: null,
+    _uniqueId: null,
+
 
     /**
      * Get the associated calendar widget
@@ -131,9 +161,7 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
      */
     getCalendar : function() {
       var calendarCollection = qxWeb();
-      this._forEachElementWrapped(function(datepicker) {
-        calendarCollection = calendarCollection.concat(qxWeb('div#' + datepicker.getProperty('calendarId')));
-      });
+      calendarCollection = calendarCollection.concat(qxWeb('div#' + this._calendarId));
 
       return calendarCollection;
     },
@@ -150,35 +178,32 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
         return false;
       }
 
-      this._forEachElementWrapped(function(datepicker) {
+      var uniqueId = Math.round(Math.random() * 10000);
+      this._uniqueId = uniqueId;
 
-        var uniqueId = Math.round(Math.random() * 10000);
-        datepicker.setProperty('uniqueId', uniqueId);
+      this.__setReadOnly(this);
+      this.__setIcon(this);
+      this.__addInputListener(this);
 
-        this.__setReadOnly(datepicker);
-        this.__setIcon(datepicker);
-        this.__addInputListener(datepicker);
+      var calendarId = 'datepicker-calendar-' + uniqueId;
+      var calendar = qxWeb.create('<div id="' + calendarId + '"></div>').calendar();
+      calendar.on('tap', this._onCalendarTap);
+      calendar.appendTo(document.body).hide();
 
-        var calendarId = 'datepicker-calendar-' + uniqueId;
-        var calendar = qxWeb.create('<div id="' + calendarId + '"></div>').calendar();
-        calendar.on('tap', this._onCalendarTap);
-        calendar.appendTo(document.body).hide();
+      // create the connection between the date picker and the corresponding calendar widget
+      this._calendarId = calendarId;
 
-        // create the connection between the date picker and the corresponding calendar widget
-        datepicker.setProperty('calendarId', calendarId);
+      // grab tap events at the body element to be able to hide the calender popup
+      // if the user taps outside
+      var bodyElement = qxWeb.getDocument(this).body;
+      qxWeb(bodyElement).on('tap', this._onBodyTap, this);
 
-        // grab tap events at the body element to be able to hide the calender popup
-        // if the user taps outside
-        var bodyElement = qxWeb.getDocument(datepicker).body;
-        qxWeb(bodyElement).on('tap', datepicker._onBodyTap, datepicker);
+      // react on date selection
+      calendar.on('changeValue', this._calendarChangeValue, this);
 
-        // react on date selection
-        calendar.on('changeValue', datepicker._calendarChangeValue, datepicker);
-
-        if (date !== undefined) {
-          calendar.setValue(date);
-        }
-      });
+      if (date !== undefined) {
+        calendar.setValue(date);
+      }
 
       return true;
     },
@@ -187,16 +212,31 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
     render : function() {
       this.getCalendar().render();
 
-      this._forEachElementWrapped(function(datepicker) {
-        this.__setReadOnly(datepicker);
-        this.__setIcon(datepicker);
-        this.__addInputListener(datepicker);
-      });
+      this.__setReadOnly(this);
+      this.__setIcon(this);
+      this.__addInputListener(this);
 
       this.setEnabled(this.getEnabled());
 
       return this;
     },
+
+    // overridden
+    setConfig : function(name, config) {
+
+      if (name === 'position') {
+
+        var validPositions = qx.ui.website.DatePicker.__validPositions;
+        if (validPositions.indexOf(config) === -1) {
+          throw new Error('Wrong config value for "position"! ' +
+                          'Only the values "' + validPositions.join('", "') + '" are supported!');
+        }
+      }
+
+      this.base(arguments, name, config);
+      return this;
+    },
+
 
     /**
      * Listener which handles clicks/taps on the associated input element and
@@ -209,10 +249,10 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
         return;
       }
 
-      var calendar = qxWeb('div#' + this.getProperty('calendarId'));
+      var calendar = qxWeb('div#' + this._calendarId);
 
-      if (calendar.getStyle("display") == "none") {
-        this.getCalendar().show().placeTo(this, 'bottom-left');
+      if (calendar.getStyle('display') == 'none') {
+        this.getCalendar().show().placeTo(this, this.getConfig('position'));
       } else {
         this.getCalendar().hide();
       }
@@ -244,7 +284,7 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
 
       // fast check for tap on the configured icon
       if (this.getConfig('icon') !== null) {
-        var icon = qxWeb('#' + this.getProperty('iconId'));
+        var icon = qxWeb('#' + this._iconId);
         if (icon.length > 0 && target.length > 0 &&
             icon[0] == target[0]) {
           return;
@@ -298,17 +338,17 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
       var icon;
 
       if (collection.getConfig('icon') === null) {
-        icon = collection.getNext('img#' + collection.getProperty('iconId'));
+        icon = collection.getNext('img#' + collection._iconId);
         if (icon.length === 1) {
           icon.off('tap', this._onTap, collection);
           icon.remove();
         }
       } else {
-        var iconId = 'datepicker-icon-' + collection.getProperty('uniqueId');
+        var iconId = 'datepicker-icon-' + collection._uniqueId;
 
         // check if there is already an icon
-        if (collection.getProperty('iconId') === undefined) {
-          collection.setProperty('iconId', iconId);
+        if (collection._iconId == undefined) {
+          collection._iconId = iconId;
 
           icon = qxWeb.create('<img>');
 
@@ -337,30 +377,28 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
      */
     __addInputListener : function(collection) {
       if (collection.getConfig('mode') === 'icon') {
-        collection.$offFirstCollection('tap', collection._onTap);
+        collection.off('tap', collection._onTap);
       } else {
-        collection.$onFirstCollection('tap', collection._onTap);
+        collection.on('tap', collection._onTap);
       }
     },
 
     // overridden
     dispose : function() {
-      this._forEachElementWrapped(function(datepicker) {
-        datepicker.removeAttribute('readonly');
-        datepicker.getNext('img#' + datepicker.getProperty('iconId')).remove();
+      this.removeAttribute('readonly');
+      this.getNext('img#' + this._iconId).remove();
 
-        datepicker.$offFirstCollection('tap', datepicker._onTap);
+      this.off('tap', this._onTap);
 
-        var bodyElement = qxWeb.getDocument(datepicker).body;
-        qxWeb(bodyElement).off('tap', datepicker._onBodyTap, datepicker);
+      var bodyElement = qxWeb.getDocument(this).body;
+      qxWeb(bodyElement).off('tap', this._onBodyTap, this);
 
-        datepicker.getCalendar().off('changeValue', this._calendarChangeValue, datepicker)
-        .off('tap', this._onCalendarTap);
+      this.getCalendar().off('changeValue', this._calendarChangeValue, this)
+      .off('tap', this._onCalendarTap);
 
-        var calendar = qxWeb('div#' + datepicker.getProperty('calendarId'));
-        calendar.remove();
-        calendar.dispose();
-      });
+      var calendar = qxWeb('div#' + this._calendarId);
+      calendar.remove();
+      calendar.dispose();
 
       return this.base(arguments);
     }
@@ -368,5 +406,10 @@ qx.Bootstrap.define("qx.ui.website.DatePicker", {
 
   defer : function(statics) {
     qxWeb.$attach({datepicker : statics.datepicker});
+
+    statics.__validPositions = [ 'top-left', 'top-center', 'top-right',
+                                 'bottom-left', 'bottom-center', 'bottom-right',
+                                 'left-top', 'left-middle', 'left-bottom',
+                                 'right-top', 'right-middle', 'right-bottom' ];
   }
 });

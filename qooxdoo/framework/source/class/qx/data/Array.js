@@ -114,7 +114,7 @@ qx.Class.define("qx.data.Array",
   {
     /**
      * The change event which will be fired if there is a change in the array.
-     * The data contains a map with three key value pairs:
+     * The data contains a map with five key value pairs:
      * <li>start: The start index of the change.</li>
      * <li>end: The end index of the change.</li>
      * <li>type: The type of the change as a String. This can be 'add',
@@ -378,8 +378,9 @@ qx.Class.define("qx.data.Array",
           var end = this.length - 1;
         } else {
           var type = "add/remove";
-          var end = startIndex + Math.abs(addedItems.length - returnArray.length);
+          var end = startIndex + Math.max(addedItems.length, returnArray.length) - 1;
         }
+
         this.fireDataEvent("change",
           {
             start: startIndex,
@@ -769,11 +770,12 @@ qx.Class.define("qx.data.Array",
         qx.core.Assert.assertArray(array, "The parameter must be an array.");
       }
 
+      var oldLength = this.__array.length;
       Array.prototype.push.apply(this.__array, array);
 
       // add a listener to the new items
       for (var i = 0; i < array.length; i++) {
-        this._registerEventChaining(array[i], null, this.__array.length + i);
+        this._registerEventChaining(array[i], null, oldLength + i);
       }
 
       var oldLength = this.length;
