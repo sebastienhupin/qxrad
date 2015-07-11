@@ -1,0 +1,7 @@
+{
+  "workspace" : "../workspace",
+  "qooxdoo" : {
+    "path" : "../qooxdoo",
+    "create_application" : "${qooxdoo.path}/tool/bin/create-application.py"
+  }
+}

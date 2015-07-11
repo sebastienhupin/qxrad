@@ -1,0 +1,147 @@
+{
+  "default" : {
+    "dropDataType" : [
+      "qx.ui.basic.Atom",
+      "qx.ui.basic.Image",
+      "qx.ui.basic.Label",
+      "qx.ui.container.Composite",
+      "qx.ui.container.Resizer",
+      "qx.ui.container.Scroll",
+      "qx.ui.container.SlideBar",
+      "qx.ui.container.Stack",
+      "qx.ui.control.ColorPopup",
+      "qx.ui.control.ColorSelector",
+      "qx.ui.control.DateChooser",
+      "qx.ui.core.Widget",
+      "qx.ui.embed.Canvas",
+      "qx.ui.embed.Flash",
+      "qx.ui.embed.Html",
+      "qx.ui.embed.HtmlArea",
+      "qx.ui.embed.Iframe",
+      "qx.ui.embed.ThemedIframe",
+      "qx.ui.form.Button",
+      "qx.ui.form.CheckBox",
+      "qx.ui.form.ComboBox",
+      "qx.ui.form.DateField",
+      "qx.ui.form.HoverButton",
+      "qx.ui.form.List",
+      "qx.ui.form.MenuButton",
+      "qx.ui.form.PasswordField",
+      "qx.ui.form.RadioButton",
+      "qx.ui.form.RadioButtonGroup",
+      "qx.ui.form.RepeatButton",
+      "qx.ui.form.SelectBox",
+      "qx.ui.form.Slider",
+      "qx.ui.form.Spinner",
+      "qx.ui.form.SplitButton",
+      "qx.ui.form.TextArea",
+      "qx.ui.form.TextField",
+      "qx.ui.form.ToggleButton",
+      "qx.ui.groupbox.CheckGroupBox",
+      "qx.ui.groupbox.GroupBox",
+      "qx.ui.groupbox.RadioGroupBox",
+      "qx.ui.menubar.MenuBar",
+      "qx.ui.popup.Popup",
+      "qx.ui.splitpane.Pane",
+      "qx.ui.table.Table",
+      "qx.ui.tabview.TabView",
+      "qx.ui.toolbar.ToolBar",
+      "qx.ui.tree.Tree"
+    ]
+  },
+  "qxrad.plugin.designer.template.MyWidget" : "default",
+  "qxrad.plugin.designer.template.Widget" : "default",
+  
+  "qx.ui.container.Composite" : "default",
+  "qx.ui.container.Resizer" : "default",
+  "qx.ui.container.Scroll" : "default",
+  "qx.ui.container.SlideBar" : "default",
+  "qx.ui.container.Stack" : "default",
+  
+  "qx.ui.groupbox.GroupBox" : "default",
+  "qx.ui.groupbox.CheckGroupBox" : "default",
+  "qx.ui.groupbox.RadioGroupBox" : "default", 
+  
+  "qx.ui.splitpane.Pane" : "default",
+  
+  "qx.ui.form.List" : {
+    "dropDataType" : [
+      "qx.ui.form.ListItem"
+    ]
+  },
+
+  "qx.ui.form.SelectBox" : "qx.ui.form.List",
+
+  "qx.ui.menu.Menu" : {
+    "dropDataType" : [
+      "qx.ui.menu.Button",
+      "qx.ui.menu.CheckBox",
+      "qx.ui.menu.RadioButton",
+      "qx.ui.menu.Separator"
+    ]  
+  },
+  "qx.ui.menu.Button" :{
+    "dropDataType" : [
+      "qx.ui.menu.Menu"
+    ]  
+  },
+  "qx.ui.menu.CheckBox" : "qx.ui.menu.Button",
+  "qx.ui.menu.RadioButton" : "qx.ui.menu.Button",   
+  
+  "qx.ui.form.MenuButton" : {
+    "dropDataType" : [
+      "qx.ui.menu.Menu"
+    ]  
+  },
+  
+  "qx.ui.menubar.MenuBar" : {
+    "dropDataType" : [
+      "qx.ui.menubar.Button"
+    ] 
+  },  
+   "qx.ui.menubar.Button" : "qx.ui.form.MenuButton",
+      
+  "qx.ui.toolbar.ToolBar" : {
+    "dropDataType" : [
+      "qx.ui.toolbar.Button",
+      "qx.ui.toolbar.CheckBox",
+      "qx.ui.toolbar.MenuButton",
+      "qx.ui.toolbar.Part",
+      "qx.ui.toolbar.RadioButton",
+      "qx.ui.toolbar.Separator",
+      "qx.ui.toolbar.SplitButton",
+      "qx.ui.form.SelectBox"
+    ]  
+  },
+  
+  "qx.ui.toolbar.Part" : "qx.ui.toolbar.ToolBar",
+  "qx.ui.toolbar.MenuButton" : "qx.ui.form.MenuButton",     
+  "qx.ui.toolbar.SplitButton" : "qx.ui.form.MenuButton",
+  
+  "qx.ui.form.SplitButton" : "qx.ui.form.MenuButton",
+  
+  "qx.ui.form.RadioButtonGroup" : {
+    "dropDataType" : [
+      "qx.ui.form.RadioButton"
+    ]  
+  },
+    
+  "qx.ui.tree.Tree" : {
+    "dropDataType" : [
+      "qx.ui.tree.TreeFolder"
+    ]
+  },
+  "qx.ui.tree.TreeFolder" : {
+    "dropDataType" : [
+      "qx.ui.tree.TreeFile",
+      "qx.ui.tree.TreeFolder"
+    ]
+  },
+  
+  "qx.ui.tabview.TabView" : {
+    "dropDataType" : [
+      "qx.ui.tabview.Page"
+    ]
+  },
+  "qx.ui.tabview.Page" : "default"    
+}
