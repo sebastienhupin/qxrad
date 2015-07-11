@@ -1,64 +1,343 @@
-[
-"qx.ui.basic.Atom",
-"qx.ui.basic.Image",
-"qx.ui.basic.Label",
-"qx.ui.container.Composite",
-"qx.ui.container.Resizer",
-"qx.ui.container.Scroll",
-"qx.ui.container.SlideBar",
-"qx.ui.container.Stack",
-"qx.ui.control.ColorPopup",
-"qx.ui.control.ColorSelector",
-"qx.ui.control.DateChooser",
-"qx.ui.embed.Canvas",
-"qx.ui.embed.Flash",
-"qx.ui.embed.Html",
-"qx.ui.embed.HtmlArea",
-"qx.ui.embed.Iframe",
-"qx.ui.embed.ThemedIframe",
-"qx.ui.form.Button",
-"qx.ui.form.CheckBox",
-"qx.ui.form.ComboBox",
-"qx.ui.form.DateField",
-"qx.ui.form.HoverButton",
-"qx.ui.form.List",
-"qx.ui.form.ListItem",
-"qx.ui.form.MenuButton",
-"qx.ui.form.PasswordField",
-"qx.ui.form.RadioButton",
-"qx.ui.form.RadioButtonGroup",
-"qx.ui.form.RepeatButton",
-"qx.ui.form.SelectBox",
-"qx.ui.form.Slider",
-"qx.ui.form.Spinner",
-"qx.ui.form.SplitButton",
-"qx.ui.form.TextArea",
-"qx.ui.form.TextField",
-"qx.ui.form.ToggleButton",
-"qx.ui.groupbox.CheckGroupBox",
-"qx.ui.groupbox.GroupBox",
-"qx.ui.groupbox.RadioGroupBox",
-"qx.ui.menu.Button",
-"qx.ui.menu.CheckBox",
-"qx.ui.menu.Menu",
-"qx.ui.menu.RadioButton",
-"qx.ui.menu.Separator",
-"qx.ui.menubar.Button",
-"qx.ui.menubar.MenuBar",
-"qx.ui.popup.Popup",
-"qx.ui.splitpane.Pane",
-"qx.ui.table.Table",
-"qx.ui.tabview.Page",
-"qx.ui.tabview.TabView",
-"qx.ui.toolbar.Button",
-"qx.ui.toolbar.CheckBox",
-"qx.ui.toolbar.MenuButton",
-"qx.ui.toolbar.Part",
-"qx.ui.toolbar.RadioButton",
-"qx.ui.toolbar.Separator",
-"qx.ui.toolbar.SplitButton",
-"qx.ui.toolbar.ToolBar",
-"qx.ui.tree.Tree",
-"qx.ui.tree.TreeFile",
-"qx.ui.tree.TreeFolder"
-]
+{
+  "name": "qx",
+  "icon": "",
+  "children": [
+    {
+      "name": "ui",
+      "icon":"",
+      "children": [
+        {
+          "name": "basic",
+          "icon": "",
+          "children": [
+            {
+              "name": "Atom",
+              "icon": ""
+            },
+            {
+              "name": "Image",
+              "icon": "qxrad/icon/16/image_16.png"
+            },
+            {
+              "name": "Label",
+              "icon": "qxrad/icon/16/label_16.png"
+            }
+          ]
+        },
+        {
+          "name": "container",
+          "icon": "",
+          "children": [
+            {
+              "name": "Composite",
+              "icon": ""
+            },
+            {
+              "name": "Resizer",
+              "icon": "qxrad/icon/16/resizer_16.png"
+            },
+            {
+              "name": "Scroll",
+              "icon": "qxrad/icon/16/scroll_pane_16.png"
+            },
+            {
+              "name": "SlideBar",
+              "icon": "qxrad/icon/16/slider_16.png"
+            },
+            {
+              "name": "Stack",
+              "icon": ""
+            }           
+          ]
+        },
+        {
+          "name": "control",
+          "icon": "",
+          "children": [
+            {
+              "name": "ColorPopup",
+              "icon": "qxrad/icon/16/colors_16.png"
+            },
+            {
+              "name": "ColorSelector",
+              "icon": "qxrad/icon/16/color_chooser_16.png"
+            }, 
+            {
+              "name": "DateChooser",
+              "icon": ""
+            }          
+          ]
+        },
+        {
+          "name": "embed",
+          "icon": "",
+          "children": [
+            {
+              "name": "Canvas",
+              "icon": ""
+            },
+            {
+              "name": "Flash",
+              "icon": ""
+            }, 
+            {
+              "name": "Html",
+              "icon": "qxrad/icon/16/html_16.png"
+            },
+            {
+              "name": "HtmlArea",
+              "icon": "qxrad/icon/16/html_element_16.png"
+            },
+            {
+              "name": "Iframe",
+              "icon": "qxrad/icon/16/internal_frame_16.png"
+            },
+            {
+              "name": "ThemedIframe",
+              "icon": ""
+            }            
+          ]
+        },
+        {
+          "name": "form",
+          "icon": "",
+          "children": [
+            {
+              "name": "Button",
+              "icon": "qxrad/icon/16/button_16.png"
+            },
+            {
+              "name": "CheckBox",
+              "icon": "qxrad/icon/16/check_box_16.png"
+            }, 
+            {
+              "name": "ComboBox",
+              "icon": "qxrad/icon/16/combo_box_16.png"
+            },
+            {
+              "name": "DateField",
+              "icon": ""
+            },
+            {
+              "name": "HoverButton",
+              "icon": ""
+            },
+            {
+              "name": "List",
+              "icon": "qxrad/icon/16/list_16.png"
+            },
+            {
+              "name": "ListItem",
+              "icon": ""
+            },
+            {
+              "name": "MenuButton",
+              "icon": "qxrad/icon/16/menu_bar_16.png"
+            },
+            {
+              "name": "PasswordField",
+              "icon": "qxrad/icon/16/password_field_16.png"
+            },
+            {
+              "name": "RadioButton",
+              "icon": "qxrad/icon/16/radio_button_16.png"
+            },
+            {
+              "name": "RadioButtonGroup",
+              "icon": "qxrad/icon/16/button_group_16.png"
+            },
+            {
+              "name": "RepeatButton",
+              "icon": ""
+            },
+            {
+              "name": "SelectBox",
+              "icon": "qxrad/icon/16/select_16.png"
+            },
+            {
+              "name": "Slider",
+              "icon": "qxrad/icon/16/slider_16.png"
+            },
+            {
+              "name": "Spinner",
+              "icon": "qxrad/icon/16/spinner_16.png"
+            },
+            {
+              "name": "SplitButton",
+              "icon": ""
+            },
+            {
+              "name": "TextArea",
+              "icon": "qxrad/icon/16/text_area_16.png"
+            },
+            {
+              "name": "TextField",
+              "icon": "qxrad/icon/16/text_field_16.png"
+            },
+            {
+              "name": "ToggleButton",
+              "icon": "qxrad/icon/16/toggle_button_16.png"
+            }            
+          ]
+        },
+        {
+          "name": "groupbox",
+          "icon": "",
+          "children": [
+            {
+              "name": "CheckGroupBox",
+              "icon": ""
+            },
+            {
+              "name": "GroupBox",
+              "icon": ""
+            },
+            {
+              "name": "RadioGroupBox",
+              "icon": "qxrad/icon/16/button_group_16.png"
+            }           
+          ]
+        },
+        {
+          "name": "menu",
+          "icon": "",
+          "children": [
+            {
+              "name": "Button",
+              "icon": "qxrad/icon/16/menu_item_16.png"
+            },
+            {
+              "name": "CheckBox",
+              "icon": "qxrad/icon/16/checkbox_menu_item_16.png"
+            },
+            {
+              "name": "Menu",
+              "icon": "qxrad/icon/16/menu_16.png"
+            },
+            {
+              "name": "RadioButton",
+              "icon": "qxrad/icon/16/radio_button_menu_item_16.png"
+            },
+            {
+              "name": "Separator",
+              "icon": "qxrad/icon/16/separator_16.png"
+            }             
+          ]
+        },
+        {
+          "name": "menubar",
+          "icon": "",
+          "children": [
+            {
+              "name": "Button",
+              "icon": "qxrad/icon/16/button_16.png"
+            },
+            {
+              "name": "MenuBar",
+              "icon": "qxrad/icon/16/menu_bar_16.png"
+            }            
+          ]
+        },
+        {
+          "name": "popup",
+          "icon": "",
+          "children": [
+            {
+              "name": "Popup",
+              "icon": ""
+            }            
+          ]
+        },
+        {
+          "name": "splitpane",
+          "icon": "",
+          "children": [
+            {
+              "name": "Pane",
+              "icon": "qxrad/icon/16/split_pane_16.png"
+            }            
+          ]
+        },
+        {
+          "name": "table",
+          "icon": "",
+          "children": [
+            {
+              "name": "Table",
+              "icon": "qxrad/icon/16/table_16.png"
+            }            
+          ]
+        },
+        {
+          "name": "tabview",
+          "icon": "",
+          "children": [
+            {
+              "name": "Page",
+              "icon": "qxrad/icon/16/tabview_page_16.png"
+            },            {
+              "name": "TabView",
+              "icon": "qxrad/icon/16/tabview_16.png"
+            }            
+          ]
+        },
+        {
+          "name": "toolbar",
+          "icon": "",
+          "children": [
+            {
+              "name": "Button",
+              "icon": "qxrad/icon/16/button_16.png"
+            },            
+            {
+              "name": "CheckBox",
+              "icon": "qxrad/icon/16/checkbox_menu_item_16.png"
+            },            
+            {
+              "name": "MenuButton",
+              "icon": "qxrad/icon/16/menu_item_16.png"
+            },            
+            {
+              "name": "Part",
+              "icon": ""
+            },            
+            {
+              "name": "RadioButton",
+              "icon": "qxrad/icon/16/radio_button_menu_item_16.png"
+            },            
+            {
+              "name": "Separator",
+              "icon": "qxrad/icon/16/separator_16.png"
+            },            
+            {
+              "name": "SplitButton",
+              "icon": ""
+            },            
+            {
+              "name": "ToolBar",
+              "icon": "qxrad/icon/16/tool_bar_16.png"
+            }            
+          ]
+        },
+        {
+          "name": "tree",
+          "icon": "",
+          "children": [
+            {
+              "name": "Tree",
+              "icon": "qxrad/icon/16/tree_16.png"
+            },            
+            {
+              "name": "TreeFile",
+              "icon": "qxrad/icon/16/tree_file_16.png"
+            },            
+            {
+              "name": "TreeFolder",
+              "icon": "qxrad/icon/16/tree_folder_16.png"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

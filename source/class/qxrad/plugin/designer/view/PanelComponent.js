@@ -7,7 +7,10 @@
    Authors:
 
 ************************************************************************ */
-
+/**
+ * @asset(qxrad/icon/16/*)
+ *
+ */
 qx.Class.define("qxrad.plugin.designer.view.PanelComponent",
 {
   extend : qx.ui.tree.Tree,
@@ -65,44 +68,39 @@ qx.Class.define("qxrad.plugin.designer.view.PanelComponent",
 
 
     /**
-     * TODOC
+     * Apply the model
      *
-     * @param value {var} TODOC
-     * @param oldValue {var} TODOC
-     * @return {void}
+     * @param model JSON The model tree to apply
+     * @param oldModel JSON The old model tree
      */
-    _applyModel : function(value, oldValue)
+    _applyModel : function(model, oldModel)
     {
-      if (!qx.lang.Type.isArray(value)) {
-        return;
-      }
+      
+      var marshal = new qx.data.marshal.Json();
+      marshal.toClass(model, true);
+      this.__model = marshal.toModel(model);
 
-      this.__model.setModel(value);
-      this.__controller.setModel(this.__model.getModel());
+      this.__controller.setModel(this.__model);
+      
       this.getRoot().setOpen(true);
     },
 
     // Public Members.
     /**
-     * TODOC
+     * Init the component
      *
-     * @return {void}
      */
     init : function()
     {
       this.__createUI();
-
-      var model = new qxrad.plugin.designer.model.PanelComponent();
-      this.__model = model;  //model.getModel();
-
-      this.__controller = new qxrad.plugin.designer.controller.PanelComponent(this.__model.getModel(), this, "children", "name");
+      this.__controller = new qxrad.plugin.designer.controller.PanelComponent(null, this, "children", "name", "icon");
     },
 
 
     /**
-     * TODOC
+     * Return the controller
      *
-     * @return {var} TODOC
+     * @return qxrad.plugin.designer.controller.PanelComponent The component controller
      */
     getController : function() {
       return this.__controller;

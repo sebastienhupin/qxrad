@@ -118,12 +118,16 @@ qx.Class.define("qxrad.plugin.designer.core.Settings",
      */
     __loadFile : function(name, url)
     {
-      var request = null;
-      request = new qx.io.remote.Request(url, "GET", "application/json");
 
-      request.addListenerOnce("completed", function(e)
+      var request = new qx.io.request.Xhr(url);
+      request.setAccept("application/json");
+      request.setParser("json");
+      
+      request.addListenerOnce("success", function(ev)
       {
-        var data = e.getContent();
+        var req = ev.getTarget(),
+           data = req.getResponse();
+ 
         this.__file[name] = data;
         this.__fileLoaded--;
 

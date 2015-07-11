@@ -58,16 +58,16 @@ qx.Class.define("qxrad.plugin.designer.model.PanelComponent",
      */
     _transformModel : function(value)
     {
-      if (!qx.lang.Type.isArray(value)) {
-        return null;
-      }
+//      if (!qx.lang.Type.isArray(value)) {
+//        return null;
+//      }
 
       var qxWidgetsList = {};
-
-      for (var i=0, l=value.length; i<l; i++)
+      for (var key in value)
       {
-        var w = value[i];
-        var split = qx.util.StringSplit.split(w, ".");
+        var w = value[key];
+        console.log(key);
+        var split = qx.util.StringSplit.split(key, ".");
 
         if (split[0] == "qx") {
           qxrad.util.Array.arrayToMapTree(qxWidgetsList, split);

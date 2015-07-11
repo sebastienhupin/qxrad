@@ -22,9 +22,14 @@ qx.Class.define("qxrad.plugin.designer.controller.PanelComponent",
   /**
        * Create a new instance
        */
-  construct : function(model, target, childPath, labelPath)
+  construct : function(model, target, childPath, labelPath, iconPath)
   {
     this.base(arguments, model, target, childPath, labelPath);
+    
+    if (iconPath !== null) {
+      this.setIconPath(iconPath);
+    }
+    
     target.setDraggable(true);
 
     this.__connectListener();
