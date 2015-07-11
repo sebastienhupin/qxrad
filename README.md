@@ -9,6 +9,6 @@ Work with qooxdoo version 4.1
 Enter your repo’s folder, then run the following command:
 
 ```bash
-# Install npm packages, the npm script will take care of other dependencies
+# Run the generate python command
 generate.py source-all
 ```
