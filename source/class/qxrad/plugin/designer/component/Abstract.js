@@ -359,8 +359,8 @@ qx.Class.define("qxrad.plugin.designer.component.Abstract",
         this.setClassname(object.classname);
       }
 
-      if (!this.getName()) {
-        this.setName(object.basename + "_" + this.__hashcode);
+      if (!this.getName()) {        
+        this.setName(object.basename + "_" + this.__hashcode.replace(/\-/g,'_'));
       }
 
       if (this._afterObjectSetting) {
@@ -381,7 +381,7 @@ qx.Class.define("qxrad.plugin.designer.component.Abstract",
 
       var object = this._createObject();
 
-      this.setName(source.name ? source.name : object.basename + "_" + this.__hashcode);
+      this.setName(source.name ? source.name : object.basename + "_" + this.__hashcode.replace(/\-/g,'_'));
       
       var objects = null;
 
@@ -435,12 +435,12 @@ qx.Class.define("qxrad.plugin.designer.component.Abstract",
       			}
       			source["objects"].push({
       				"classname" : "qxrad.util.Date",
-      				"name" : "DateFormat_" + this.__hashcode,
+      				"name" : "DateFormat_" + this.__hashcode.replace(/\-/g,'_'),
       				"properties" : {
       					"value" : qx.bom.String.escape(new qx.util.format.DateFormat().format(value)) 
       				}
       			});
-      			source["properties"][key] = "DateFormat_" + this.__hashcode;
+      			source["properties"][key] = "DateFormat_" + this.__hashcode.replace(/\-/g,'_');
       		}
       		else {
       			source["properties"][key] = properties[key];
