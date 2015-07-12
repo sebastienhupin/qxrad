@@ -187,7 +187,7 @@ qx.Class.define("qxrad.core.view.Ide",
       var qxButton = new qx.ui.toolbar.Button("qx");
       widget.add(qxButton);
 
-      widget.add(this.__createBtQxTheme());
+      //widget.add(this.__createBtQxTheme());
 
       widget.add(this.__createPartToolbarPerspective());
       widget.add(this.__createPartButtonPerspective());
@@ -204,9 +204,10 @@ qx.Class.define("qxrad.core.view.Ide",
     __createPanelLeft : function()
     {
       var widget = this.__panelleft = new qx.ui.tabview.TabView();
+      /*
       var explorer = new qx.ui.tabview.Page(this.tr("Explorer"));
       widget.add(explorer);
-
+      */
       return widget;
     },
 
@@ -252,15 +253,16 @@ qx.Class.define("qxrad.core.view.Ide",
 
 
     /**
-     * TODOC
+     * Create the panel log
      *
-     * @return {var} TODOC
+     * @return {qx.ui.tabview.TabView} Return the panel log
      */
     __createPanelLog : function()
     {
       var widget = this.__panellog = new qx.ui.tabview.TabView();
-      var console = new qx.ui.tabview.Page(this.tr("Console"));
-      widget.add(console);
+
+      //var console = new qx.ui.tabview.Page(this.tr("Console"));
+      //widget.add(console);
 
       return widget;
     },
@@ -281,9 +283,8 @@ qx.Class.define("qxrad.core.view.Ide",
 
 
     /**
-     * TODOC
+     * Create the ui
      *
-     * @return {void}
      */
     __createUI : function()
     {
@@ -306,7 +307,7 @@ qx.Class.define("qxrad.core.view.Ide",
       splitLeft.add(splitRight,1);
 
       mainSplitV.add(splitLeft,2);
-      mainSplitV.add(this.__createPanelLog());
+      //mainSplitV.add(this.__createPanelLog());
 
       this.add(mainSplitV, {edge:"center"});
 
@@ -314,10 +315,10 @@ qx.Class.define("qxrad.core.view.Ide",
 
 
     /**
-     * TODOC
+     * Clean all perspective
      *
-     * @return {boolean} TODOC
-     * @throws TODOC
+     * @return {boolean} Return true on success
+     * @throws Error on cleaning perspective
      */
     __cleanPerspective : function()
     {
@@ -336,24 +337,22 @@ qx.Class.define("qxrad.core.view.Ide",
         if (this.getEditorView().getChildren().length > 1) {
           this.getEditorView().remove(this.getEditorView().getChildren()[1]);
         }
-
+/*
         if (this.getPanelLog().getChildren().length > 1) {
           this.getPanelLog().remove(this.getPanelLog().getChildren()[1]);
         }
-
+*/
         return true;
       }
       catch(e)
       {
         throw new Error("Error cleaning perspective : " + e);
       }
-
-      return false;
     },
 
 
     /**
-     * TODOC
+     * The init
      *
      * @return {void}
      */
@@ -456,6 +455,10 @@ qx.Class.define("qxrad.core.view.Ide",
 
       for (var key in tools)
       {
+        if (tools[key].view === null) {
+          continue;
+        }
+        
         var page = new qx.ui.tabview.Page();
         page.setLayout(new qx.ui.layout.VBox());
 

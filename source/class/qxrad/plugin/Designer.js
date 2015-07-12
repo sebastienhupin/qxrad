@@ -99,7 +99,7 @@ qx.Class.define("qxrad.plugin.Designer",
      * @return {void}
      */
     __createPanellog : function() {
-      this.setPanelLog(new qxrad.plugin.designer.view.PanelLog());
+      //this.setPanelLog(new qxrad.plugin.designer.view.PanelLog());
     },
 
 
